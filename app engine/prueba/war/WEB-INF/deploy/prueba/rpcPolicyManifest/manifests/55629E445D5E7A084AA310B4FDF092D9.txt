@@ -1,0 +1,2 @@
+serviceClass: dos.client.RepairService
+path: B92130C900646D89EB5B4374D4AACEDB.gwt.rpc

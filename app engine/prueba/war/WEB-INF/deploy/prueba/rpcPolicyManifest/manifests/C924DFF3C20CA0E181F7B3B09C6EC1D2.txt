@@ -1,0 +1,2 @@
+serviceClass: dos.client.GreetingService
+path: C8E60418D5A0C5289585D21722ED1C47.gwt.rpc

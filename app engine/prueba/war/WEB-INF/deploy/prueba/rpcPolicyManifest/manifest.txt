@@ -1,0 +1,5 @@
+# Module prueba
+# RPC service class, partial path of RPC policy file
+dos.client.RepairService, B92130C900646D89EB5B4374D4AACEDB.gwt.rpc
+dos.client.LoginService, 73936DFA16C810530D6CDB4ED798BE79.gwt.rpc
+dos.client.GreetingService, C8E60418D5A0C5289585D21722ED1C47.gwt.rpc

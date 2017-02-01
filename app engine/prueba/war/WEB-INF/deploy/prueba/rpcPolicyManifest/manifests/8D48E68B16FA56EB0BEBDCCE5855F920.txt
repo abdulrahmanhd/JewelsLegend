@@ -1,0 +1,2 @@
+serviceClass: dos.client.LoginService
+path: 73936DFA16C810530D6CDB4ED798BE79.gwt.rpc
