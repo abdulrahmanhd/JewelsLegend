@@ -12,10 +12,12 @@ const int nColores = 8;
 
 void printDiamante(Diamante *diam, HANDLE hConsole);
 
-Diamante *explotarIguales(Diamante *diam, int posX, int posY, int filaExp, int columnaExp) { //esto no esta hecho
+Diamante *explotarIguales(Diamante *diam, int posX, int posY) { //esto no esta hecho
 
-	if (diam[(posX + 1)*columnaExp + posY].color == diam[posX*columnaExp + posY].color)
-		diam[(posX + 1)*columnaExp + posY].color = 0;
+	if (diam[(posX + 1)*columnaExp + posY].color == diam[posX*columnaExp + posY].color) {
+			diam[(posX + 1)*columnaExp + posY].color = 0;
+	}
+		
 
 	if (diam[(posX - 1)*columnaExp + posY].color == diam[posX*columnaExp + posY].color)
 		diam[(posX - 1)*columnaExp + posY].color = 0;
@@ -33,13 +35,40 @@ Diamante *explotarIguales(Diamante *diam, int posX, int posY, int filaExp, int c
 	return diam;
 }
 Diamante *comprobarIguales(Diamante *diam) {
+	int cont = 0;
 	for (int i = 0; i < filas; i++) {  //Recorremos el array en busca de cadenas de tres numeros iguales
 		for (int j = 0; j < columnas; j++) {
+			if (diam[(i*filas) + columnas].color != 0) {
+				cont = comprobarIgualesPos(diam, i, j);
+				if (cont > 2) {
+					diam = explotarIguales(diam, i, j);
+				}
+			}
 			//ni esto
 		}
+		cont = 0;
 	}
 
 	return diam;
+}
+
+int comprobarIgualesPos(Diamante *diam, int posX, int posY) {
+	int cont = 0;
+	if (diam[(posX*filas) + posY].color == diam[(posX * filas) + posY + 1 ].color) { // comprobamos derecha 
+		cont += 1 + comprobarIgualesPos(diam, posX, posY + 1);
+	}
+	if (diam[(posX*filas) + posY].color == diam[(posX * filas) + posY - 1].color) { //comprobamos izquierda
+		cont += 1 + comprobarIgualesPos(diam, posX, posY - 1);
+	}
+	if (diam[(posX*filas) + posY].color == diam[((posX + 1) * filas) + posY].color) { //comprobamos arriba
+		cont += 1 + comprobarIgualesPos(diam, posX + 1, posY);
+	}
+	if (diam[(posX*filas) + posY].color == diam[((posX - 1) * filas) + posY + 1].color) { //comprobamos abajo
+		cont += 1 + comprobarIgualesPos(diam, posX - 1, posY);
+	}
+
+	return cont;
+
 }
 
 void inicicializarArray(Diamante *diam){
@@ -87,7 +116,7 @@ Diamante *moverAbajo(Diamante *diam) {
 	return diam;
 }
 
-Diamante *moverdiam(Diamante *diam) {//vale dejame terminar eso y mañana hacemos lo otro k falta xfa es personall JAJAJAJA Okgrax
+Diamante *moverdiam(Diamante *diam) {
 	
 	int fi = 0;
 	int co = 0;
@@ -132,9 +161,9 @@ int main()
 
 		cout << "columna: ";
 		cin >> columnaInt;
+		
 
-
-			diam = explotarIguales(diam, filaInt, columnaInt, filas, columnas);
+			diam = explotarIguales(diam, filaInt, columnaInt);
 			int size = filas*columnas * sizeof(diam);
 
 		//*moveBlocks(bloques, filas, columnas);
