@@ -14,40 +14,68 @@ enum posicion { todos, arriba, abajo, derecha, izquierda };
 
 void printDiamante(Diamante *diam, HANDLE hConsole);
 int comprobarIgualesPos(Diamante *diam, int posX, int posY, posicion pos);
-/*
-Diamante *explotarIguales(Diamante *diam, int posX, int posY) { //esto no esta hecho
 
-	if (diam[(posX + 1)*columnaExp + posY].color == diam[posX*columnaExp + posY].color) {
-			diam[(posX + 1)*columnaExp + posY].color = 0;
+Diamante *explotarIguales(Diamante *diam, int posX, int posY, posicion pos) { //esto no esta hecho
+
+	switch (pos)
+	{
+	case todos:
+		if(comprobarIgualesPos(diam, posX, posY, derecha)>1)
+		diam = explotarIguales(diam, posX, posY, derecha);
+
+		if(comprobarIgualesPos(diam, posX, posY, izquierda)>1)
+		diam = explotarIguales(diam, posX, posY, izquierda);
+
+		if(comprobarIgualesPos(diam, posX, posY, arriba)>1)
+		diam = explotarIguales(diam, posX, posY, arriba);
+
+		if(comprobarIgualesPos(diam, posX, posY, abajo)>1)
+		diam = explotarIguales(diam, posX, posY, abajo);
+
+		diam[posX*columnas + posY].color = 0;
+		break;
+	case derecha:
+		if (diam[(posX*filas) + posY].color == diam[(posX * filas) + posY + 1].color) { // explotamos derecha
+			diam = explotarIguales(diam, posX, posY + 1, derecha);
+			diam[posX*filas + posY+1].color = 0;
+		}
+		break;
+	case izquierda:
+		if (diam[(posX*filas) + posY].color == diam[(posX * filas) + posY - 1].color) { //explotamos izquierda
+			diam = explotarIguales(diam, posX, posY - 1, izquierda);
+			diam[posX*columnas + posY - 1].color = 0;
+		}
+		break;
+	case abajo:
+		if (diam[(posX*filas) + posY].color == diam[((posX + 1) * filas) + posY].color) { //explotamos abajo
+			diam = explotarIguales(diam, posX + 1, posY, abajo);
+			diam[(posX + 1)*columnas + posY].color = 0;
+		}
+		break;
+	case arriba:
+		if (diam[(posX*filas) + posY].color == diam[((posX - 1) * filas) + posY + 1].color ) { //explotamos arriba
+			diam = explotarIguales(diam, posX - 1, posY, abajo);
+			diam[(posX - 1)*columnas + posY].color = 0;
+		}
+		break;
+	default:
+		break;
 	}
-		
 
-	if (diam[(posX - 1)*columnaExp + posY].color == diam[posX*columnaExp + posY].color)
-		diam[(posX - 1)*columnaExp + posY].color = 0;
-
-	if (diam[posX*columnaExp + posY + 1].color == diam[posX*columnaExp + posY].color)
-		diam[posX*columnaExp + posY + 1].color = 0;
-
-	if (diam[posX*columnaExp + posY - 1].color == diam[posX*columnaExp + posY].color)
-		diam[posX*columnas + posY - 1].color = 0;
-
-
-	diam[posX*columnas + posY].color = 0;
+	
 
 
 	return diam;
-}*/
+}
 Diamante *comprobarIguales(Diamante *diam) {
-	cout << "Llego a comprobar";
 	int cont = 0;
 	for (int i = 0; i < filas; i++) {  //Recorremos el array en busca de cadenas de tres numeros iguales
 		for (int j = 0; j < columnas; j++) {
 			if (diam[(i*filas) + j].color != 0) {
-				cont = comprobarIgualesPos(diam, i, j,todos);
-				if (cont >= 2) {
-					getchar();
-					//diam = explotarIguales(diam, i, j);
-					cout << "La posicion " << i << " " << j << ": Tiene estos iguales: " << cont << endl;
+				cont = 1 + comprobarIgualesPos(diam, i, j,todos);
+				if (cont > 2) {
+					diam = explotarIguales(diam, i, j,todos);
+					//cout << "La posicion " << i << " " << j << ": Tiene estos iguales: " << cont << endl;
 				}
 			}
 			//ni esto
