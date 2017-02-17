@@ -4,18 +4,23 @@
 #include "stdafx.h"
 #include <iostream>
 #include "Diamante.h"
+#include <string.h>
 
 using namespace std;
 const int columnas = 10;
 const int filas = 10;
 const int nColores = 8;
+enum posicion { todos, arriba, abajo, derecha, izquierda };
 
 void printDiamante(Diamante *diam, HANDLE hConsole);
+int comprobarIgualesPos(Diamante *diam, int posX, int posY, posicion pos);
+/*
+Diamante *explotarIguales(Diamante *diam, int posX, int posY) { //esto no esta hecho
 
-Diamante *explotarIguales(Diamante *diam, int posX, int posY, int filaExp, int columnaExp) {
-
-	if (diam[(posX + 1)*columnaExp + posY].color == diam[posX*columnaExp + posY].color)
-		diam[(posX + 1)*columnaExp + posY].color = 0;
+	if (diam[(posX + 1)*columnaExp + posY].color == diam[posX*columnaExp + posY].color) {
+			diam[(posX + 1)*columnaExp + posY].color = 0;
+	}
+		
 
 	if (diam[(posX - 1)*columnaExp + posY].color == diam[posX*columnaExp + posY].color)
 		diam[(posX - 1)*columnaExp + posY].color = 0;
@@ -31,15 +36,64 @@ Diamante *explotarIguales(Diamante *diam, int posX, int posY, int filaExp, int c
 
 
 	return diam;
-}
+}*/
 Diamante *comprobarIguales(Diamante *diam) {
+	cout << "Llego a comprobar";
+	int cont = 0;
 	for (int i = 0; i < filas; i++) {  //Recorremos el array en busca de cadenas de tres numeros iguales
 		for (int j = 0; j < columnas; j++) {
-
-		}
+			if (diam[(i*filas) + j].color != 0) {
+				cont = comprobarIgualesPos(diam, i, j,todos);
+				if (cont >= 2) {
+					getchar();
+					//diam = explotarIguales(diam, i, j);
+					cout << "La posicion " << i << " " << j << ": Tiene estos iguales: " << cont << endl;
+				}
+			}
+			//ni esto
+			cont = 0;
+		}	
 	}
 
 	return diam;
+}
+
+int comprobarIgualesPos(Diamante *diam, int posX, int posY, posicion pos) {
+	int cont = 0;
+	switch (pos)
+	{
+	case todos:
+		cont += comprobarIgualesPos(diam, posX, posY, derecha);
+		cont += comprobarIgualesPos(diam, posX, posY, izquierda);
+		cont += comprobarIgualesPos(diam, posX, posY, arriba);
+		cont += comprobarIgualesPos(diam, posX, posY, abajo);
+		break;
+	case derecha:
+		if (diam[(posX*filas) + posY].color == diam[(posX * filas) + posY + 1 ].color) { // comprobamos derecha 
+			cont += 1 + comprobarIgualesPos(diam, posX, posY + 1,derecha);
+		}
+		break;
+	case izquierda:
+		if (diam[(posX*filas) + posY].color == diam[(posX * filas) + posY - 1].color) { //comprobamos izquierda
+			cont += 1 + comprobarIgualesPos(diam, posX, posY - 1,izquierda);
+		}
+		break;
+	case abajo:
+		if (diam[(posX*filas) + posY].color == diam[((posX + 1) * filas) + posY].color) { //comprobamos arriba
+			cont += 1 + comprobarIgualesPos(diam, posX + 1, posY,abajo);
+		}
+	break;
+	case arriba:
+		if (diam[(posX*filas) + posY].color == diam[((posX - 1) * filas) + posY + 1].color) { //comprobamos abajo
+			cont += 1 + comprobarIgualesPos(diam, posX - 1, posY,arriba);
+		}
+	break;
+	default:
+		break;
+	}
+
+	return cont;
+
 }
 
 void inicicializarArray(Diamante *diam){
@@ -49,14 +103,63 @@ void inicicializarArray(Diamante *diam){
 
 	for (int i = 0; i < filas; i++) {  //llenamos el array de nums aleatorios
 		for (int j = 0; j < columnas; j++) {
-			numAleatorio = rand() % nColores;
-			diam[(i*filas) + j] = Diamante(i, j);
-			diam[(i*filas) + j].color = numAleatorio + 1;
+			numAleatorio = rand() % nColores + 1;
+			diam[(i*filas) + j] = Diamante(i, j); 
+			diam[(i*filas) + j].color = numAleatorio;
 
 		}
 	}
 }
 
+//funcion para mover los diamantes hacia abajo
+//Recorremos la matriz de abajo hacia arriba para no tener que repetir movimientos
+Diamante *moverAbajo(Diamante *diam) {
+	int pos = 0;
+	int iaux = 0;
+	//Recorremos hacia atras el array
+	for (int i = filas - 1; i > 0; i--) {
+		for (int j = columnas - 1; j > 0; j--) {
+
+			iaux = i;
+			pos = (i*filas) + j;
+			
+			if (pos-columnas >= 0 && (diam[(i*filas) + j].color == 0)) {
+				//Buscamos la primera posicion de la columna con color !=0
+				while (diam[((iaux)*filas) + j].color == 0) {
+					iaux=iaux-1;
+				}
+
+				//Intercambiamos colores
+				int colorAux = diam[(iaux*filas) + j].color;
+
+				diam[(i*filas) +j].color = colorAux;
+				diam[((iaux)*filas) + j].color = 0;
+								
+			}
+		}
+	}
+	return diam;
+}
+
+Diamante *moverdiam(Diamante *diam) {
+	
+	int fi = 0;
+	int co = 0;
+	cout << "fila";
+	cin >> fi;
+	cout << "columna";
+	cin >> co;
+
+	int colorAux = diam[(fi*filas) + co].color;
+	int colorAux2 = diam[((fi-1)*filas) + co].color;
+	
+	int cero = 0;
+	
+	diam[(fi*filas) + co].color = colorAux2;
+	diam[((fi-1)*filas) + co].color = 0;
+
+	return diam;
+}
 int main()
 {
 
@@ -83,14 +186,22 @@ int main()
 
 		cout << "columna: ";
 		cin >> columnaInt;
+		
 
-
-			diam = explotarIguales(diam, filaInt, columnaInt, filas, columnas);
+			//diam = explotarIguales(diam, filaInt, columnaInt);
 			int size = filas*columnas * sizeof(diam);
 
 		//*moveBlocks(bloques, filas, columnas);
+		//diam=moverdiam(diam);
+		diam = moverAbajo(diam);
+		cout << "\n\n\n";
 		printDiamante(diam, hConsole);
+		
+		
+		cout << "elementos movidos";
+		cout << diam[(0*filas) + 5].color;
 	}
+	free(diam);
 	getchar();
     return 0;
 }
