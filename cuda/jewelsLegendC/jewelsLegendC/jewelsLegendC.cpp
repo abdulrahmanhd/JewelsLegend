@@ -62,9 +62,6 @@ Diamante *explotarIguales(Diamante *diam, int posX, int posY, posicion pos) { //
 		break;
 	}
 
-	
-
-
 	return diam;
 }
 Diamante *comprobarIguales(Diamante *diam) {
