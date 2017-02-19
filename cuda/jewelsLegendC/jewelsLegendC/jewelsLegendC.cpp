@@ -136,39 +136,19 @@ Diamante *moverAbajo(Diamante *diam) {
 			pos = (j*filas)+i;
 			if (diam[(j*filas) + i].color == 0) {
 				//Buscamos la primera posicion de la columna con color !=0
-				while (diam[((FilaAux)*filas) + i].color == 0 && FilaAux >= 0) {
+				while (diam[((FilaAux)*filas) + i].color == 0 && FilaAux > 0) {
 					FilaAux -= 1;
 				}
 
 				//Intercambiamos colores
-				Diamante colorAux = diam[(FilaAux*filas) + i];
+				int colorAux = diam[(FilaAux*filas) + i].color;
 				diam[(FilaAux*filas) + i].color = 0;
-				diam[pos] = colorAux;
+				diam[pos].color = colorAux;
 				
 								
 			}
 		}
 	}
-	return diam;
-}
-
-Diamante *moverdiam(Diamante *diam) {
-	
-	int fi = 0;
-	int co = 0;
-	cout << "fila";
-	cin >> fi;
-	cout << "columna";
-	cin >> co;
-
-	int colorAux = diam[(fi*filas) + co].color;
-	int colorAux2 = diam[((fi-1)*filas) + co].color;
-	
-	int cero = 0;
-	
-	diam[(fi*filas) + co].color = colorAux2;
-	diam[((fi-1)*filas) + co].color = 0;
-
 	return diam;
 }
 
@@ -279,7 +259,7 @@ int main()
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
 	inicicializarArray(diam);
-	//diam = comprobarIguales(diam);
+	diam = comprobarIguales(diam);
 	printDiamante(diam, hConsole);
 
 	while (true) {
@@ -298,7 +278,7 @@ int main()
 
 			//diam = explotarIguales(diam, filaInt, columnaInt);
 			int size = filas*columnas * sizeof(diam);
-
+			diam = comprobarIguales(diam);
 		//*moveBlocks(bloques, filas, columnas);
 		//diam=moverdiam(diam);
 		//diam = moverAbajo(diam);
