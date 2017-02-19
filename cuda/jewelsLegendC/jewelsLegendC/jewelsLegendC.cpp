@@ -111,7 +111,7 @@ void inicicializarArray(Diamante *diam){
 	int numAleatorio = 0;
 
 	cout << "\n\n\n";
-	//srand(time(0));
+	srand(time(0));
 	for (int i = 0; i < filas; i++) {  //llenamos el array de nums aleatorios
 		for (int j = 0; j < columnas; j++) {
 			
