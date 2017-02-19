@@ -95,7 +95,7 @@ int comprobarIgualesPos(Diamante *diam, int posX, int posY,posicion pos) {
 		}
 	break;
 	case arriba:
-		if (diam[(posX*filas) + posY].color == diam[((posX - 1) * filas) + posY + 1].color) { //comprobamos arriba
+		if (diam[(posX*filas) + posY].color == diam[((posX - 1) * filas) + posY].color) { //comprobamos arriba
 			cont += 1 + comprobarIgualesPos(diam, posX - 1, posY,arriba);
 		}
 	break;
@@ -171,6 +171,105 @@ Diamante *moverdiam(Diamante *diam) {
 
 	return diam;
 }
+
+//Funcion que comprueba si dos diamantes son adyacentes
+bool adyacentes(Diamante diam, int f1, int c1, int f2, int c2) {
+	bool ady = false;
+
+	if (f1 == f2 + 1 || f1 == f2 - 1 || (f1 == f2 && c1 != c2)) {
+		if (c1 == c2 + 1 || c1 == c2 - 1 || (c1 == c2 && f1 != f2)) {
+			if ((f1 == f2 - 1 && c1 == c2 - 1) || (f1 == f2 + 1 && c1 == c2 - 1) ||	(f1 == f2 - 1 && c1 == c2 + 1) || (f1 == f2 + 1 && c1 == c2 + 1)) {
+				ady = false; //Si el movimiento es en diagonal no sera valido
+			}
+			else { ady = true; }
+		}
+	}
+	if (!ady) cout << "\nMOVIMIENTO ERRONEO, debe ser entre diamantes adyacentes y que no esten en diagonal";
+	return ady;
+}
+
+//Funcion que comprueba si los diamantes explotan
+bool explotan(Diamante *diam, int f1, int c1, int f2, int c2, bool ady) {
+	
+	bool expl = false;
+	int contIgualesArriba1=0, contIgualesAbajo1=0, contIgualesDer1=0, contIgualesIzq1=0, contIgualesVert1=0 , contIgualesHoriz1=0;
+	int contIgualesArriba2=0, contIgualesAbajo2=0, contIgualesDer2=0, contIgualesIzq2=0, contIgualesVert2=0, contIgualesHoriz2=0;
+	
+	//HAcemos el intercambio en la matriz para comprobar si se puede explotar
+	int colorAux1 = diam[(f1*filas) + c1].color;
+	int colorAux2 = diam[(f2*filas) + c2].color;
+	diam[(f1*filas) + c1].color = colorAux2;
+	diam[(f2*filas) + c2].color = colorAux1;
+
+	//Comprobamos todas las direcciones posibles
+	contIgualesArriba1 = comprobarIgualesPos(diam, f1, c1, arriba);
+	contIgualesAbajo1 = comprobarIgualesPos(diam, f1, c1, abajo);
+	contIgualesVert1 = comprobarIgualesPos(diam, f1, c1, arriba) + comprobarIgualesPos(diam, f1, c1, abajo);
+	contIgualesIzq1 = comprobarIgualesPos(diam, f1, c1, izquierda);
+	contIgualesDer1 = comprobarIgualesPos(diam, f1, c1, derecha);
+	contIgualesHoriz1 = comprobarIgualesPos(diam, f1, c1, izquierda) + comprobarIgualesPos(diam, f1, c1, derecha);
+
+	contIgualesArriba2 = comprobarIgualesPos(diam, f2, c2, arriba);
+	contIgualesAbajo2 = comprobarIgualesPos(diam, f2, c2, abajo);
+	contIgualesVert2 = comprobarIgualesPos(diam, f2, c2, arriba) + comprobarIgualesPos(diam, f2, c2, abajo);
+	contIgualesIzq2 = comprobarIgualesPos(diam, f2, c2, izquierda);
+	contIgualesDer2 = comprobarIgualesPos(diam, f2, c2, derecha);
+	contIgualesHoriz2 = comprobarIgualesPos(diam, f2, c2, izquierda) + comprobarIgualesPos(diam, f2, c2, derecha);
+
+	//cout << "\n" << contIgualesArriba1 << contIgualesAbajo1 << contIgualesVert1 << contIgualesIzq1 << contIgualesDer1 << contIgualesHoriz1;
+	//cout << "\n" << contIgualesArriba2 << contIgualesAbajo2 << contIgualesVert2 << contIgualesIzq2 << contIgualesDer2 << contIgualesHoriz2;
+
+	//En caso de que alguno de estos parametros sea 2 o más, al menos uno explota
+	if (contIgualesArriba1>=2 || contIgualesAbajo1>=2 || contIgualesVert1>=2 || contIgualesIzq1>=2 || contIgualesDer1>=2 || contIgualesHoriz1>=2) {
+		expl = true;
+	}
+	else if (contIgualesArriba2>=2 || contIgualesAbajo2>=2 || contIgualesVert2>=2 || contIgualesIzq2>=2 || contIgualesDer2>=2 || contIgualesHoriz2>=2) {
+		expl = true;
+	}
+
+	if(!ady || !expl){//En caso de que no sea posible deshacemos los cambios en la matriz
+		diam[(f1*filas) + c1].color = colorAux1;
+		diam[(f2*filas) + c2].color = colorAux2;
+		if(!expl) cout << "\nMOVIMIENTO ERRONEO, los diamantes seleccionados no explotan";
+	}
+
+	return expl;
+}
+
+//Funcion que pide movimiento hasta que sea correcto
+bool movPosible(Diamante *diam) {
+	int f1 = 0, c1 = 0, f2 = 0, c2 = 0;
+	bool expl = false, ady = false;
+
+	cout << "\n--INTRODUCE TU JUGADA--";
+	cout << "\nIntroduce la fila del primer diamante: ";
+	cin >> f1;
+	if (f1 == 99) exit(0);
+	cout << "Introduce la columna del primer diamante: ";
+	cin >> c1;
+	cout << "Introduce la fila del segundo diamante: ";
+	cin >> f2;
+	cout << "Introduce la columna del segundo diamante: ";
+	cin >> c2;
+
+	ady = adyacentes(*diam, f1, c1, f2, c2);
+	expl = explotan(diam, f1, c1, f2, c2, ady);
+	
+	/*//Pedimos de nuevo los datos
+	while (!ady && !expl) {
+		cout << "\nIntroduce la fila del primer diamante: ";
+		cin >> f1;
+		if (f1 == 99) exit(0);
+		cout << "Introduce la columna del primer diamante: ";
+		cin >> c1;
+		cout << "Introduce la fila del segundo diamante: ";
+		cin >> f2;
+		cout << "Introduce la columna del segundo diamante: ";
+		cin >> c2;
+	}*/
+	return true;
+}
+
 int main()
 {
 
@@ -180,37 +279,33 @@ int main()
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
 	inicicializarArray(diam);
-	diam = comprobarIguales(diam);
+	//diam = comprobarIguales(diam);
 	printDiamante(diam, hConsole);
 
 	while (true) {
-
+		bool mov = false;
 		cout << "\n\n\n";
 		SetConsoleTextAttribute(hConsole, 15);
-		cout << "Introduce la posicion del bloque que quieras explotar o 99 para salir";
-		int filaInt = 0, columnaInt = 0;
-		cout << "\nfila: ";
-		cin >> filaInt;
+		cout << "Introduce 99 para salir";
+		int filaInt = 0;
 
 		if (filaInt == 99)
 			exit(0);
 
-		cout << "columna: ";
-		cin >> columnaInt;
-		
+		while (!mov) {
+			mov=movPosible(diam);
+		}
 
 			//diam = explotarIguales(diam, filaInt, columnaInt);
 			int size = filas*columnas * sizeof(diam);
 
 		//*moveBlocks(bloques, filas, columnas);
 		//diam=moverdiam(diam);
-		diam = moverAbajo(diam);
+		//diam = moverAbajo(diam);
 		cout << "\n\n\n";
 		printDiamante(diam, hConsole);
+		getchar();
 		
-		
-		cout << "elementos movidos";
-		cout << diam[(0*filas) + 5].color;
 	}
 	free(diam);
 	getchar();
