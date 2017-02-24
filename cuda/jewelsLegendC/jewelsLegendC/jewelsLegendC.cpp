@@ -217,12 +217,12 @@ int colocarDerecha(Diamante *diam, int i, int filas, int columnas) {
 }
 
 //Funcion que comprueba si dos diamantes son adyacentes
-bool adyacentes(Diamante diam, int f1, int c1, int f2, int c2) {
+bool adyacentes(Diamante diam, int fila1, int columna1, int fila2, int columna2) {
 	bool ady = false;
 
-	if (f1 == f2 + 1 || f1 == f2 - 1 || (f1 == f2 && c1 != c2)) {
-		if (c1 == c2 + 1 || c1 == c2 - 1 || (c1 == c2 && f1 != f2)) {
-			if ((f1 == f2 - 1 && c1 == c2 - 1) || (f1 == f2 + 1 && c1 == c2 - 1) ||	(f1 == f2 - 1 && c1 == c2 + 1) || (f1 == f2 + 1 && c1 == c2 + 1)) {
+	if (fila1 == fila2 + 1 || fila1 == fila2 - 1 || (fila1 == fila2 && columna1 != columna2)) {
+		if (columna1 == columna2 + 1 || columna1 == columna2 - 1 || (columna1 == columna2 && fila1 != fila2)) {
+			if ((fila1 == fila2 - 1 && columna1 == columna2 - 1) || (fila1 == fila2 + 1 && columna1 == columna2 - 1) ||	(fila1 == fila2 - 1 && columna1 == columna2 + 1) || (fila1 == fila2 + 1 && columna1 == columna2 + 1)) {
 				ady = false; //Si el movimiento es en diagonal no sera valido
 			}
 			else { ady = true; }
@@ -360,14 +360,11 @@ int main()
 			mov=movPosible(diam);
 		}
 
-			//diam = explotarIguales(diam, filaInt, columnaInt);
-			int size = filas*columnas * sizeof(diam);
-			//diam = comprobarIguales(diam);
-<<<<<<< HEAD
-			diam = rellenarCeros(diam);
-=======
->>>>>>> 706f49bdcd848f1132d85dd0d42c69a95751d0b9
-		//*moveBlocks(bloques, filas, columnas);
+		//diam = explotarIguales(diam, filaInt, columnaInt);
+		int size = filas*columnas * sizeof(diam);
+		//diam = comprobarIguales(diam);
+		diam = rellenarCeros(diam);
+
 		//diam=moverdiam(diam);
 		//diam = moverAbajo(diam);
 		cout << "\n\n\n";
