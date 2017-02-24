@@ -123,6 +123,25 @@ void inicicializarArray(Diamante *diam){
 	}
 }
 
+Diamante *rellenarCeros(Diamante *diam) {
+	int numAleatorio = 0;
+	srand(time(0));//Cambiamos semillas
+
+	for (int i = 0; i < filas; i++) {  //recorremos array
+		for (int j = 0; j < columnas; j++) {
+
+			if (diam[(i*filas) + j].color == 0) {
+				numAleatorio = rand() % nColores + 1;
+				diam[(i*filas) + j] = Diamante(i, j);
+				diam[(i*filas) + j].color = numAleatorio;
+			}
+			
+
+		}
+	}
+	return diam;
+}
+
 //funcion para mover los diamantes hacia abajo
 //Recorremos la matriz de abajo hacia arriba para no tener que repetir movimientos
 Diamante *moverAbajo(Diamante *diam) {
@@ -278,7 +297,8 @@ int main()
 
 			//diam = explotarIguales(diam, filaInt, columnaInt);
 			int size = filas*columnas * sizeof(diam);
-			diam = comprobarIguales(diam);
+			//diam = comprobarIguales(diam);
+			diam = rellenarCeros(diam);
 		//*moveBlocks(bloques, filas, columnas);
 		//diam=moverdiam(diam);
 		//diam = moverAbajo(diam);
