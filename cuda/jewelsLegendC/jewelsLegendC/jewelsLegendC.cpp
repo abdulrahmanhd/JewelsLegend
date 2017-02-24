@@ -10,16 +10,18 @@
 using namespace std;
 const int columnas = 10;
 const int filas = 10;
-const int nColores = 8;
+int nColores = 8;
 enum posicion { todos, arriba, abajo, derecha, izquierda };
 
 void printDiamante(Diamante *diam, HANDLE hConsole);
 int comprobarIgualesPos(Diamante *diam, int posX, int posY, posicion pos);
 int comprobarIgualesDer(Diamante *diam, int posX, int posY);
 int comprobarIgualesAbajo(Diamante *diam, int posX, int posY);
+int comprobarIgualesIzquierda(Diamante *diam, int posX, int posY);
+int comprobarIgualesArriba(Diamante *diam, int posX, int posY);
 Diamante *moverAbajo(Diamante *diam);
 
-Diamante *explotarIguales(Diamante *diam, int posX, int posY) { //esto no esta hecho
+Diamante *explotarIguales(Diamante *diam, int posX, int posY) {
 
 	int contFilas = comprobarIgualesDer(diam, posX, posY);
 	int contColumnas = comprobarIgualesAbajo(diam, posX, posY);
@@ -30,11 +32,20 @@ Diamante *explotarIguales(Diamante *diam, int posX, int posY) { //esto no esta h
 	if (contColumnas > 0) {
 		diam = explotarIguales(diam, posX + 1, posY);
 	}
+	contFilas = comprobarIgualesIzquierda(diam, posX, posY);
+	contColumnas = comprobarIgualesAbajo(diam, posX, posY);
+
+	if (contFilas > 0) {
+		diam = explotarIguales(diam, posX, posY - 1);
+	}
+	if (contColumnas > 0) {
+		diam = explotarIguales(diam, posX - 1, posY);
+	}
 	diam[posX*columnas + posY].color = 0;
 
 	return diam;
 }
-Diamante *comprobarIguales(Diamante *diam) {
+/*Diamante *comprobarIguales(Diamante *diam) {
 	
 	for (int i = 0; i < filas; i++) {  //Recorremos el array en busca de cadenas de tres numeros iguales
 		for (int j = 0; j < columnas; j++) {
@@ -51,12 +62,25 @@ Diamante *comprobarIguales(Diamante *diam) {
 	}
 	diam = moverAbajo(diam);
 	return diam;
+}*/
+int comprobarIgualesArriba(Diamante *diam, int posX, int posY) {
+	int cont = 0;
+	if (diam[(posX*filas) + posY].color == diam[((posX-1) * filas) + posY].color && posX -1 >0) {
+		cont = 1 + comprobarIgualesArriba(diam, posX-1, posY);
+	}
+	return cont;
 }
-
+int comprobarIgualesIzquierda(Diamante *diam, int posX, int posY) {
+	int cont = 0;
+	if (diam[(posX*filas) + posY].color == diam[(posX * filas) + posY - 1].color && posY > 0) {
+		cont = 1 + comprobarIgualesIzquierda(diam, posX, posY - 1);
+	}
+	return cont;
+}
 
 int comprobarIgualesDer(Diamante *diam, int posX, int posY) {
 	int cont = 0;
-	if (diam[(posX*filas) + posY].color == diam[(posX * filas) + posY + 1].color) {
+	if (diam[(posX*filas) + posY].color == diam[(posX * filas) + posY + 1].color && posY > columnas-1) {
 		cont = 1 + comprobarIgualesDer(diam, posX, posY + 1);
 	}
 	return cont;
@@ -64,7 +88,7 @@ int comprobarIgualesDer(Diamante *diam, int posX, int posY) {
 int comprobarIgualesAbajo(Diamante *diam, int posX, int posY) {
 	int cont = 0;
 	//if(posX >= filas - 1 && posY >= columnas - 1)
-	if (diam[(posX*filas) + posY].color == diam[((posX + 1) * filas) + posY].color) {
+	if (diam[(posX*filas) + posY].color == diam[((posX + 1) * filas) + posY].color && posX + 1 > filas-1) {
 		cont = 1 + comprobarIgualesAbajo(diam, posX + 1, posY );
 	}
 	return cont;
@@ -111,7 +135,7 @@ void inicicializarArray(Diamante *diam){
 	int numAleatorio = 0;
 
 	cout << "\n\n\n";
-	srand(time(0));
+	//srand(time(0));
 	for (int i = 0; i < filas; i++) {  //llenamos el array de nums aleatorios
 		for (int j = 0; j < columnas; j++) {
 			
@@ -151,6 +175,27 @@ Diamante *moverAbajo(Diamante *diam) {
 	}
 	return diam;
 }
+////MUEVE CEROS HACIA DERECHA
+int colocarDerecha(Diamante *diam, int i, int filas, int columnas) {
+
+	bool limite = false;
+	int x = i;                                         //No queremos perder la posicion del primer bloque por eso la guardamos en x
+
+	while (limite == false && diam[x].color == 0) {    //Es para saber la posicion con el que hay que cambiar el 0
+
+		if (x == ((filas*columnas) - 1)) limite = true;    //Limite es control de desbordo
+		else x++;                                  //subimos posicion
+	}
+
+	//Intercambiamos las columnas
+	while (i>0 && x>0) {	//control de desbordo
+		diam[i].color = diam[x].color;
+		diam[x].color = 0;
+		i = i - columnas;
+		x = x - filas;
+	}
+	return 0;
+}
 
 //Funcion que comprueba si dos diamantes son adyacentes
 bool adyacentes(Diamante diam, int f1, int c1, int f2, int c2) {
@@ -166,6 +211,11 @@ bool adyacentes(Diamante diam, int f1, int c1, int f2, int c2) {
 	}
 	if (!ady) cout << "\nMOVIMIENTO ERRONEO, debe ser entre diamantes adyacentes y que no esten en diagonal";
 	return ady;
+}
+
+bool hasMoreMovements(Diamante *diam) {
+	
+	return false;
 }
 
 //Funcion que comprueba si los diamantes explotan
@@ -206,12 +256,10 @@ bool explotan(Diamante *diam, int f1, int c1, int f2, int c2, bool ady) {
 	else if (contIgualesArriba2>=2 || contIgualesAbajo2>=2 || contIgualesVert2>=2 || contIgualesIzq2>=2 || contIgualesDer2>=2 || contIgualesHoriz2>=2) {
 		expl = true;
 	}
-
-	if(!ady || !expl){//En caso de que no sea posible deshacemos los cambios en la matriz
+	// deshacemos los cambios en la matriz
 		diam[(f1*filas) + c1].color = colorAux1;
 		diam[(f2*filas) + c2].color = colorAux2;
-		if(!expl) cout << "\nMOVIMIENTO ERRONEO, los diamantes seleccionados no explotan";
-	}
+		if (!expl) cout << "\nMOVIMIENTO ERRONEO, los diamantes seleccionados no explotan";
 
 	return expl;
 }
@@ -232,8 +280,23 @@ bool movPosible(Diamante *diam) {
 	cout << "Introduce la columna del segundo diamante: ";
 	cin >> c2;
 
+
 	ady = adyacentes(*diam, f1, c1, f2, c2);
 	expl = explotan(diam, f1, c1, f2, c2, ady);
+	if (ady && expl) {
+		int colorAux1 = diam[(f1*filas) + c1].color;
+		int colorAux2 = diam[(f2*filas) + c2].color;
+		diam[(f1*filas) + c1].color = colorAux2;
+		diam[(f2*filas) + c2].color = colorAux1;
+		if (comprobarIgualesDer(diam,f1,c1)>2 || comprobarIgualesAbajo(diam, f1, c1)>2 || comprobarIgualesArriba(diam, f1, c1)>2|| comprobarIgualesIzquierda(diam, f1, c1)>2) {
+			diam = explotarIguales(diam,f1,c1 );
+		}
+		else {
+			diam = explotarIguales(diam, f2, c2);
+		}
+	}
+
+	moverAbajo(diam);
 	
 	/*//Pedimos de nuevo los datos
 	while (!ady && !expl) {
@@ -259,7 +322,7 @@ int main()
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
 	inicicializarArray(diam);
-	diam = comprobarIguales(diam);
+	//diam = comprobarIguales(diam);
 	printDiamante(diam, hConsole);
 
 	while (true) {
@@ -273,12 +336,14 @@ int main()
 			exit(0);
 
 		while (!mov) {
+			
+			bool canMove = hasMoreMovements(diam);
 			mov=movPosible(diam);
 		}
 
 			//diam = explotarIguales(diam, filaInt, columnaInt);
 			int size = filas*columnas * sizeof(diam);
-			diam = comprobarIguales(diam);
+			//diam = comprobarIguales(diam);
 		//*moveBlocks(bloques, filas, columnas);
 		//diam=moverdiam(diam);
 		//diam = moverAbajo(diam);
@@ -293,9 +358,9 @@ int main()
 }
 void printDiamante(Diamante *diam, HANDLE hConsole) {  //modulo para imprimir el tablero
 	for (int i = 0; i<filas; i++) {
-		for (int j = 0; j<columnas; j++)
+		for (int j = 0; j < columnas; j++) 
 			diam[i*columnas + j].printDiamante(hConsole);
-		cout << "\n";
+		cout << endl;
 	}
 
 }
