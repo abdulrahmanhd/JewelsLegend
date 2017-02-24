@@ -8,8 +8,8 @@
 #include <time.h>
 
 using namespace std;
-const int columnas = 10;
-const int filas = 10;
+int columnas = 10;
+int filas = 10;
 int nColores = 8;
 enum posicion { todos, arriba, abajo, derecha, izquierda };
 
@@ -284,7 +284,7 @@ bool explotan(Diamante *diam, int f1, int c1, int f2, int c2, bool ady) {
 }
 
 //Funcion que pide movimiento hasta que sea correcto
-bool movPosible(Diamante *diam) {
+bool movPosibleManual(Diamante *diam) {
 	int f1 = 0, c1 = 0, f2 = 0, c2 = 0;
 	bool expl = false, ady = false;
 
@@ -292,6 +292,9 @@ bool movPosible(Diamante *diam) {
 	cout << "\nIntroduce la fila del primer diamante: ";
 	cin >> f1;
 	if (f1 == 99) exit(0);
+	//if (f1 == 91) bombOne(diam);
+	//if (f1 == 92) bombTwo(diam);
+	//if (f1 == 93) bombThree(diam);
 	cout << "Introduce la columna del primer diamante: ";
 	cin >> c1;
 	cout << "Introduce la fila del segundo diamante: ";
@@ -317,63 +320,69 @@ bool movPosible(Diamante *diam) {
 
 	moverAbajo(diam);
 	
-	/*//Pedimos de nuevo los datos
-	while (!ady && !expl) {
-		cout << "\nIntroduce la fila del primer diamante: ";
-		cin >> f1;
-		if (f1 == 99) exit(0);
-		cout << "Introduce la columna del primer diamante: ";
-		cin >> c1;
-		cout << "Introduce la fila del segundo diamante: ";
-		cin >> f2;
-		cout << "Introduce la columna del segundo diamante: ";
-		cin >> c2;
-	}*/
 	return true;
 }
+void playAutomaticMode() {
 
+}
 int main()
 {
 
-	Diamante *diam = new Diamante[filas*columnas];
+	char modoJuego,dificultad; 
+	cout << "Que modo de juego desea iniciar? Para automatico introduzca (A)" << endl;
+	cin >> modoJuego;
+	cout << "Introduzca las filas y columnas que desea para la matriz?\nFilas: ";
+	cin >> filas;
+	cout << "\nColumnas: ";
+	cin >> columnas;
+	cout << "Que dificultad desea para el juego? Facil(F), Medio(M), Dificil(D)" << endl;
+	cin >> dificultad;
+
+	if (dificultad == 'F') {
+		nColores = 4;
+	}
+	else if (dificultad == 'M') {
+		nColores = 6;
+	} //Se pone por defecto en 8 colores
 
 	HANDLE hConsole;
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
+	Diamante *diam = new Diamante[filas*columnas];
 	inicicializarArray(diam);
 	//diam = comprobarIguales(diam);
 	printDiamante(diam, hConsole);
 
 	while (true) {
-		bool mov = false;
-		cout << "\n\n\n";
-		SetConsoleTextAttribute(hConsole, 15);
-		cout << "Introduce 99 para salir";
-		int filaInt = 0;
-
-		if (filaInt == 99)
-			exit(0);
-
-		while (!mov) {
-			
-			bool canMove = hasMoreMovements(diam);
-			mov=movPosible(diam);
+		if (modoJuego == 'a' || modoJuego == 'A') {
+			playAutomaticMode();
 		}
+		else {
+			bool mov = false;
+			cout << "\n\n\n";
+			SetConsoleTextAttribute(hConsole, 15);
+			cout << "Introduce 99 para salir";
+			int filaInt = 0;
 
-			//diam = explotarIguales(diam, filaInt, columnaInt);
-			int size = filas*columnas * sizeof(diam);
-			//diam = comprobarIguales(diam);
-<<<<<<< HEAD
+			if (filaInt == 99)
+				exit(0);
+
+			while (!mov) {
+
+				bool canMove = hasMoreMovements(diam);
+				mov = movPosibleManual(diam);
+			}
+
+			//int size = filas*columnas * sizeof(diam);
 			diam = rellenarCeros(diam);
-=======
->>>>>>> 706f49bdcd848f1132d85dd0d42c69a95751d0b9
-		//*moveBlocks(bloques, filas, columnas);
-		//diam=moverdiam(diam);
-		//diam = moverAbajo(diam);
-		cout << "\n\n\n";
-		printDiamante(diam, hConsole);
-		getchar();
-		
+			//*moveBlocks(bloques, filas, columnas);
+			//diam=moverdiam(diam);
+			//diam = moverAbajo(diam);
+			cout << "\n\n\n";
+			printDiamante(diam, hConsole);
+			getchar();
+		}
+			
 	}
 	free(diam);
 	getchar();
