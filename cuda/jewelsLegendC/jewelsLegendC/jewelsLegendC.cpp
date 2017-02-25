@@ -6,12 +6,19 @@
 #include "Diamante.h"
 #include <string.h>
 #include <time.h>
+#include <string>
 
 using namespace std;
 const int columnas = 10;
 const int filas = 10;
+<<<<<<< HEAD
 const int nColores = 8;
+=======
+const int posFinal = (filas * columnas) - 1;
+int nColores = 8;
+>>>>>>> a3cf4fe6ac1727331e6454c2fa1aad6df03bb393
 enum posicion { todos, arriba, abajo, derecha, izquierda };
+
 
 void printDiamante(Diamante *diam, HANDLE hConsole);
 int comprobarIgualesPos(Diamante *diam, int posX, int posY, posicion pos);
@@ -193,34 +200,42 @@ Diamante *moverAbajo(Diamante *diam) {
 	return diam;
 }
 ////MUEVE CEROS HACIA DERECHA
-int colocarDerecha(Diamante *diam, int i, int filas, int columnas) {
+int moverIzquierda(Diamante *diam) {
+	int columnaAux = 0;
+	int columna1 = 0;
+	
+	for (int i = filas - 1; i >= 0; i--) {
+		for (int j = columnas - 1; j >= 0; j--) {
+			columnaAux = j;
+			columna1 = j;
+			if (diam[(i*filas)+j].color == 0) {
+				//Buscamos la siguiente columna !=0
+				while (diam[(i*filas) + columnaAux].color == 0 && columnaAux > 0) {
+					columnaAux -= 1;
+				}
 
-	bool limite = false;
-	int x = i;                                         //No queremos perder la posicion del primer bloque por eso la guardamos en x
-
-	while (limite == false && diam[x].color == 0) {    //Es para saber la posicion con el que hay que cambiar el 0
-
-		if (x == ((filas*columnas) - 1)) limite = true;    //Limite es control de desbordo
-		else x++;                                  //subimos posicion
+				//Intercambiamos las columnas
+				while (columna1>=0 && columnaAux>=0) {	//control de desbordo (de columna)
+					diam[(i*filas) + columna1].color = diam[(i*filas) + columnaAux].color;
+					diam[(i*filas) + columnaAux].color = 0;
+					columna1 = columna1 - columnas;
+					columnaAux = columnaAux - columnas;
+				}
+			}
+		}
 	}
-
-	//Intercambiamos las columnas
-	while (i>0 && x>0) {	//control de desbordo
-		diam[i].color = diam[x].color;
-		diam[x].color = 0;
-		i = i - columnas;
-		x = x - filas;
-	}
+	
+	
 	return 0;
 }
 
 //Funcion que comprueba si dos diamantes son adyacentes
-bool adyacentes(Diamante diam, int f1, int c1, int f2, int c2) {
+bool adyacentes(Diamante diam, int fila1, int columna1, int fila2, int columna2) {
 	bool ady = false;
 
-	if (f1 == f2 + 1 || f1 == f2 - 1 || (f1 == f2 && c1 != c2)) {
-		if (c1 == c2 + 1 || c1 == c2 - 1 || (c1 == c2 && f1 != f2)) {
-			if ((f1 == f2 - 1 && c1 == c2 - 1) || (f1 == f2 + 1 && c1 == c2 - 1) ||	(f1 == f2 - 1 && c1 == c2 + 1) || (f1 == f2 + 1 && c1 == c2 + 1)) {
+	if (fila1 == fila2 + 1 || fila1 == fila2 - 1 || (fila1 == fila2 && columna1 != columna2)) {
+		if (columna1 == columna2 + 1 || columna1 == columna2 - 1 || (columna1 == columna2 && fila1 != fila2)) {
+			if ((fila1 == fila2 - 1 && columna1 == columna2 - 1) || (fila1 == fila2 + 1 && columna1 == columna2 - 1) ||	(fila1 == fila2 - 1 && columna1 == columna2 + 1) || (fila1 == fila2 + 1 && columna1 == columna2 + 1)) {
 				ady = false; //Si el movimiento es en diagonal no sera valido
 			}
 			else { ady = true; }
@@ -282,7 +297,7 @@ bool explotan(Diamante *diam, int f1, int c1, int f2, int c2, bool ady) {
 }
 
 //Funcion que pide movimiento hasta que sea correcto
-bool movPosibleManual(Diamante *diam) {
+bool movPosible(Diamante *diam) {
 	int f1 = 0, c1 = 0, f2 = 0, c2 = 0;
 	bool expl = false, ady = false;
 
@@ -290,9 +305,6 @@ bool movPosibleManual(Diamante *diam) {
 	cout << "\nIntroduce la fila del primer diamante: ";
 	cin >> f1;
 	if (f1 == 99) exit(0);
-	//if (f1 == 91) bombOne(diam);
-	//if (f1 == 92) bombTwo(diam);
-	//if (f1 == 93) bombThree(diam);
 	cout << "Introduce la columna del primer diamante: ";
 	cin >> c1;
 	cout << "Introduce la fila del segundo diamante: ";
@@ -318,11 +330,50 @@ bool movPosibleManual(Diamante *diam) {
 
 	moverAbajo(diam);
 	
+	/*//Pedimos de nuevo los datos
+	while (!ady && !expl) {
+		cout << "\nIntroduce la fila del primer diamante: ";
+		cin >> f1;
+		if (f1 == 99) exit(0);
+		cout << "Introduce la columna del primer diamante: ";
+		cin >> c1;
+		cout << "Introduce la fila del segundo diamante: ";
+		cin >> f2;
+		cout << "Introduce la columna del segundo diamante: ";
+		cin >> c2;
+	}*/
 	return true;
 }
-void playAutomaticMode() {
 
+
+Diamante *bomba1(Diamante *diam) {
+	int fila = 0;
+
+	cout << "Selecciona la fila que quieras explotar: ";
+	cin >> fila;
+
+	for (int i = fila; i < fila + 1; i++) {  //recorremos la fila que queremos explotar
+		for (int j = 0; j < columnas; j++) {
+			diam[(i*filas) + j].color = 0;
+		}
+	}
+	moverAbajo(diam);
+	return diam;
 }
+
+Diamante *bomba2(Diamante *diam) {
+	int columna = 0;
+
+	cout << "Selecciona la columna que quieras explotar: ";
+	cin >> columna;
+
+	for (int i = 0; i < filas; i++) {  //ponemos a 0 las posiciones que son de esa columna
+			diam[(i*filas) + columna].color = 0;
+	}
+	moverIzquierda(diam);
+	return diam;
+}
+<<<<<<< HEAD
 int main()
 {
 
@@ -343,15 +394,44 @@ int main()
 		nColores = 6;
 	} //Se pone por defecto en 8 colores
 	*/
+=======
+
+Diamante *menuBomba(Diamante *diam) {
+	string tipoBomba = "";
+	int numTipoBomba = 0;
+
+	cout << "Selecciona el tipo de bomba: ";
+	//getline(cin, opcionBomba);
+	cin >> tipoBomba;
+
+	if (tipoBomba == "91") numTipoBomba = 1;
+	else if (tipoBomba == "92") numTipoBomba = 2;
+	else numTipoBomba = 3;
+
+	switch (numTipoBomba) {
+		case 1: bomba1(diam);
+			break;
+		case 2: bomba2(diam);
+			break;
+	}
+	return diam;
+}
+
+int main(){
+
+	string opcionBomba = "";
+	Diamante *diam = new Diamante[filas*columnas];
+
+>>>>>>> a3cf4fe6ac1727331e6454c2fa1aad6df03bb393
 	HANDLE hConsole;
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
-	Diamante *diam = new Diamante[filas*columnas];
 	inicicializarArray(diam);
 	//diam = comprobarIguales(diam);
 	printDiamante(diam, hConsole);
 
 	while (true) {
+<<<<<<< HEAD
 		/*if (modoJuego == 'a' || modoJuego == 'A') {
 			playAutomaticMode();
 		}*/
@@ -381,6 +461,37 @@ int main()
 			getchar();
 		//}
 			
+=======
+		bool mov = false;
+		cout << "\n\n";
+		SetConsoleTextAttribute(hConsole, 15);
+		cout << "Introduce 99 para salir ";
+		cout << "\nQuieres usar una bomba? ";
+		cin >> opcionBomba;
+		if (opcionBomba == "si") {
+			menuBomba(diam);
+		}
+		else if(opcionBomba == "no"){
+			while (!mov) {
+
+				bool canMove = hasMoreMovements(diam);
+				mov = movPosible(diam);
+			}
+		}
+		else if (opcionBomba == "99") { exit(0); }
+
+		//diam = explotarIguales(diam, filaInt, columnaInt);
+		int size = filas*columnas * sizeof(diam);
+		//diam = comprobarIguales(diam);
+		diam = rellenarCeros(diam);
+
+		//diam=moverdiam(diam);
+		//diam = moverAbajo(diam);
+		cout << "\n\n\n";
+		printDiamante(diam, hConsole);
+		getchar();
+		
+>>>>>>> a3cf4fe6ac1727331e6454c2fa1aad6df03bb393
 	}
 	free(diam);
 	getchar();
@@ -392,5 +503,5 @@ void printDiamante(Diamante *diam, HANDLE hConsole) {  //modulo para imprimir el
 			diam[i*columnas + j].printDiamante(hConsole);
 		cout << endl;
 	}
-
+	    
 }
