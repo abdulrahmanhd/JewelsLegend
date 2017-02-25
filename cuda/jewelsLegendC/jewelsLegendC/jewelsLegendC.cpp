@@ -8,9 +8,9 @@
 #include <time.h>
 
 using namespace std;
-int columnas = 10;
-int filas = 10;
-int nColores = 8;
+const int columnas = 10;
+const int filas = 10;
+const int nColores = 8;
 enum posicion { todos, arriba, abajo, derecha, izquierda };
 
 void printDiamante(Diamante *diam, HANDLE hConsole);
@@ -23,24 +23,22 @@ Diamante *moverAbajo(Diamante *diam);
 
 Diamante *explotarIguales(Diamante *diam, int posX, int posY) {
 
-	int contFilas = comprobarIgualesDer(diam, posX, posY);
-	int contColumnas = comprobarIgualesAbajo(diam, posX, posY);
+	int comFilas = comprobarIgualesDer(diam, posX, posY) + comprobarIgualesIzquierda(diam, posX, posY);
+	int comColumnas = comprobarIgualesAbajo(diam, posX, posY) + comprobarIgualesArriba(diam,posX,posY);
 
-	if (contFilas > 0) {
-		diam = explotarIguales(diam, posX, posY + 1);
+	if (comFilas >= 2 && posY+1 < columnas && posY-1 >= 0) {
+		if (comprobarIgualesDer(diam, posX, posY) >= 1 && posY +1 < columnas)
+		 diam = explotarIguales(diam, posX, posY + 1);
+		if(comprobarIgualesIzquierda(diam, posX, posY) >= 1 && posY - 1 >= 0)
+		 diam = explotarIguales(diam, posX, posY - 1);
 	}
-	if (contColumnas > 0) {
-		diam = explotarIguales(diam, posX + 1, posY);
+	if (comColumnas >= 2 && posX + 1 < filas && posX - 1 >= 0) {
+		if (comprobarIgualesAbajo(diam, posX, posY) >= 1 && posX + 1 < filas)
+			diam = explotarIguales(diam, posX + 1, posY);
+		if (comprobarIgualesArriba(diam, posX, posY) >= 1)
+			diam = explotarIguales(diam, posX - 1, posY && posX - 1 >= 0);
 	}
-	contFilas = comprobarIgualesIzquierda(diam, posX, posY);
-	contColumnas = comprobarIgualesAbajo(diam, posX, posY);
 
-	if (contFilas > 0) {
-		diam = explotarIguales(diam, posX, posY - 1);
-	}
-	if (contColumnas > 0) {
-		diam = explotarIguales(diam, posX - 1, posY);
-	}
 	diam[posX*columnas + posY].color = 0;
 
 	return diam;
@@ -65,14 +63,14 @@ Diamante *explotarIguales(Diamante *diam, int posX, int posY) {
 }*/
 int comprobarIgualesArriba(Diamante *diam, int posX, int posY) {
 	int cont = 0;
-	if (diam[(posX*filas) + posY].color == diam[((posX-1) * filas) + posY].color && posX -1 >0) {
+	if (posX - 1 > 0 && diam[(posX*filas) + posY].color == diam[((posX-1) * filas) + posY].color) {
 		cont = 1 + comprobarIgualesArriba(diam, posX-1, posY);
 	}
 	return cont;
 }
 int comprobarIgualesIzquierda(Diamante *diam, int posX, int posY) {
 	int cont = 0;
-	if (diam[(posX*filas) + posY].color == diam[(posX * filas) + posY - 1].color && posY > 0) {
+	if (posY > 0 && diam[(posX*filas) + posY].color == diam[(posX * filas) + posY - 1].color ) {
 		cont = 1 + comprobarIgualesIzquierda(diam, posX, posY - 1);
 	}
 	return cont;
@@ -80,7 +78,7 @@ int comprobarIgualesIzquierda(Diamante *diam, int posX, int posY) {
 
 int comprobarIgualesDer(Diamante *diam, int posX, int posY) {
 	int cont = 0;
-	if (diam[(posX*filas) + posY].color == diam[(posX * filas) + posY + 1].color && posY > columnas-1) {
+	if (posY + 1 < columnas - 1 && diam[(posX*filas) + posY].color == diam[(posX * filas) + posY + 1].color) {
 		cont = 1 + comprobarIgualesDer(diam, posX, posY + 1);
 	}
 	return cont;
@@ -88,7 +86,7 @@ int comprobarIgualesDer(Diamante *diam, int posX, int posY) {
 int comprobarIgualesAbajo(Diamante *diam, int posX, int posY) {
 	int cont = 0;
 	//if(posX >= filas - 1 && posY >= columnas - 1)
-	if (diam[(posX*filas) + posY].color == diam[((posX + 1) * filas) + posY].color && posX + 1 > filas-1) {
+	if (posX + 1 < filas - 1 && diam[(posX*filas) + posY].color == diam[((posX + 1) * filas) + posY].color) {
 		cont = 1 + comprobarIgualesAbajo(diam, posX + 1, posY );
 	}
 	return cont;
@@ -149,7 +147,7 @@ void inicicializarArray(Diamante *diam){
 
 Diamante *rellenarCeros(Diamante *diam) {
 	int numAleatorio = 0;
-	srand(time(0));//Cambiamos semillas
+	srand(time(NULL));//Cambiamos semillas
 
 	for (int i = 0; i < filas; i++) {  //recorremos array
 		for (int j = 0; j < columnas; j++) {
@@ -310,7 +308,7 @@ bool movPosibleManual(Diamante *diam) {
 		int colorAux2 = diam[(f2*filas) + c2].color;
 		diam[(f1*filas) + c1].color = colorAux2;
 		diam[(f2*filas) + c2].color = colorAux1;
-		if (comprobarIgualesDer(diam,f1,c1)>2 || comprobarIgualesAbajo(diam, f1, c1)>2 || comprobarIgualesArriba(diam, f1, c1)>2|| comprobarIgualesIzquierda(diam, f1, c1)>2) {
+		if (comprobarIgualesDer(diam,f1,c1)>=2 || comprobarIgualesAbajo(diam, f1, c1)>=2 || comprobarIgualesArriba(diam, f1, c1)>=2|| comprobarIgualesIzquierda(diam, f1, c1)>=2) {
 			diam = explotarIguales(diam,f1,c1 );
 		}
 		else {
@@ -328,7 +326,7 @@ void playAutomaticMode() {
 int main()
 {
 
-	char modoJuego,dificultad; 
+	/*char modoJuego,dificultad; 
 	cout << "Que modo de juego desea iniciar? Para automatico introduzca (A)" << endl;
 	cin >> modoJuego;
 	cout << "Introduzca las filas y columnas que desea para la matriz?\nFilas: ";
@@ -344,7 +342,7 @@ int main()
 	else if (dificultad == 'M') {
 		nColores = 6;
 	} //Se pone por defecto en 8 colores
-
+	*/
 	HANDLE hConsole;
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
@@ -354,10 +352,10 @@ int main()
 	printDiamante(diam, hConsole);
 
 	while (true) {
-		if (modoJuego == 'a' || modoJuego == 'A') {
+		/*if (modoJuego == 'a' || modoJuego == 'A') {
 			playAutomaticMode();
-		}
-		else {
+		}*/
+		//else {
 			bool mov = false;
 			cout << "\n\n\n";
 			SetConsoleTextAttribute(hConsole, 15);
@@ -369,7 +367,7 @@ int main()
 
 			while (!mov) {
 
-				bool canMove = hasMoreMovements(diam);
+				//bool canMove = hasMoreMovements(diam);
 				mov = movPosibleManual(diam);
 			}
 
@@ -381,7 +379,7 @@ int main()
 			cout << "\n\n\n";
 			printDiamante(diam, hConsole);
 			getchar();
-		}
+		//}
 			
 	}
 	free(diam);
