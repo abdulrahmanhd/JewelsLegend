@@ -27,7 +27,7 @@ Diamante *moverAbajo(Diamante *tablero);
 Diamante *menuBomba(Diamante *tablero, int tipBomba);
 bool explotan(Diamante *tablero, int f1, int c1, int f2, int c2, bool ady);
 
-bool comprobarMovimiento(Diamante *tablero) {
+bool hasMoreMovements(Diamante *tablero) {
 	bool expl = false;
 	int posX = 0;
 	while (posX < filas && !expl) {
@@ -280,10 +280,6 @@ bool adyacentes(Diamante tablero, int fila1, int columna1, int fila2, int column
 	return ady;
 }
 
-bool hasMoreMovements(Diamante *tablero) {
-	
-	return false;
-}
 
 //Funcion que comprueba si los diamantes explotan
 bool explotan(Diamante *tablero, int f1, int c1, int f2, int c2, bool ady) {
@@ -462,10 +458,132 @@ Diamante *menuBomba(Diamante *tablero, int tipBomba) {
 	}
 	return tablero;
 }
+Diamante *autoMov(Diamante *tablero, int movOptimoFila1, int movOptimoColumna1, int movOptimoFila2, int movOptimoColumna2) {
+	int colorAux1 = tablero[(movOptimoFila1*filas) + movOptimoColumna1].color;
+	int colorAux2 = tablero[(movOptimoFila2*filas) + movOptimoColumna2].color;
+
+	tablero[(movOptimoFila1*filas) + movOptimoColumna1].color = colorAux2;
+	tablero[(movOptimoFila2*filas) + movOptimoColumna2].color = colorAux1;
+
+	if (comprobarIgualesDer(tablero, movOptimoFila1, movOptimoColumna1) + comprobarIgualesIzquierda(tablero, movOptimoFila1, movOptimoColumna1) >= 2
+		|| comprobarIgualesAbajo(tablero, movOptimoFila1, movOptimoColumna1) + comprobarIgualesArriba(tablero, movOptimoFila1, movOptimoColumna1) >= 2) {
+		tablero = comprobarCadena(tablero, movOptimoFila1, movOptimoColumna1);
+	}
+	else {
+		tablero = comprobarCadena(tablero, movOptimoFila2, movOptimoFila2);
+	}
+
+	moverAbajo(tablero);
+
+	return tablero;
+}
+int autoContMov(Diamante *tablero, int fila1, int columna1, int fila2, int columna2) {
+	int comFilas1, comColum1,comFilas2,comColum2 = 0;
+	
+	int colorAux1 = tablero[(fila1*filas) + columna1].color;
+	int colorAux2 = tablero[(fila2*filas) + columna2].color;
+
+	tablero[(fila1*filas) + columna1].color = colorAux2;
+	tablero[(fila2*filas) + columna2].color = colorAux1;
+
+	comFilas1 = comprobarIgualesDer(tablero, fila1, columna1) + comprobarIgualesIzquierda(tablero, fila1, columna1);
+	comColum1 = comprobarIgualesAbajo(tablero, fila1, columna1) + comprobarIgualesArriba(tablero, fila1, columna1);
+
+	comFilas2 = comprobarIgualesDer(tablero, fila2, columna2) + comprobarIgualesIzquierda(tablero, fila2, columna2);
+	comColum2 = comprobarIgualesAbajo(tablero, fila2, columna2) + comprobarIgualesArriba(tablero, fila2, columna2);
+
+	tablero[(fila1*filas) + columna1].color = colorAux1;
+	tablero[(fila2*filas) + columna2].color = colorAux2;
+
+	if (comFilas1 > comFilas2 || comColum1 > comColum2) {
+		if (comFilas1 > comColum1) {
+			return comFilas1;
+		}
+		else return comColum1;
+	}
+	else {
+		if (comFilas2 > comColum2) {
+			return comFilas2;
+		}
+		else return comColum2;
+	}
+}
+Diamante *movAutomaticMode(Diamante *tablero) {
+	int posX = 0;
+	int movOptimoFila1, movOptimoColumna1, movOptimoFila2, movOptimoColumna2, contMovOptimo = 0;
+	int contDiamantesExplot = 0;
+	
+	if (!hasMoreMovements(tablero)) {
+		cout << "\nNo hay movimiento disponibles\n ";
+		cout << "Selecciona el tipo de bomba: ";
+		//getline(cin, opcionBomba);
+		int tipoBomba;
+		cin >> tipoBomba;
+		menuBomba(tablero, tipoBomba);
+	}
+	else {
+		while (posX < filas) {
+				for (int posY = 0; posY < columnas; posY++) {
+					if (posX + 1 < filas && explotan(tablero, posX, posY, posX + 1, posY, true)) { // Abajo
+						contDiamantesExplot = autoContMov(tablero, posX, posY, posX + 1, posY);
+						if (contDiamantesExplot >= contMovOptimo) {
+								contMovOptimo = contDiamantesExplot;
+								movOptimoFila1 = posX;
+								movOptimoColumna1 = posY;
+								movOptimoFila2 = posX + 1;
+								movOptimoColumna2 = posY;
+						}
+					}
+					else if (posY + 1 < columnas && explotan(tablero, posX, posY, posX, posY + 1, true)) { //Derecha
+						contDiamantesExplot = autoContMov(tablero, posX, posY, posX, posY+1);
+						if (contDiamantesExplot >= contMovOptimo) {
+							contMovOptimo = contDiamantesExplot;
+							movOptimoFila1 = posX;
+							movOptimoColumna1 = posY;
+							movOptimoFila2 = posX;
+							movOptimoColumna2 = posY+1;
+						}
+					}
+					else if (posY - 1 >= 0 && explotan(tablero, posX, posY, posX, posY - 1, true)) { //Izquierda
+						contDiamantesExplot = autoContMov(tablero, posX, posY, posX, posY-1);
+						if (contDiamantesExplot > contMovOptimo) {
+							contMovOptimo = contDiamantesExplot;
+							movOptimoFila1 = posX;
+							movOptimoColumna1 = posY;
+							movOptimoFila2 = posX;
+							movOptimoColumna2 = posY-1;
+						}
+					}
+					else if (posX - 1 >= 0 && explotan(tablero, posX, posY, posX - 1, posY, true)) {//Arriba
+						contDiamantesExplot = autoContMov(tablero, posX, posY, posX-1, posY);
+						if (contDiamantesExplot >= contMovOptimo) {
+							contMovOptimo = contDiamantesExplot;
+							movOptimoFila1 = posX;
+							movOptimoColumna1 = posY;
+							movOptimoFila2 = posX - 1;
+							movOptimoColumna2 = posY;
+						}
+					}
+				}
+				posX++;
+			}
+	}
+	HANDLE h;
+	h = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleTextAttribute(h, 15);
+	cout << "\nLa posicion mas optima es cambiar la fila y columna " << movOptimoFila1 << " " << movOptimoColumna1
+		<< " por " << movOptimoFila2 << " " << movOptimoColumna2 << " Este movimiento explotara : " << contMovOptimo << endl;
+	getchar();
+	tablero = autoMov(tablero, movOptimoFila1, movOptimoColumna1, movOptimoFila2, movOptimoColumna2);
+	
+	return tablero;
+
+}
 
 int main(){
 
-	char modoJuego,dificultad;
+	string modoJuego = "";
+	string dificultad = "";
 	cout << "Que modo de juego desea iniciar? Automatico (A), Manual (M)" << endl;
 	cin >> modoJuego;
 	cout << "Introduzca las filas y columnas que desea para la matriz?\nFilas: ";
@@ -475,10 +593,10 @@ int main(){
 	cout << "Que dificultad desea para el juego? Facil(F), Medio(M), Dificil(D)" << endl;
 	cin >> dificultad;
 
-	if (dificultad == 'F') {
+	if (dificultad == "F") {
 	nColores = 4;
 	}
-	else if (dificultad == 'M') {
+	else if (dificultad == "M") {
 	nColores = 6;
 	} //Se pone por defecto en 8 colores
 	
@@ -494,47 +612,44 @@ int main(){
 	printDiamante(tablero, hConsole);
 
 	while (true) {
-		/*if (modoJuego == 'a' || modoJuego == 'A') {
-			playAutomaticMode();
-		}*/
-		//else {
-			
-		//}
-		
-		bool mov = false;
-		cout << "\n\n";
-		SetConsoleTextAttribute(hConsole, 15);
-		cout << "Introduce 99 para salir ";
-		if (!comprobarMovimiento(tablero)) {
-			cout << "\nNo hay movimiento disponibles\nQuieres usar una bomba? ";
-			cin >> opcionBomba;
+		if (modoJuego == "a" || modoJuego == "A" || modoJuego == "automatico") {
+			movAutomaticMode(tablero);
 		}
-		
-		
-		if (opcionBomba == "si") {
-			cout << "Selecciona el tipo de bomba: ";
-			//getline(cin, opcionBomba);
-			int tipoBomba;
-			cin >> tipoBomba;
-			menuBomba(tablero, tipoBomba);
-			opcionBomba = "no";
-		}
-		else if(opcionBomba == "no"){
-			while (!mov) {
-
-				bool canMove = hasMoreMovements(tablero);
-				mov = movPosibleManual(tablero);
+		else {
+			bool mov = false;
+			cout << "\n\n";
+			SetConsoleTextAttribute(hConsole, 15);
+			cout << "Introduce 99 para salir ";
+			if (!hasMoreMovements(tablero)) {
+				cout << "\nNo hay movimiento disponibles\nQuieres usar una bomba? ";
+				cin >> opcionBomba;
 			}
+
+
+			if (opcionBomba == "si") {
+				cout << "Selecciona el tipo de bomba: ";
+				//getline(cin, opcionBomba);
+				int tipoBomba;
+				cin >> tipoBomba;
+				menuBomba(tablero, tipoBomba);
+				opcionBomba = "no";
+			}
+			else if (opcionBomba == "no") {
+				while (!mov) {
+
+					bool canMove = hasMoreMovements(tablero);
+					mov = movPosibleManual(tablero);
+				}
+			}
+			else if (opcionBomba == "99") { exit(0); }
+			
 		}
-		else if (opcionBomba == "99") { exit(0); }
 
 		//diam = explotarIguales(diam, filaInt, columnaInt);
 		int size = filas*columnas * sizeof(tablero);
 		//diam = comprobarIguales(diam);
 		tablero = rellenarCeros(tablero);
 
-		//diam=moverdiam(diam);
-		//diam = moverAbajo(diam);
 		cout << "\n\n";
 		printDiamante(tablero, hConsole);
 		getchar();
