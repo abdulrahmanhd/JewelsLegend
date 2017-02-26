@@ -420,21 +420,27 @@ Diamante *bomba3(Diamante *tablero) {
 		for (int j = 1; j < columnas; j++) {
 
 			//Intercambiamos esquinas de cuadrdo
-			colorAux = tablero[(i*filas) + (j - 1)].color;
-			tablero[(i*filas) + (j - 1)].color = tablero[((i + 1)*filas) + j].color;
-			tablero[((i + 1)*filas) + j].color = tablero[(i*filas) + (j + 1)].color;
-			tablero[(i*filas) + (j + 1)].color = tablero[((i - 1)*filas) + j].color;
-			tablero[((i - 1)*filas) + j].color = colorAux;
+			if (j + 1 < columnas && i + 1 < filas) {
+				colorAux = tablero[(i*filas) + (j - 1)].color;
+				tablero[(i*filas) + (j - 1)].color = tablero[((i + 1)*filas) + j].color;
+				tablero[((i + 1)*filas) + j].color = tablero[(i*filas) + (j + 1)].color;
+				tablero[(i*filas) + (j + 1)].color = tablero[((i - 1)*filas) + j].color;
+				tablero[((i - 1)*filas) + j].color = colorAux;
+			}
+			
 
 			//Intercambiamos flor del cuadrado
-			colorAux = tablero[((i - 1)*filas) + (j - 1)].color;
-			tablero[((i - 1)*filas) + (j - 1)].color = tablero[((i + 1)*filas) + (j - 1)].color;
-			tablero[((i + 1)*filas) + (j - 1)].color = tablero[((i + 1)*filas) + (j + 1)].color;
-			tablero[((i + 1)*filas) + (j + 1)].color = tablero[((i - 1)*filas) + (j + 1)].color;
-			tablero[((i - 1)*filas) + (j + 1)].color = colorAux;
-			j = j + 2;
+			if (i + 1 < filas && j + 1 < columnas) {
+				colorAux = tablero[((i - 1)*filas) + (j - 1)].color;
+				tablero[((i - 1)*filas) + (j - 1)].color = tablero[((i + 1)*filas) + (j - 1)].color;
+				tablero[((i + 1)*filas) + (j - 1)].color = tablero[((i + 1)*filas) + (j + 1)].color;
+				tablero[((i + 1)*filas) + (j + 1)].color = tablero[((i - 1)*filas) + (j + 1)].color;
+				tablero[((i - 1)*filas) + (j + 1)].color = colorAux;
+			}
+			
+			j = j +2;
 		}
-		i = i + 2;
+		i = i +2;
 	}
 	return tablero;
 }
