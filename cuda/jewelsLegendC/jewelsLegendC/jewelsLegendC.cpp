@@ -512,8 +512,10 @@ Diamante *movAutomaticMode(Diamante *tablero) {
 	int posX = 0;
 	int movOptimoFila1, movOptimoColumna1, movOptimoFila2, movOptimoColumna2, contMovOptimo = 0;
 	int contDiamantesExplot = 0;
-	
-	if (!hasMoreMovements(tablero)) {
+	HANDLE h;
+	h = GetStdHandle(STD_OUTPUT_HANDLE);
+	if (!hasMoreMovements(tablero)) {	
+		SetConsoleTextAttribute(h, 15);
 		cout << "\nNo hay movimiento disponibles\n ";
 		cout << "Selecciona el tipo de bomba: ";
 		//getline(cin, opcionBomba);
@@ -567,15 +569,13 @@ Diamante *movAutomaticMode(Diamante *tablero) {
 				}
 				posX++;
 			}
-	}
-	HANDLE h;
-	h = GetStdHandle(STD_OUTPUT_HANDLE);
+	
 	SetConsoleTextAttribute(h, 15);
 	cout << "\nLa posicion mas optima es cambiar la fila y columna " << movOptimoFila1 << " " << movOptimoColumna1
 		<< " por " << movOptimoFila2 << " " << movOptimoColumna2 << " Este movimiento explotara : " << contMovOptimo << endl;
 	getchar();
 	tablero = autoMov(tablero, movOptimoFila1, movOptimoColumna1, movOptimoFila2, movOptimoColumna2);
-	
+	}
 	return tablero;
 
 }
