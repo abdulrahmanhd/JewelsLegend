@@ -7,6 +7,7 @@
 #include <string.h>
 #include <time.h>
 #include <string>
+#include <stdlib.h>
 
 using namespace std;
 int columnas = 10;
@@ -14,7 +15,8 @@ int filas = 10;
 int nColores = 8;
 const int posFinal = (filas * columnas) - 1;
 enum posicion { todos, arriba, abajo, derecha, izquierda };
-
+FILE *doc;
+FILE *leer;
 
 void printDiamante(Diamante *tablero, HANDLE hConsole);
 int comprobarIgualesPos(Diamante *tablero, int posX, int posY, posicion pos);
@@ -581,6 +583,47 @@ Diamante *movAutomaticMode(Diamante *tablero) {
 }
 
 int main(){
+	
+	/*
+	char filasGuardadas[5];
+	char columnasGuardadas[5];
+	char tableroGuardado[200];
+	char nombre[13] = "guardado.txt";
+	
+	
+	doc = fopen("guardado.txt", "w");
+	cout << "Filas: ";
+	cin >> filasGuardadas;
+	cout << "Columnas: ";
+	cin >> columnasGuardadas;
+	cout << "Tablero: ";
+	cin >> tableroGuardado;
+	fprintf(doc, "%s \n", filasGuardadas);
+	fprintf(doc, "%s \n", columnasGuardadas);
+	fprintf(doc, "%s \n", tableroGuardado);
+
+	fclose(doc);
+	
+	leer = fopen("guardado.txt", "r");
+	
+	char filasRecuperadas[1];
+	char columnasRecuperadas[1];
+	char tableroRecuperado[200];
+	// leer el primer nombre
+	fscanf(leer, "%s", filasRecuperadas);
+	printf("%s\n", filasRecuperadas);
+	fscanf(leer, "%s", columnasRecuperadas);
+	printf("%s\n", columnasRecuperadas);
+	fscanf(leer, "%s", tableroRecuperado);
+	printf("%s\n", tableroRecuperado);
+	string f = filasRecuperadas;
+	int fi = (10 * (int)(filasRecuperadas[0] - '0') + (int)(filasRecuperadas[1] - '0'));
+	cout << "filas "<<fi;
+	cout << "\n";
+	
+	fclose(doc);
+
+	*/
 
 	string modoJuego = "";
 	string dificultad = "";
