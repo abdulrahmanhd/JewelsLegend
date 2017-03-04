@@ -582,19 +582,27 @@ Diamante *movAutomaticMode(Diamante *tablero) {
 	return tablero;
 
 }
-
-int main(){
+/*
+void guardarPartida() {
 	
-	/*
 	char filasGuardadas[5];
 	char columnasGuardadas[5];
 	char tableroGuardado[200];
 	char nombre[13] = "guardado.txt";
-	
-	
+	int cont = 0;
+	int divisor = 1;
+	bool hayNum=true;
+
 	doc = fopen("guardado.txt", "w");
-	cout << "Filas: ";
-	cin >> filasGuardadas;
+
+	while (hayNum) {
+		filasGuardadas[cont] = (char)((int)(filas / divisor));
+		divisor = divisor * 10;
+		cont++;
+		if (filas / divisor < 0)  hayNum = false;
+	}
+
+	cout << filasGuardadas;
 	cout << "Columnas: ";
 	cin >> columnasGuardadas;
 	cout << "Tablero: ";
@@ -604,28 +612,56 @@ int main(){
 	fprintf(doc, "%s \n", tableroGuardado);
 
 	fclose(doc);
-	
+
 	leer = fopen("guardado.txt", "r");
-	
-	char filasRecuperadas[1];
-	char columnasRecuperadas[1];
+
+	char filasRecuperadas[5];
+	char columnasRecuperadas[5];
 	char tableroRecuperado[200];
-	// leer el primer nombre
+	int filasR = 0, columnasR = 0, i = 0;
+	hayNum = true;
+	cont = 0;
+	// leemos el txt
 	fscanf(leer, "%s", filasRecuperadas);
-	printf("%s\n", filasRecuperadas);
 	fscanf(leer, "%s", columnasRecuperadas);
-	printf("%s\n", columnasRecuperadas);
-	fscanf(leer, "%s", tableroRecuperado);
-	printf("%s\n", tableroRecuperado);
-	string f = filasRecuperadas;
-	int fi = (10 * (int)(filasRecuperadas[0] - '0') + (int)(filasRecuperadas[1] - '0'));
-	cout << "filas "<<fi;
-	cout << "\n";
+	//fscanf(leer, "%s", tableroRecuperado);
+	int auxfi = 0, auxcol = 0;
+
+	while(hayNum){
+
+		auxfi = (int)(filasRecuperadas[cont] - '0');
+		if (auxfi >= 0 && auxfi <= 9) {
+			filasR = (filasR * 10) + auxfi;
+		
+		}
+		else hayNum = false;
+		
+		cont++;
+	}
+
+	hayNum = true;
+	cont = 0;
+	while (hayNum) {
+
+		auxcol = (int)(columnasRecuperadas[cont] - '0');
+		if (auxcol >= 0 && auxcol <= 9) {
+			columnasR = (columnasR * 10) + auxcol;
+
+		}
+		else hayNum = false;
+
+		cont++;
+	}
 	
+	
+	cout << filasR;
+	cout << columnasR;
 	fclose(doc);
 
-	*/
-
+}
+*/
+int main(){
+	
 	string modoJuego = "";
 	string dificultad = "";
 	cout << "Que modo de juego desea iniciar? Automatico (A), Manual (M)" << endl;
@@ -654,7 +690,7 @@ int main(){
 	inicicializarArray(tablero);
 	//diam = comprobarIguales(diam);
 	printDiamante(tablero, hConsole);
-
+	//guardarPartida();
 	while (true) {
 		if (modoJuego == "a" || modoJuego == "A" || modoJuego == "automatico") {
 			movAutomaticMode(tablero);
