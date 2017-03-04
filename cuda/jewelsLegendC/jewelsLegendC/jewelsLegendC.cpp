@@ -122,7 +122,7 @@ int comprobarIgualesIzquierda(Diamante *tablero, int posX, int posY) {
 
 int comprobarIgualesDer(Diamante *tablero, int posX, int posY) {
 	int cont = 0;
-	if (posY + 1 < columnas - 1 && tablero[(posX*filas) + posY].color == tablero[(posX * filas) + posY + 1].color) {
+	if (posY + 1 < columnas && tablero[(posX*filas) + posY].color == tablero[(posX * filas) + posY + 1].color) {
 		cont = 1 + comprobarIgualesDer(tablero, posX, posY + 1);
 	}
 	return cont;
@@ -130,7 +130,7 @@ int comprobarIgualesDer(Diamante *tablero, int posX, int posY) {
 int comprobarIgualesAbajo(Diamante *tablero, int posX, int posY) {
 	int cont = 0;
 	//if(posX >= filas - 1 && posY >= columnas - 1)
-	if (posX + 1 < filas - 1 && tablero[(posX*filas) + posY].color == tablero[((posX + 1) * filas) + posY].color) {
+	if (posX + 1 < filas && tablero[(posX*filas) + posY].color == tablero[((posX + 1) * filas) + posY].color) {
 		cont = 1 + comprobarIgualesAbajo(tablero, posX + 1, posY );
 	}
 	return cont;
@@ -472,7 +472,7 @@ Diamante *autoMov(Diamante *tablero, int movOptimoFila1, int movOptimoColumna1, 
 		tablero = comprobarCadena(tablero, movOptimoFila1, movOptimoColumna1);
 	}
 	else {
-		tablero = comprobarCadena(tablero, movOptimoFila2, movOptimoFila2);
+		tablero = comprobarCadena(tablero, movOptimoFila2, movOptimoColumna2);
 	}
 
 	moverAbajo(tablero);
@@ -573,6 +573,7 @@ Diamante *movAutomaticMode(Diamante *tablero) {
 			}
 	
 	SetConsoleTextAttribute(h, 15);
+
 	cout << "\nLa posicion mas optima es cambiar la fila y columna " << movOptimoFila1 << " " << movOptimoColumna1
 		<< " por " << movOptimoFila2 << " " << movOptimoColumna2 << " Este movimiento explotara : " << contMovOptimo << endl;
 	getchar();
