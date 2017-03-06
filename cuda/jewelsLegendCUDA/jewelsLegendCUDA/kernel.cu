@@ -98,272 +98,97 @@ __device__ int comprobarIgualesPos(int *tablero, int posX, int posY, posicion po
 }
 
 //Funcion que elimina una celda
-__device__ void eliminar(int* dev_tablero, int fila, int columna, int columnas, int* dev_contadorEliminados) {
+__device__ void eliminar(int* dev_tablero, int fila, int columna, int tamFilas, int* dev_contadorEliminados) {
 
 	// Si el valor examinado es distinto de 0, se suma uno al contador de eliminador
-	if (dev_tablero[fila * columnas + columna] != 0)
+	if (dev_tablero[fila * tamFilas + columna] != 0)
 		dev_contadorEliminados[0] = dev_contadorEliminados[0] + 1;
 
 	//El valor se pone a 0
-	dev_tablero[fila * columnas + columna] = 0;
+	dev_tablero[fila * tamFilas + columna] = 0;
 
 
 }
 
 // Funcion que elimina con un unico bloque
-__device__ void unBloque(int* dev_tablero, int filas, int columnas, int fila, int columna, int* dev_contadorEliminados) {
+__device__ void comprobarCadena(int* dev_tablero, int fila1, int columna1, int fila2, int columna2,int tamFilas, int tamColumnas, int* dev_contadorEliminados) {
 
 	//Valores de los indices
-	int i = threadIdx.x;
-	int j = threadIdx.y;
+	int i = blockIdx.y * blockDim.y + threadIdx.y;		//Indice de la x
+	int j = blockIdx.x * blockDim.x + threadIdx.x;
 
-	int abajo;
-	int derecha;
-	int arriba;
-	int izquierda;
-
-	//Comprobacion de si la celda esta dentro de los limites
-	if (estaDentro(fila, columna, filas, columnas)) {
-
-		if (i == fila && j == columna) {
-
-			abajo = fila + 1;
-			derecha = columna + 1;
-			arriba = fila - 1;
-			izquierda = columna - 1;
-
-			//La celda a explotar es una bomba
-
-				//Se comprueba si los elementos a eliminar tambien son una bomba. En caso de ser asi tambien explotarian
-
-				if (estaDentro(arriba, izquierda, filas, columnas) ) {		//Izquierda-Arriba
-
-					if (estaDentro(arriba - 1, izquierda - 1, filas, columnas)) {	// 2 Arriba - 2 Izquierda 
-						eliminar(dev_tablero, (arriba - 1), (izquierda - 1), columnas, dev_contadorEliminados);
-					}
-
-					if (estaDentro(arriba - 1, izquierda, filas, columnas)) {	// 2 Arriba - 1 Izquierda 
-						eliminar(dev_tablero, (arriba - 1), izquierda, columnas, dev_contadorEliminados);
-					}
-
-					if (estaDentro(arriba - 1, columna, filas, columnas)) {		// 2 Arriba	
-						eliminar(dev_tablero, (arriba - 1), columna, columnas, dev_contadorEliminados);
-					}
-
-					if (estaDentro(i, izquierda - 1, filas, columnas)) {		// 2 Izquierda
-						eliminar(dev_tablero, fila, izquierda - 1, columnas, dev_contadorEliminados);
-					}
-
-					if (estaDentro(arriba, izquierda - 1, filas, columnas)) {	// 1 Arriba  - 2 Izquierda
-						eliminar(dev_tablero, arriba, izquierda - 1, columnas, dev_contadorEliminados);
-					}
-
+	int sameVertical1 = comprobarIgualesPos(dev_tablero, fila1, columna1, abajo, tamFilas, tamColumnas) + comprobarIgualesPos(dev_tablero, fila1, columna1, arriba, tamFilas, tamColumnas);
+	int sameHorizon1 = comprobarIgualesPos(dev_tablero, fila1, columna1, derecha, tamFilas, tamColumnas) + comprobarIgualesPos(dev_tablero, fila1, columna1, izquierda, tamFilas, tamColumnas);
+	int sameVertical2 = comprobarIgualesPos(dev_tablero, fila2, columna2, abajo, tamFilas, tamColumnas) + comprobarIgualesPos(dev_tablero, fila2, columna2, arriba, tamFilas, tamColumnas);
+	int sameHorizon2 = comprobarIgualesPos(dev_tablero, fila2, columna2, derecha, tamFilas, tamColumnas) + comprobarIgualesPos(dev_tablero, fila2, columna2, izquierda, tamFilas, tamColumnas);
+	
+	if ((sameVertical1 >= 2) || (sameHorizon1 >= 2)) { //comprobamos cual de las posiciones cambiadas explota mas
+	//Ahora comprobamos que el hilo sea el de la posicion que queremos
+		if (i == fila1 && j == columna1) {
+			if (sameHorizon1 > sameVertical1) {
+				int jAux = j;
+				while (dev_tablero[i*tamFilas + j] == dev_tablero[i*tamFilas + (jAux + 1)] && jAux + 1 < tamColumnas) { //eliminamos igual por derecha
+					jAux++;
+					eliminar(dev_tablero, i, jAux, tamFilas, dev_contadorEliminados);
+					
 				}
-
-				if (estaDentro(arriba, izquierda, filas, columnas)) {
-					eliminar(dev_tablero, fila, izquierda, columnas, dev_contadorEliminados);
+				jAux = j;
+				while (dev_tablero[i*tamFilas + j] == dev_tablero[i*tamFilas + (jAux - 1)] && jAux - 1 >= 0) {//eliminamos igual por izquierda
+					jAux--;
+					eliminar(dev_tablero, i, jAux , tamFilas, dev_contadorEliminados);
 				}
-
-				if (dev_tablero[columna + columnas*(arriba)] == ID_BOMBA) {			//Arriba
-
-					if (estaDentro(arriba - 1, izquierda, filas, columnas)) {	// 2 Arriba - 1 Izquierda
-						eliminar(dev_tablero, (arriba - 1), izquierda, columnas, dev_contadorEliminados);
-					}
-
-					if (estaDentro(arriba - 1, columna, filas, columnas)) {		// 2 Arriba
-						eliminar(dev_tablero, (arriba - 1), columna, columnas, dev_contadorEliminados);
-					}
-
-					if (estaDentro(arriba - 1, derecha, filas, columnas)) {	// 2 Arriba - 1 Derecha
-						eliminar(dev_tablero, arriba - 1, derecha, columnas, dev_contadorEliminados);
-					}
-
-				}
-
-				if (estaDentro(arriba, columna, filas, columnas)) {
-					eliminar(dev_tablero, arriba, columna, columnas, dev_contadorEliminados);
-				}
-
-				if (estaDentro(arriba, derecha, filas, columnas) && dev_tablero[(derecha)+columnas*(arriba)] == ID_BOMBA) {		//Derecha-Arriba
-
-					if (estaDentro(arriba - 1, columna, filas, columnas)) {		// 2 Arriba
-						eliminar(dev_tablero, (arriba - 1), columna, columnas, dev_contadorEliminados);
-					}
-
-					if (estaDentro(arriba - 1, derecha, filas, columnas)) {	// 2 Arriba - 1 Derecha
-						eliminar(dev_tablero, arriba - 1, derecha, columnas, dev_contadorEliminados);
-					}
-
-					if (estaDentro(arriba - 1, derecha + 1, filas, columnas)) {	// 2 Arriba - 2 Derecha
-						eliminar(dev_tablero, arriba - 1, derecha + 1, columnas, dev_contadorEliminados);
-					}
-
-					if (estaDentro(arriba, derecha + 1, filas, columnas)) {	// 1 Arriba - 2 Derecha
-						eliminar(dev_tablero, arriba, derecha + 1, columnas, dev_contadorEliminados);
-					}
-
-					if (estaDentro(fila, derecha + 1, filas, columnas)) {		// 2 Derecha
-						eliminar(dev_tablero, fila, derecha + 1, columnas, dev_contadorEliminados);
-					}
-				}
-
-				if (estaDentro(arriba, derecha, filas, columnas)) {
-					eliminar(dev_tablero, arriba, derecha, columnas, dev_contadorEliminados);
-				}
-
-				if (estaDentro(fila, derecha, filas, columnas) && dev_tablero[(derecha)+columnas*fila] == ID_BOMBA) {			//Derecha
-
-					if (estaDentro(arriba, derecha + 1, filas, columnas)) {	// 1 Arriba - 2 Derecha
-						eliminar(dev_tablero, arriba, derecha + 1, columnas, dev_contadorEliminados);
-					}
-
-					if (estaDentro(fila, derecha + 1, filas, columnas)) {		// 2 Derecha
-						eliminar(dev_tablero, fila, derecha + 1, columnas, dev_contadorEliminados);
-					}
-
-					if (estaDentro(abajo, derecha + 1, filas, columnas)) {	// 1 Abajo - 2 Derecha
-						eliminar(dev_tablero, abajo, derecha + 1, columnas, dev_contadorEliminados);
-					}
-
-				}
-
-				if (estaDentro(fila, derecha, filas, columnas)) {
-					eliminar(dev_tablero, fila, derecha, columnas, dev_contadorEliminados);
-				}
-
-				if (estaDentro(abajo, derecha, filas, columnas) && dev_tablero[(derecha)+columnas*(abajo)] == ID_BOMBA) {		//Abajo-Derecha
-
-					if (estaDentro(fila, derecha + 1, filas, columnas)) {		// 2 derecha
-						eliminar(dev_tablero, fila, derecha + 1, columnas, dev_contadorEliminados);
-					}
-
-					if (estaDentro(abajo, derecha + 1, filas, columnas)) {	// 1 Abajo - 2 Derecha
-						eliminar(dev_tablero, abajo, derecha + 1, columnas, dev_contadorEliminados);
-					}
-
-					if (estaDentro(abajo + 1, derecha + 1, filas, columnas)) {	// 2 Abajo - 2 Derecha
-						eliminar(dev_tablero, abajo + 1, derecha + 1, columnas, dev_contadorEliminados);
-					}
-
-					if (estaDentro(abajo + 1, derecha, filas, columnas)) {	// 2 Abajo - 1 Derecha
-						eliminar(dev_tablero, abajo + 1, derecha, columnas, dev_contadorEliminados);
-					}
-
-					if (estaDentro(abajo + 1, columna, filas, columnas)) {		// 2 Abajo
-						eliminar(dev_tablero, abajo + 1, columna, columnas, dev_contadorEliminados);
-					}
-
-				}
-
-				if (estaDentro(abajo, derecha, filas, columnas)) {
-					eliminar(dev_tablero, abajo, derecha, columnas, dev_contadorEliminados);
-				}
-
-				if (estaDentro(abajo, columna, filas, columnas) && dev_tablero[columna + columnas*(abajo)] == ID_BOMBA) {			//Abajo
-
-					if (estaDentro(abajo + 1, derecha, filas, columnas)) {	// 2 Abajo - 1 Derecha
-						eliminar(dev_tablero, abajo + 1, derecha, columnas, dev_contadorEliminados);
-					}
-
-					if (estaDentro(abajo + 1, columna, filas, columnas)) {		// 2 Abajo
-						eliminar(dev_tablero, abajo + 1, columna, columnas, dev_contadorEliminados);
-					}
-
-					if (estaDentro(abajo + 1, izquierda, filas, columnas)) {	// 2 Abajo - 1 Izquierda
-						eliminar(dev_tablero, abajo + 1, izquierda, columnas, dev_contadorEliminados);
-					}
-
-				}
-
-				if (estaDentro(abajo, columna, filas, columnas)) {
-					eliminar(dev_tablero, abajo, columna, columnas, dev_contadorEliminados);
-				}
-
-				if (estaDentro(abajo, izquierda, filas, columnas) && dev_tablero[(izquierda)+columnas*(abajo)] == ID_BOMBA) {		//Abajo-Izquierda
-
-					if (estaDentro(fila, izquierda - 1, filas, columnas)) {		// 2 Izquierda
-						eliminar(dev_tablero, fila, izquierda - 1, columnas, dev_contadorEliminados);
-					}
-
-					if (estaDentro(abajo + 1, columna, filas, columnas)) {		// 2 Abajo
-						eliminar(dev_tablero, abajo + 1, columna, columnas, dev_contadorEliminados);
-					}
-
-					if (estaDentro(abajo + 1, izquierda, filas, columnas)) {	// 2 Abajo - 1 Izquierda
-						eliminar(dev_tablero, abajo + 1, izquierda, columnas, dev_contadorEliminados);
-					}
-
-					if (estaDentro(abajo + 1, izquierda - 1, filas, columnas)) {	// 2 Abajo - 2 Izquierda
-						eliminar(dev_tablero, abajo + 1, izquierda - 1, columnas, dev_contadorEliminados);
-					}
-
-					if (estaDentro(abajo, izquierda - 1, filas, columnas)) {	// 1 Abajo - 2 Izquierda
-						eliminar(dev_tablero, abajo, izquierda - 1, columnas, dev_contadorEliminados);
-					}
-
-				}
-
-				if (estaDentro(abajo, izquierda, filas, columnas)) {
-					eliminar(dev_tablero, abajo, izquierda, columnas, dev_contadorEliminados);
-				}
-
-				if (estaDentro(fila, izquierda, filas, columnas) && dev_tablero[(izquierda)+columnas*fila] == ID_BOMBA) {			//Izquierda
-
-					if (estaDentro(arriba, izquierda - 1, filas, columnas)) {
-						eliminar(dev_tablero, arriba, izquierda - 1, columnas, dev_contadorEliminados);
-					}
-
-					if (estaDentro(abajo, izquierda - 1, filas, columnas)) {
-						eliminar(dev_tablero, abajo, izquierda - 1, columnas, dev_contadorEliminados);
-					}
-
-					if (estaDentro(fila, izquierda - 1, filas, columnas)) {
-						eliminar(dev_tablero, fila, izquierda - 1, columnas, dev_contadorEliminados);
-					}
-
-
-				}
-
-				if (estaDentro(fila, izquierda, filas, columnas)) {
-					eliminar(dev_tablero, fila, izquierda, columnas, dev_contadorEliminados);
-				}
-
+				eliminar(dev_tablero, i, j, tamFilas, dev_contadorEliminados); //eliminamos la posicion del hilo
 			}
-
-			//Si no es una bomba
-
 			else {
-
-				if (estaDentro(arriba, columna, filas, columnas) && dev_tablero[fila * columnas + columna] == dev_tablero[columna + columnas*(arriba)]) {
-
-					eliminar(dev_tablero, arriba, columna, columnas, dev_contadorEliminados);			//Arriba
+				int iAux = i;
+				while (dev_tablero[i*tamFilas + j] == dev_tablero[iAux+1*tamFilas + j] && iAux + 1 < tamFilas) { //eliminamos igual por arriba
+					iAux++;
+					eliminar(dev_tablero, iAux, j, tamFilas, dev_contadorEliminados);
+					
 				}
-				if (estaDentro(fila, derecha, filas, columnas) && dev_tablero[fila * columnas + columna] == dev_tablero[(derecha)+columnas*fila]) {
-
-
-					eliminar(dev_tablero, fila, derecha, columnas, dev_contadorEliminados);			//Derecha
-
+				iAux = i;
+				while (dev_tablero[i-1*tamFilas + j] == dev_tablero[iAux-1*tamFilas + j] && iAux - 1 >= 0) {//eliminamos igual por abajo
+					iAux--;
+					eliminar(dev_tablero, iAux, j, tamFilas, dev_contadorEliminados);
 				}
-				if (estaDentro(abajo, columna, filas, columnas) && dev_tablero[fila * columnas + columna] == dev_tablero[columna + columnas*(abajo)]) {
-
-
-					eliminar(dev_tablero, abajo, columna, columnas, dev_contadorEliminados);			//Abajo
-
-				}
-				if (estaDentro(fila, izquierda, filas, columnas) && dev_tablero[fila * columnas + columna] == dev_tablero[(izquierda)+columnas*fila]) {
-
-
-					eliminar(dev_tablero, fila, izquierda, columnas, dev_contadorEliminados);			//Izquierda
-
-				}
-
+				eliminar(dev_tablero, i, j, tamFilas, dev_contadorEliminados); //eliminamos la posicion del hilo
 			}
-			//Eliminacion de elemento seleccionado
-			eliminar(dev_tablero, fila, columna, columnas, dev_contadorEliminados);
-
+			
 		}
-
 	}
+	else {
+		if (i == fila2 && j == columna2) {
+			if (sameHorizon2 > sameVertical2) {
+				int jAux = j;
+				while (dev_tablero[i*tamFilas + j] == dev_tablero[i*tamFilas + (jAux + 1)] && jAux + 1 < tamColumnas) { //eliminamos igual por derecha
+					jAux++;
+					eliminar(dev_tablero, i, jAux, tamFilas, dev_contadorEliminados);
+				}
+				jAux = j;
+				while (dev_tablero[i*tamFilas + j] == dev_tablero[i*tamFilas + (jAux - 1)] && jAux - 1 >= 0) {//eliminamos igual por izquierda
+					jAux--;
+					eliminar(dev_tablero, i, jAux, tamFilas, dev_contadorEliminados);
+				}
+				eliminar(dev_tablero, i, j, tamFilas, dev_contadorEliminados); //eliminamos la posicion
+			}
+			else {
+				int iAux = i;
+				while (dev_tablero[i*tamFilas + j] == dev_tablero[iAux + 1 * tamFilas + j] && iAux + 1 < tamFilas) { //eliminamos igual por arriba
+					iAux++;
+					eliminar(dev_tablero, iAux, j, tamFilas, dev_contadorEliminados);
+				}
+				iAux = i;
+				while (dev_tablero[i* tamFilas + j] == dev_tablero[iAux - 1 * tamFilas + j] && iAux - 1 >= 0) {//eliminamos igual por abajo
+					iAux--;
+					eliminar(dev_tablero, iAux, j, tamFilas, dev_contadorEliminados);
+					
+				}
+				eliminar(dev_tablero, i, j, tamFilas, dev_contadorEliminados); //eliminamos la posicion
+			}
+			
+		}
+	}
+}
 
 
 
@@ -472,7 +297,7 @@ __device__ void reestructuracionIzquierdaDerecha(int* dev_tablero, int filas, in
 
 __global__ void jugarKernel(int* dev_tablero, int fila1, int columna1, int fila2, int columna2,int tamFila, int tamColumnas, int* dev_contadorEliminados) {
 
-	unBloque(dev_tablero, fila1, columna1, fila2, columna2, dev_contadorEliminados);
+	comprobarCadena(dev_tablero, fila1, columna1, fila2, columna2,tamFila,tamColumnas, dev_contadorEliminados);
 
 	__syncthreads();
 
@@ -513,7 +338,7 @@ __device__ bool explotChange(int* dev_tablero, int filas1, int columnas1, int fi
 	int sameVertical2 = comprobarIgualesPos(dev_tablero, fila2, columna2, abajo, tamFilas, tamColumnas) + comprobarIgualesPos(dev_tablero, fila2, columna2, arriba, tamFilas, tamColumnas);
 	int sameHorizon2 = comprobarIgualesPos(dev_tablero, fila2, columna2, derecha, tamFilas, tamColumnas) + comprobarIgualesPos(dev_tablero, fila2, columna2, izquierda, tamFilas, tamColumnas);
 
-	if (sameVertical1 >= 2 || sameHorizon1 >= 2) {
+	if (sameVertical1 >= 2 || sameHorizon1 >= 2) { //Comprobamos que en cualquiera de las posiciones haya bombas que puedan explotar
 		explotan = true;
 	}
 	else if (sameVertical2 >= 2 || sameHorizon2 >= 2) {
@@ -533,11 +358,11 @@ __global__ void probeMovPosi(int* dev_tablero, int filas1, int columnas1, int fi
 	int fil = threadIdx.y + blockDim.y * blockIdx.y;
 	bool TrueMov;
 	bool explot;
-	if ((col == columnas1 && fil == filas1)) {
+	if ((col == columnas1 && fil == filas1)) {//comprobamos que el hilo que accede a la funcion sea el que queremos cambiar(se comprueban en las funciones los dos numeros)
 		TrueMov = adyacentes(filas1, columnas1, fila2, columna2);
 		explot = explotChange(dev_tablero, filas1, columnas1, fila2, columna2,tamFilas,tamColumnas);
 		if (TrueMov && explot) {
-			//llamar a cambiar pos y explotar
+			//Si ambos son true realizamos el cmbio
 			int colorAux1 = dev_tablero[(filas1*tamFilas) + columnas1];
 			int colorAux2 = dev_tablero[(fila2*tamFilas) + columna2];
 			dev_tablero[(filas1*tamFilas) + columnas1] = colorAux2;
@@ -825,6 +650,7 @@ int* generaTablero(int filas, int columnas, int nColores) {
 
 char pedirDificultad() {
 	char dificultad=' ';
+	fflush(stdin);
 	while (dificultad != 'F' && dificultad != 'M' && dificultad != 'D') {
 		printf("Que dificultad desea para el juego? Facil(F), Medio(M), Dificil(D)\n");
 		fflush(stdin);
