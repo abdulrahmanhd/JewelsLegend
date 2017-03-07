@@ -141,13 +141,13 @@ __device__ void comprobarCadena(int* dev_tablero, int fila1, int columna1, int f
 			}
 			else {
 				int iAux = i;
-				while (dev_tablero[i*tamFilas + j] == dev_tablero[iAux+1*tamFilas + j] && iAux + 1 < tamFilas) { //eliminamos igual por arriba
+				while (dev_tablero[i*tamFilas + j] == dev_tablero[(iAux+1)*tamFilas + j] && iAux + 1 < tamFilas) { //eliminamos igual por arriba
 					iAux++;
 					eliminar(dev_tablero, iAux, j, tamFilas, dev_contadorEliminados);
 					
 				}
 				iAux = i;
-				while (dev_tablero[i-1*tamFilas + j] == dev_tablero[iAux-1*tamFilas + j] && iAux - 1 >= 0) {//eliminamos igual por abajo
+				while (dev_tablero[i*tamFilas + j] == dev_tablero[(iAux-1)*tamFilas + j] && iAux - 1 >= 0) {//eliminamos igual por abajo
 					iAux--;
 					eliminar(dev_tablero, iAux, j, tamFilas, dev_contadorEliminados);
 				}
@@ -173,17 +173,17 @@ __device__ void comprobarCadena(int* dev_tablero, int fila1, int columna1, int f
 			}
 			else {
 				int iAux = i;
-				while (dev_tablero[i*tamFilas + j] == dev_tablero[iAux + 1 * tamFilas + j] && iAux + 1 < tamFilas) { //eliminamos igual por arriba
+				while (dev_tablero[i*tamFilas + j] == dev_tablero[(iAux + 1) * tamFilas + j] && iAux + 1 < tamFilas) { //eliminamos igual por abajo
 					iAux++;
 					eliminar(dev_tablero, iAux, j, tamFilas, dev_contadorEliminados);
+
 				}
 				iAux = i;
-				while (dev_tablero[i* tamFilas + j] == dev_tablero[iAux - 1 * tamFilas + j] && iAux - 1 >= 0) {//eliminamos igual por abajo
+				while (dev_tablero[i * tamFilas + j] == dev_tablero[(iAux - 1) * tamFilas + j] && iAux - 1 >= 0) {//eliminamos igual por arriba
 					iAux--;
 					eliminar(dev_tablero, iAux, j, tamFilas, dev_contadorEliminados);
-					
 				}
-				eliminar(dev_tablero, i, j, tamFilas, dev_contadorEliminados); //eliminamos la posicion
+				eliminar(dev_tablero, i, j, tamFilas, dev_contadorEliminados); //eliminamos la posicion del hilo
 			}
 			
 		}
