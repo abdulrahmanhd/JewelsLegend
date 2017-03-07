@@ -64,6 +64,7 @@ __device__ bool estaDentro(int x, int y, int filas, int columnas) {
 	return !(x >= filas || x < 0 || y >= columnas || y < 0);
 
 }
+
 //funcion que comprueba las posiciones iguales del array,
 __device__ int comprobarIgualesPos(int *tablero, int posX, int posY, posicion pos, int tamFilas,int tamColumnas) {
 	int cont = 0;
@@ -112,11 +113,12 @@ __device__ void eliminar(int* dev_tablero, int fila, int columna, int tamFilas, 
 
 // Funcion que elimina con un unico bloque
 __device__ void comprobarCadena(int* dev_tablero, int fila1, int columna1, int fila2, int columna2,int tamFilas, int tamColumnas, int* dev_contadorEliminados) {
-
+	
 	//Valores de los indices
 	int i = blockIdx.y * blockDim.y + threadIdx.y;		//Indice de la x
 	int j = blockIdx.x * blockDim.x + threadIdx.x;
-
+	//eliminar(dev_tablero, i, j, tamFilas, dev_contadorEliminados);
+	
 	int sameVertical1 = comprobarIgualesPos(dev_tablero, fila1, columna1, abajo, tamFilas, tamColumnas) + comprobarIgualesPos(dev_tablero, fila1, columna1, arriba, tamFilas, tamColumnas);
 	int sameHorizon1 = comprobarIgualesPos(dev_tablero, fila1, columna1, derecha, tamFilas, tamColumnas) + comprobarIgualesPos(dev_tablero, fila1, columna1, izquierda, tamFilas, tamColumnas);
 	int sameVertical2 = comprobarIgualesPos(dev_tablero, fila2, columna2, abajo, tamFilas, tamColumnas) + comprobarIgualesPos(dev_tablero, fila2, columna2, arriba, tamFilas, tamColumnas);
@@ -310,6 +312,7 @@ __global__ void jugarKernel(int* dev_tablero, int fila1, int columna1, int fila2
 	//__syncthreads();
 
 }
+
 __device__ bool adyacentes(int fila1, int columna1, int fila2, int columna2) {
 	bool ady = false;
 
@@ -383,7 +386,7 @@ cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorElim
 
 	dim3 blocks(1);
 	dim3 threads(tamFilas, tamColumnas);
-
+	//Asignamos objeto a memoria global con cudamalloc
 	cudaStatus = cudaMalloc((void**)&dev_tablero, tamFilas*tamColumnas * sizeof(int));
 	if (cudaStatus != cudaSuccess) {
 		fprintf(stderr, "cudaMalloc failed!");
@@ -400,7 +403,7 @@ cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorElim
 		fprintf(stderr, "cudaMalloc failed!");
 		goto Error;
 	}
-
+	//Pasamos parametros a la parte del device
 	cudaStatus = cudaMemcpy(dev_tablero, tablero, tamFilas*tamColumnas * sizeof(int), cudaMemcpyHostToDevice);
 	if (cudaStatus != cudaSuccess) {
 		fprintf(stderr, "cudaMemcpy dev_tablero failed!");
@@ -418,16 +421,16 @@ cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorElim
 		fprintf(stderr, "cudaMemcpy dev_mov failed!");
 		goto Error;
 	}
-
+	//Modo manual
 	if (m == 'm') {
 		while (!mov) {
-			printf("Numero de fila del primer diamante: ");
+			printf("Introduzca la fila del primer diamante: ");
 			scanf_s("%d", &fila1);
-			printf("Numero de columna del primer diamante: ");
+			printf("Introduzca la columna del primer diamante: ");
 			scanf_s("%d", &columna1);
-			printf("Numero de fila del segundo diamante: ");
+			printf("Introduzca la fila del segundo diamante: ");
 			scanf_s("%d", &fila2);
-			printf("Numero de columna del segundo diamante: ");
+			printf("Introduzca la columna del segundo diamante: ");
 			scanf_s("%d", &columna2);
 			
 			//bool canMove = hasMoreMovements(tablero);
@@ -670,14 +673,14 @@ char pedirDificultad() {
 char pedirModoEjecucion() {
 	char modo;
 	do {
-		printf("Existen 2 modos de ejecucion para Antique Blocks:\n\n");
-		printf("- Automatica(-a): el programa pulsara aleatoriamente las teclas del tablero\n");
-		printf("- Manual(-m): el programa esperara a que el usuario pulse las teclas del tablero\n");
+		printf("Existen 2 modos de ejecucion para Jewels Leyend:\n\n");
+		printf("- Automatica(a): el programa pulsara aleatoriamente las teclas del tablero\n");
+		printf("- Manual(m): el programa esperara a que el usuario pulse las teclas del tablero\n");
 		printf("Introduce el modo de ejecucion del programa: "); 
 		fflush(stdin);
 		scanf("%c", &modo);
 		if (modo != 'a' && modo != 'm') {
-			printf("Usted ha introducido un modo de ejecucion no existente: -%c.\n", modo);
+			printf("Usted ha introducido un modo de ejecucion no existente: %c.\n", modo);
 			printf("Por favor, introduzca uno de los modos que se le presentan a continuacion.\n\n");
 		}
 	} while (modo != 'a' && modo != 'm');
