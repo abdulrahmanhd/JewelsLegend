@@ -204,21 +204,23 @@ __device__ void reestructuracionArribaAbajo(int* dev_tablero, int filas, int col
 	if(dev_tablero[celdax*filas+celday] == 0){
 		int celdaxAux = celdax;
 		while (celdaxAux-1 >= 0) {
-			if (dev_tablero[(celdaxAux - 1)*filas + celday] != 0) {
+			if (dev_tablero[(celdaxAux - 1)*filas + celday] != 0 || ) {
 				int colorAux = dev_tablero[(celdaxAux - 1)*filas + celday];
 				dev_tablero[(celdaxAux - 1)*filas + celday] = 0;
 				dev_tablero[celdaxAux*filas+celday] = colorAux;
-			}
+			}	
 			celdaxAux--;
-			
 		}
 	}
-
-	/*int nombre = celdax * columnas + celday;	//Valor del elemento en el array
+	/*
+	int size = (filas*columnas); //Tamaño de la matriz
+	int celdax = threadIdx.x;	//Indice de las x
+	int celday = threadIdx.y;	//Indice de las y
+	int nombre = celdax * columnas + celday;	//Valor del elemento en el array
 	int actual = nombre;
 	int count = 0;
 	int comprobador = 0;
-	int size = (filas*columnas); //Tamaño de la matriz
+
 	// Se comprueba que esa celda no es 0 para compararla con los elementos que tiene por debajo
 	if (dev_tablero[actual] != 0) {
 
@@ -687,7 +689,7 @@ char pedirDificultad() {
 char pedirModoEjecucion() {
 	char modo;
 	do {
-		printf("Existen 2 modos de ejecucion para Jewels Leyend:\n\n");
+		printf("Existen 2 modos de ejecucion para Jewels Legend:\n\n");
 		printf("- Automatica(a): el programa pulsara aleatoriamente las teclas del tablero\n");
 		printf("- Manual(m): el programa esperara a que el usuario pulse las teclas del tablero\n");
 		printf("Introduce el modo de ejecucion del programa: "); 
