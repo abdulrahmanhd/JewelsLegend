@@ -116,7 +116,7 @@ __device__ void comprobarCadena(int* dev_tablero, int fila1, int columna1, int f
 	
 	//Valores de los indices
 	int i = blockIdx.y * blockDim.y + threadIdx.y;		//Indice de la x
-	int j = blockIdx.x * blockDim.x + threadIdx.x;
+	int j = blockIdx.x * blockDim.x + threadIdx.x;		//Indice de la y
 	//eliminar(dev_tablero, i, j, tamFilas, dev_contadorEliminados);
 	
 	int sameVertical1 = comprobarIgualesPos(dev_tablero, fila1, columna1, abajo, tamFilas, tamColumnas) + comprobarIgualesPos(dev_tablero, fila1, columna1, arriba, tamFilas, tamColumnas);
@@ -197,14 +197,28 @@ __device__ void comprobarCadena(int* dev_tablero, int fila1, int columna1, int f
 // Metodo que sube los 0 que se encuentran en el tablero hacia la parte mas alta del mismo
 __device__ void reestructuracionArribaAbajo(int* dev_tablero, int filas, int columnas) {
 
-	int size = (filas*columnas); //Tamaño de la matriz
-	int celdax = threadIdx.x;	//Indice de las x
-	int celday = threadIdx.y;	//Indice de las y
-	int nombre = celdax * columnas + celday;	//Valor del elemento en el array
+	
+	int celdax = blockIdx.y* blockDim.y + threadIdx.y;		//Indice de la x
+	int celday = blockIdx.x* blockDim.x + threadIdx.x;		//Indice de la y
+
+	if(dev_tablero[celdax*filas+celday] == 0){
+		int celdaxAux = celdax;
+		while (celdaxAux-1 >= 0) {
+			if (dev_tablero[(celdaxAux - 1)*filas + celday] != 0) {
+				int colorAux = dev_tablero[(celdaxAux - 1)*filas + celday];
+				dev_tablero[(celdaxAux - 1)*filas + celday] = 0;
+				dev_tablero[celdaxAux*filas+celday] = colorAux;
+			}
+			celdaxAux--;
+			
+		}
+	}
+
+	/*int nombre = celdax * columnas + celday;	//Valor del elemento en el array
 	int actual = nombre;
 	int count = 0;
 	int comprobador = 0;
-
+	int size = (filas*columnas); //Tamaño de la matriz
 	// Se comprueba que esa celda no es 0 para compararla con los elementos que tiene por debajo
 	if (dev_tablero[actual] != 0) {
 
@@ -242,7 +256,7 @@ __device__ void reestructuracionArribaAbajo(int* dev_tablero, int filas, int col
 			dev_tablero[nombre] = 0;
 		}
 
-	}
+	}*/
 
 }
 
@@ -357,8 +371,8 @@ __device__ bool explotChange(int* dev_tablero, int filas1, int columnas1, int fi
 
 
 __global__ void probeMovPosi(int* dev_tablero, int filas1, int columnas1, int fila2, int columna2,int tamFilas,int tamColumnas,bool* dev_mov) {
-	int col = threadIdx.x + blockDim.x * blockIdx.x;
-	int fil = threadIdx.y + blockDim.y * blockIdx.y;
+	int col = threadIdx.x;
+	int fil = threadIdx.y;
 	bool TrueMov;
 	bool explot;
 	if ((col == columnas1 && fil == filas1)) {//comprobamos que el hilo que accede a la funcion sea el que queremos cambiar(se comprueban en las funciones los dos numeros)
@@ -653,7 +667,7 @@ int* generaTablero(int filas, int columnas, int nColores) {
 
 char pedirDificultad() {
 	char dificultad=' ';
-	fflush(stdin);
+	getchar();
 	while (dificultad != 'F' && dificultad != 'M' && dificultad != 'D') {
 		printf("Que dificultad desea para el juego? Facil(F), Medio(M), Dificil(D)\n");
 		fflush(stdin);
@@ -690,6 +704,7 @@ char pedirModoEjecucion() {
 //Metodo que solicita al usuario el numero de filas que tendra el tablero
 int pedirFilasTablero() {
 	int filas;
+
 	do {
 		printf("\nIntroduzca las filas que tendra el tablero: ");
 		fflush(stdin);
