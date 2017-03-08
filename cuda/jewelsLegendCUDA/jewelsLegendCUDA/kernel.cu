@@ -110,10 +110,20 @@ __device__ void eliminar(int* dev_tablero, int fila, int columna, int tamFilas, 
 
 
 }
+// Funcion que determina si alineacion 1 es mayoor que 2 o viceversa
+__device__ bool comprobarMayor(int sameVertical1, int sameHorizon1, int sameVertical2, int sameHorizon2) {
+	bool mayor1 = true;
+	if (((sameVertical1 >= sameVertical2) && (sameVertical1 >= sameHorizon2)) || ((sameHorizon1 >= sameVertical2) && (sameHorizon1 >= sameHorizon2)))	mayor1 = true;
+	else mayor1 = false;
+	return mayor1;
+}
+
 
 // Funcion que elimina con un unico bloque
 __device__ void comprobarCadena(int* dev_tablero, int fila1, int columna1, int fila2, int columna2,int tamFilas, int tamColumnas, int* dev_contadorEliminados) {
 	
+	
+
 	//Valores de los indices
 	int i = blockIdx.y * blockDim.y + threadIdx.y;		//Indice de la x
 	int j = blockIdx.x * blockDim.x + threadIdx.x;		//Indice de la y
@@ -124,7 +134,9 @@ __device__ void comprobarCadena(int* dev_tablero, int fila1, int columna1, int f
 	int sameVertical2 = comprobarIgualesPos(dev_tablero, fila2, columna2, abajo, tamFilas, tamColumnas) + comprobarIgualesPos(dev_tablero, fila2, columna2, arriba, tamFilas, tamColumnas);
 	int sameHorizon2 = comprobarIgualesPos(dev_tablero, fila2, columna2, derecha, tamFilas, tamColumnas) + comprobarIgualesPos(dev_tablero, fila2, columna2, izquierda, tamFilas, tamColumnas);
 	
-	if ((sameVertical1 >= 2) || (sameHorizon1 >= 2)) { //comprobamos cual de las posiciones cambiadas explota mas
+	
+
+	if (comprobarMayor(sameVertical1,sameHorizon1,sameVertical2,sameHorizon2)) { //comprobamos cual de las posiciones cambiadas explota mas
 	//Ahora comprobamos que el hilo sea el de la posicion que queremos
 		if (i == fila1 && j == columna1) {
 			if (sameHorizon1 > sameVertical1) {
@@ -141,21 +153,22 @@ __device__ void comprobarCadena(int* dev_tablero, int fila1, int columna1, int f
 				}
 				eliminar(dev_tablero, i, j, tamFilas, dev_contadorEliminados); //eliminamos la posicion del hilo
 			}
-			else {
-				int iAux = i;
-				while (dev_tablero[i*tamFilas + j] == dev_tablero[(iAux+1)*tamFilas + j] && iAux + 1 < tamFilas) { //eliminamos igual por arriba
-					iAux++;
-					eliminar(dev_tablero, iAux, j, tamFilas, dev_contadorEliminados);
-					
+			else { //if(mayor1){
+				if (comprobarMayor(sameVertical1, sameHorizon1, sameVertical2, sameHorizon2)) {
+					int iAux = i;
+					while (dev_tablero[i*tamFilas + j] == dev_tablero[(iAux + 1)*tamFilas + j] && iAux + 1 < tamFilas) { //eliminamos igual por arriba
+						iAux++;
+						eliminar(dev_tablero, iAux, j, tamFilas, dev_contadorEliminados);
+
+					}
+					iAux = i;
+					while (dev_tablero[i*tamFilas + j] == dev_tablero[(iAux - 1)*tamFilas + j] && iAux - 1 >= 0) {//eliminamos igual por abajo
+						iAux--;
+						eliminar(dev_tablero, iAux, j, tamFilas, dev_contadorEliminados);
+					}
+					eliminar(dev_tablero, i, j, tamFilas, dev_contadorEliminados); //eliminamos la posicion del hilo
 				}
-				iAux = i;
-				while (dev_tablero[i*tamFilas + j] == dev_tablero[(iAux-1)*tamFilas + j] && iAux - 1 >= 0) {//eliminamos igual por abajo
-					iAux--;
-					eliminar(dev_tablero, iAux, j, tamFilas, dev_contadorEliminados);
-				}
-				eliminar(dev_tablero, i, j, tamFilas, dev_contadorEliminados); //eliminamos la posicion del hilo
 			}
-			
 		}
 	}
 	else {
@@ -173,19 +186,21 @@ __device__ void comprobarCadena(int* dev_tablero, int fila1, int columna1, int f
 				}
 				eliminar(dev_tablero, i, j, tamFilas, dev_contadorEliminados); //eliminamos la posicion
 			}
-			else {
-				int iAux = i;
-				while (dev_tablero[i*tamFilas + j] == dev_tablero[(iAux + 1) * tamFilas + j] && iAux + 1 < tamFilas) { //eliminamos igual por abajo
-					iAux++;
-					eliminar(dev_tablero, iAux, j, tamFilas, dev_contadorEliminados);
+			else{// if(mayor2) {
+				if (!comprobarMayor(sameVertical1, sameHorizon1, sameVertical2, sameHorizon2)) {
+					int iAux = i;
+					while (dev_tablero[i*tamFilas + j] == dev_tablero[(iAux + 1) * tamFilas + j] && iAux + 1 < tamFilas) { //eliminamos igual por abajo
+						iAux++;
+						eliminar(dev_tablero, iAux, j, tamFilas, dev_contadorEliminados);
 
+					}
+					iAux = i;
+					while (dev_tablero[i * tamFilas + j] == dev_tablero[(iAux - 1) * tamFilas + j] && iAux - 1 >= 0) {//eliminamos igual por arriba
+						iAux--;
+						eliminar(dev_tablero, iAux, j, tamFilas, dev_contadorEliminados);
+					}
+					eliminar(dev_tablero, i, j, tamFilas, dev_contadorEliminados); //eliminamos la posicion del hilo
 				}
-				iAux = i;
-				while (dev_tablero[i * tamFilas + j] == dev_tablero[(iAux - 1) * tamFilas + j] && iAux - 1 >= 0) {//eliminamos igual por arriba
-					iAux--;
-					eliminar(dev_tablero, iAux, j, tamFilas, dev_contadorEliminados);
-				}
-				eliminar(dev_tablero, i, j, tamFilas, dev_contadorEliminados); //eliminamos la posicion del hilo
 			}
 			
 		}
@@ -317,7 +332,7 @@ __global__ void jugarKernel(int* dev_tablero, int fila1, int columna1, int fila2
 
 	__syncthreads();
 
-	reestructuracionArribaAbajo(dev_tablero, tamFila, tamColumnas);
+	//reestructuracionArribaAbajo(dev_tablero, tamFila, tamColumnas);
 
 	__syncthreads();
 
