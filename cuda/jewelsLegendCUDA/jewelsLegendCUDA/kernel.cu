@@ -217,30 +217,11 @@ __device__ void reestructuracionArribaAbajo(int* dev_tablero, int filas, int col
 	
 	int celdax = blockIdx.y* blockDim.y + threadIdx.y;		//Indice de la x
 	int celday = blockIdx.x* blockDim.x + threadIdx.x;		//Indice de la y
-<<<<<<< HEAD
-
-	if(dev_tablero[celdax*filas+celday] == 0){
-		int celdaxAux = celdax;
-		while (celdaxAux-1 >= 0) {
-			if (dev_tablero[(celdaxAux - 1)*filas + celday] != 0) {
-				int colorAux = dev_tablero[(celdaxAux - 1)*filas + celday];
-				dev_tablero[(celdaxAux - 1)*filas + celday] = 0;
-				dev_tablero[celdaxAux*filas+celday] = colorAux;
-			}
-			celdaxAux--;
-			
-		}
-	}
-
-	/*int nombre = celdax * columnas + celday;	//Valor del elemento en el array
-=======
-	int size = (filas*columnas); //Tamaño de la matriz
 	int nombre = celdax * columnas + celday;	//Valor del elemento en el array
->>>>>>> eaa23762c6074d6c27430356356c43af6c053b18
+	int size = (filas*columnas); //Tamaño de la matriz
 	int actual = nombre;
 	int count = 0;
 	int comprobador = 0;
-	int size = (filas*columnas); //Tamaño de la matriz
 	// Se comprueba que esa celda no es 0 para compararla con los elementos que tiene por debajo
 	if (dev_tablero[actual] != 0) {
 
