@@ -314,6 +314,24 @@ __device__ void reestructuracionIzquierdaDerecha(int* dev_tablero, int filas, in
 	}
 
 }
+__device__ void rellenarMatriz(int* dev_tablero, int tamFilas, int tamColumnas, int nColores) {
+
+	//Valores de los indices
+	int i = blockIdx.y * blockDim.y + threadIdx.y;		//Indice de la x
+	int j = blockIdx.x * blockDim.x + threadIdx.x;		//Indice de la y
+
+	curandState_t state;
+
+	/* we have to initialize the state */
+	curand_init(0, /* the seed controls the sequence of random values that are produced */
+		0, /* the sequence number is only important with multiple cores */
+		0, /* the offset is how much extra we advance in the sequence for each call, can be 0 */
+		&state);
+
+	/* curand works like rand - except that it takes a state as a parameter */
+	if (dev_tablero[i*tamColumnas + j] == 0) dev_tablero[i*tamColumnas + j] = curand(&state) % nColores;
+
+}
 
 __global__ void jugarKernel(int* dev_tablero, int fila1, int columna1, int fila2, int columna2,int tamFila, int tamColumnas, int* dev_contadorEliminados, int nColores) {
 
@@ -383,8 +401,6 @@ __global__ void probeMovPosi(int* dev_tablero, int filas1, int columnas1, int fi
 	if ((col == columnas1 && fil == filas1)) {//comprobamos que el hilo que accede a la funcion sea el que queremos cambiar(se comprueban en las funciones los dos numeros)
 		TrueMov = adyacentes(filas1, columnas1, fila2, columna2);
 		explot = explotChange(dev_tablero, filas1, columnas1, fila2, columna2,tamFilas,tamColumnas);
-		if (TrueMov) printf("Adyacente\n");
-		if (explot) printf("Explota\n");
 		if (TrueMov && explot) {
 			//Si ambos son true realizamos el cmbio
 			int colorAux1 = dev_tablero[(filas1*tamColumnas) + columnas1];
@@ -513,6 +529,7 @@ int pedirFilasTablero();
 int pedirColumnasTablero();
 char pedirDificultad();
 void prop();
+int* rellenarTablero(int* tablero, int tamFilas, int tamColumnas, int nColores);
 
 int main() {
 	//Declaracion de variables para la ejecucion del programa
@@ -564,6 +581,7 @@ int main() {
 		{
 			cudaStatus = jugar(tablero, tamFilas, tamColumnas, &contadorEliminados, 'a',nColores);
 		}
+		tablero = rellenarTablero(tablero, tamFilas, tamColumnas, nColores);
 
 		imprimeTablero(tablero, tamFilas, tamColumnas);
 
@@ -586,7 +604,13 @@ Error:
 
 	return cudaStatus;
 }
-
+int* rellenarTablero(int* tablero, int tamFilas, int tamColumnas, int nColores) {
+	for (int i = 0; i < tamFilas*tamColumnas; i++)
+	{
+		if(tablero[i] == 0) tablero[i] = 1 + (rand() % nColores);
+	}
+	return tablero;
+}
 //Procedimiento que imprime una matriz de filas * columnas de enteros indicando fila y columna 
 void imprimeTablero(int* tablero, int filas, int columnas) {
 
