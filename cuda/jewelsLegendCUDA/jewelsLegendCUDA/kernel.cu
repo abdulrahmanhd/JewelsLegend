@@ -3,6 +3,8 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
+#include <curand.h>
+#include <curand_kernel.h>
 #include "device_launch_parameters.h"
 #include <assert.h>
 #include <cmath>
@@ -71,22 +73,22 @@ __device__ int comprobarIgualesPos(int *tablero, int posX, int posY, posicion po
 	switch (pos)
 	{
 	case derecha:
-		if (posY + 1 < tamColumnas && tablero[(posX*tamFilas) + posY] == tablero[(posX * tamFilas) + posY + 1]) { // comprobamos derecha 
+		if (posY + 1 < tamColumnas && tablero[(posX*tamColumnas) + posY] == tablero[(posX * tamColumnas) + posY + 1]) { // comprobamos derecha 
 			cont += 1 + comprobarIgualesPos(tablero, posX, posY + 1, derecha, tamFilas,tamColumnas);
 		}
 		break;
 	case izquierda:
-		if (posY - 1 >= 0 && tablero[(posX*tamFilas) + posY] == tablero[(posX * tamFilas) + posY - 1]) { //comprobamos izquierda
+		if (posY - 1 >= 0 && tablero[(posX*tamColumnas) + posY] == tablero[(posX * tamColumnas) + posY - 1]) { //comprobamos izquierda
 			cont += 1 + comprobarIgualesPos(tablero, posX, posY - 1, izquierda, tamFilas,tamColumnas);
 		}
 		break;
 	case abajo:
-		if (posX + 1 < tamFilas && tablero[(posX*tamFilas) + posY] == tablero[((posX + 1) * tamFilas) + posY]) { //comprobamos abajo
+		if (posX + 1 < tamFilas && tablero[(posX*tamColumnas) + posY] == tablero[((posX + 1) * tamColumnas) + posY]) { //comprobamos abajo
 			cont += 1 + comprobarIgualesPos(tablero, posX + 1, posY, abajo, tamFilas, tamColumnas);
 		}
 		break;
 	case arriba:
-		if (posX - 1 >= 0 && tablero[(posX*tamFilas) + posY] == tablero[((posX - 1) * tamFilas) + posY]) { //comprobamos arriba
+		if (posX - 1 >= 0 && tablero[(posX*tamColumnas) + posY] == tablero[((posX - 1) * tamColumnas) + posY]) { //comprobamos arriba
 			cont += 1 + comprobarIgualesPos(tablero, posX - 1, posY, arriba, tamFilas, tamColumnas);
 		}
 		break;
@@ -99,14 +101,14 @@ __device__ int comprobarIgualesPos(int *tablero, int posX, int posY, posicion po
 }
 
 //Funcion que elimina una celda
-__device__ void eliminar(int* dev_tablero, int fila, int columna, int tamFilas, int* dev_contadorEliminados) {
+__device__ void eliminar(int* dev_tablero, int fila, int columna, int tamColumnas, int* dev_contadorEliminados) {
 
 	// Si el valor examinado es distinto de 0, se suma uno al contador de eliminador
-	if (dev_tablero[fila * tamFilas + columna] != 0)
+	if (dev_tablero[fila * tamColumnas + columna] != 0)
 		dev_contadorEliminados[0] = dev_contadorEliminados[0] + 1;
 
 	//El valor se pone a 0
-	dev_tablero[fila * tamFilas + columna] = 0;
+	dev_tablero[fila * tamColumnas + columna] = 0;
 
 
 }
@@ -141,32 +143,32 @@ __device__ void comprobarCadena(int* dev_tablero, int fila1, int columna1, int f
 		if (i == fila1 && j == columna1) {
 			if (sameHorizon1 > sameVertical1) {
 				int jAux = j;
-				while (dev_tablero[i*tamFilas + j] == dev_tablero[i*tamFilas + (jAux + 1)] && jAux + 1 < tamColumnas) { //eliminamos igual por derecha
+				while (dev_tablero[i*tamColumnas + j] == dev_tablero[i*tamColumnas + (jAux + 1)] && jAux + 1 < tamColumnas) { //eliminamos igual por derecha
 					jAux++;
-					eliminar(dev_tablero, i, jAux, tamFilas, dev_contadorEliminados);
+					eliminar(dev_tablero, i, jAux, tamColumnas, dev_contadorEliminados);
 					
 				}
 				jAux = j;
-				while (dev_tablero[i*tamFilas + j] == dev_tablero[i*tamFilas + (jAux - 1)] && jAux - 1 >= 0) {//eliminamos igual por izquierda
+				while (dev_tablero[i*tamColumnas + j] == dev_tablero[i*tamColumnas + (jAux - 1)] && jAux - 1 >= 0) {//eliminamos igual por izquierda
 					jAux--;
-					eliminar(dev_tablero, i, jAux , tamFilas, dev_contadorEliminados);
+					eliminar(dev_tablero, i, jAux , tamColumnas, dev_contadorEliminados);
 				}
-				eliminar(dev_tablero, i, j, tamFilas, dev_contadorEliminados); //eliminamos la posicion del hilo
+				eliminar(dev_tablero, i, j, tamColumnas, dev_contadorEliminados); //eliminamos la posicion del hilo
 			}
 			else { //if(mayor1){
 				if (comprobarMayor(sameVertical1, sameHorizon1, sameVertical2, sameHorizon2)) {
 					int iAux = i;
-					while (dev_tablero[i*tamFilas + j] == dev_tablero[(iAux + 1)*tamFilas + j] && iAux + 1 < tamFilas) { //eliminamos igual por arriba
+					while (dev_tablero[i*tamColumnas + j] == dev_tablero[(iAux + 1)*tamColumnas + j] && iAux + 1 < tamFilas) { //eliminamos igual por arriba
 						iAux++;
-						eliminar(dev_tablero, iAux, j, tamFilas, dev_contadorEliminados);
+						eliminar(dev_tablero, iAux, j, tamColumnas, dev_contadorEliminados);
 
 					}
 					iAux = i;
-					while (dev_tablero[i*tamFilas + j] == dev_tablero[(iAux - 1)*tamFilas + j] && iAux - 1 >= 0) {//eliminamos igual por abajo
+					while (dev_tablero[i*tamColumnas + j] == dev_tablero[(iAux - 1)*tamColumnas + j] && iAux - 1 >= 0) {//eliminamos igual por abajo
 						iAux--;
-						eliminar(dev_tablero, iAux, j, tamFilas, dev_contadorEliminados);
+						eliminar(dev_tablero, iAux, j, tamColumnas, dev_contadorEliminados);
 					}
-					eliminar(dev_tablero, i, j, tamFilas, dev_contadorEliminados); //eliminamos la posicion del hilo
+					eliminar(dev_tablero, i, j, tamColumnas, dev_contadorEliminados); //eliminamos la posicion del hilo
 				}
 			}
 		}
@@ -175,31 +177,31 @@ __device__ void comprobarCadena(int* dev_tablero, int fila1, int columna1, int f
 		if (i == fila2 && j == columna2) {
 			if (sameHorizon2 > sameVertical2) {
 				int jAux = j;
-				while (dev_tablero[i*tamFilas + j] == dev_tablero[i*tamFilas + (jAux + 1)] && jAux + 1 < tamColumnas) { //eliminamos igual por derecha
+				while (dev_tablero[i*tamColumnas + j] == dev_tablero[i*tamColumnas + (jAux + 1)] && jAux + 1 < tamColumnas) { //eliminamos igual por derecha
 					jAux++;
-					eliminar(dev_tablero, i, jAux, tamFilas, dev_contadorEliminados);
+					eliminar(dev_tablero, i, jAux, tamColumnas, dev_contadorEliminados);
 				}
 				jAux = j;
-				while (dev_tablero[i*tamFilas + j] == dev_tablero[i*tamFilas + (jAux - 1)] && jAux - 1 >= 0) {//eliminamos igual por izquierda
+				while (dev_tablero[i*tamColumnas + j] == dev_tablero[i*tamColumnas + (jAux - 1)] && jAux - 1 >= 0) {//eliminamos igual por izquierda
 					jAux--;
-					eliminar(dev_tablero, i, jAux, tamFilas, dev_contadorEliminados);
+					eliminar(dev_tablero, i, jAux, tamColumnas, dev_contadorEliminados);
 				}
-				eliminar(dev_tablero, i, j, tamFilas, dev_contadorEliminados); //eliminamos la posicion
+				eliminar(dev_tablero, i, j, tamColumnas, dev_contadorEliminados); //eliminamos la posicion
 			}
 			else{// if(mayor2) {
 				if (!comprobarMayor(sameVertical1, sameHorizon1, sameVertical2, sameHorizon2)) {
 					int iAux = i;
-					while (dev_tablero[i*tamFilas + j] == dev_tablero[(iAux + 1) * tamFilas + j] && iAux + 1 < tamFilas) { //eliminamos igual por abajo
+					while (dev_tablero[i*tamColumnas + j] == dev_tablero[(iAux + 1) * tamColumnas + j] && iAux + 1 < tamFilas) { //eliminamos igual por abajo
 						iAux++;
-						eliminar(dev_tablero, iAux, j, tamFilas, dev_contadorEliminados);
+						eliminar(dev_tablero, iAux, j, tamColumnas, dev_contadorEliminados);
 
 					}
 					iAux = i;
-					while (dev_tablero[i * tamFilas + j] == dev_tablero[(iAux - 1) * tamFilas + j] && iAux - 1 >= 0) {//eliminamos igual por arriba
+					while (dev_tablero[i * tamColumnas + j] == dev_tablero[(iAux - 1) * tamColumnas + j] && iAux - 1 >= 0) {//eliminamos igual por arriba
 						iAux--;
-						eliminar(dev_tablero, iAux, j, tamFilas, dev_contadorEliminados);
+						eliminar(dev_tablero, iAux, j, tamColumnas, dev_contadorEliminados);
 					}
-					eliminar(dev_tablero, i, j, tamFilas, dev_contadorEliminados); //eliminamos la posicion del hilo
+					eliminar(dev_tablero, i, j, tamColumnas, dev_contadorEliminados); //eliminamos la posicion del hilo
 				}
 			}
 			
@@ -215,22 +217,7 @@ __device__ void reestructuracionArribaAbajo(int* dev_tablero, int filas, int col
 	
 	int celdax = blockIdx.y* blockDim.y + threadIdx.y;		//Indice de la x
 	int celday = blockIdx.x* blockDim.x + threadIdx.x;		//Indice de la y
-
-	if(dev_tablero[celdax*filas+celday] == 0){
-		int celdaxAux = celdax;
-		while (celdaxAux-1 >= 0) {
-			if (dev_tablero[(celdaxAux - 1)*filas + celday] != 0 || ) {
-				int colorAux = dev_tablero[(celdaxAux - 1)*filas + celday];
-				dev_tablero[(celdaxAux - 1)*filas + celday] = 0;
-				dev_tablero[celdaxAux*filas+celday] = colorAux;
-			}	
-			celdaxAux--;
-		}
-	}
-	/*
 	int size = (filas*columnas); //Tamaño de la matriz
-	int celdax = threadIdx.x;	//Indice de las x
-	int celday = threadIdx.y;	//Indice de las y
 	int nombre = celdax * columnas + celday;	//Valor del elemento en el array
 	int actual = nombre;
 	int count = 0;
@@ -273,7 +260,7 @@ __device__ void reestructuracionArribaAbajo(int* dev_tablero, int filas, int col
 			dev_tablero[nombre] = 0;
 		}
 
-	}*/
+	}
 
 }
 
@@ -328,19 +315,15 @@ __device__ void reestructuracionIzquierdaDerecha(int* dev_tablero, int filas, in
 
 }
 
-__global__ void jugarKernel(int* dev_tablero, int fila1, int columna1, int fila2, int columna2,int tamFila, int tamColumnas, int* dev_contadorEliminados) {
+__global__ void jugarKernel(int* dev_tablero, int fila1, int columna1, int fila2, int columna2,int tamFila, int tamColumnas, int* dev_contadorEliminados, int nColores) {
 
 	comprobarCadena(dev_tablero, fila1, columna1, fila2, columna2,tamFila,tamColumnas, dev_contadorEliminados);
 
 	__syncthreads();
 
-	//reestructuracionArribaAbajo(dev_tablero, tamFila, tamColumnas);
+	reestructuracionArribaAbajo(dev_tablero, tamFila, tamColumnas);
 
 	__syncthreads();
-
-	//reestructuracionIzquierdaDerecha(dev_tablero, filas, columnas, fila, columna);
-
-	//__syncthreads();
 
 }
 
@@ -359,55 +342,62 @@ __device__ bool adyacentes(int fila1, int columna1, int fila2, int columna2) {
 }
 
 __device__ bool explotChange(int* dev_tablero, int filas1, int columnas1, int fila2, int columna2,int tamFilas,int tamColumnas) {
-	bool explotan = false;
+	int x = blockIdx.y * blockDim.y + threadIdx.y;		//Indice de la x
+	int y = blockIdx.x * blockDim.x + threadIdx.x;		//Indice de la y
 
-	//HAcemos el intercambio en la matriz para comprobar si se puede explotar
-	int colorAux1 = dev_tablero[(filas1*tamFilas) + columnas1];
-	int colorAux2 = dev_tablero[(fila2*tamFilas) + columna2];
-	dev_tablero[(filas1*tamFilas) + columnas1] = colorAux2;
-	dev_tablero[(fila2*tamFilas) + columna2] = colorAux1;
+	if ((x == filas1 && y == columnas1) || (x==fila2 && y == columna2)) {
+		bool explotan = false;
 
-	int sameVertical1 = comprobarIgualesPos(dev_tablero, filas1, columnas1, abajo, tamFilas, tamColumnas) + comprobarIgualesPos(dev_tablero, filas1, columnas1, arriba, tamFilas, tamColumnas);
-	int sameHorizon1 = comprobarIgualesPos(dev_tablero, filas1, columnas1, derecha, tamFilas, tamColumnas) + comprobarIgualesPos(dev_tablero, filas1, columnas1, izquierda, tamFilas, tamColumnas);
-	int sameVertical2 = comprobarIgualesPos(dev_tablero, fila2, columna2, abajo, tamFilas, tamColumnas) + comprobarIgualesPos(dev_tablero, fila2, columna2, arriba, tamFilas, tamColumnas);
-	int sameHorizon2 = comprobarIgualesPos(dev_tablero, fila2, columna2, derecha, tamFilas, tamColumnas) + comprobarIgualesPos(dev_tablero, fila2, columna2, izquierda, tamFilas, tamColumnas);
+		//HAcemos el intercambio en la matriz para comprobar si se puede explotar
+		int colorAux1 = dev_tablero[(filas1*tamColumnas) + columnas1];
+		int colorAux2 = dev_tablero[(fila2*tamColumnas) + columna2];
+		dev_tablero[(filas1*tamColumnas) + columnas1] = colorAux2;
+		dev_tablero[(fila2*tamColumnas) + columna2] = colorAux1;
 
-	if (sameVertical1 >= 2 || sameHorizon1 >= 2) { //Comprobamos que en cualquiera de las posiciones haya bombas que puedan explotar
-		explotan = true;
-	}
-	else if (sameVertical2 >= 2 || sameHorizon2 >= 2) {
-		explotan = true;
-	}
+		int sameVertical1 = comprobarIgualesPos(dev_tablero, filas1, columnas1, abajo, tamFilas, tamColumnas) + comprobarIgualesPos(dev_tablero, filas1, columnas1, arriba, tamFilas, tamColumnas);
+		int sameHorizon1 = comprobarIgualesPos(dev_tablero, filas1, columnas1, derecha, tamFilas, tamColumnas) + comprobarIgualesPos(dev_tablero, filas1, columnas1, izquierda, tamFilas, tamColumnas);
+		int sameVertical2 = comprobarIgualesPos(dev_tablero, fila2, columna2, abajo, tamFilas, tamColumnas) + comprobarIgualesPos(dev_tablero, fila2, columna2, arriba, tamFilas, tamColumnas);
+		int sameHorizon2 = comprobarIgualesPos(dev_tablero, fila2, columna2, derecha, tamFilas, tamColumnas) + comprobarIgualesPos(dev_tablero, fila2, columna2, izquierda, tamFilas, tamColumnas);
 
-	// deshacemos los cambios en la matriz
-	dev_tablero[(filas1*tamFilas) + columnas1] = colorAux1;
-	dev_tablero[(fila2*tamFilas) + columna2] = colorAux2;
+		if (sameVertical1 >= 2 || sameHorizon1 >= 2) { //Comprobamos que en cualquiera de las posiciones haya bombas que puedan explotar
+			explotan = true;
+		}
+		else if (sameVertical2 >= 2 || sameHorizon2 >= 2) {
+			explotan = true;
+		}
 
+		// deshacemos los cambios en la matriz
+		dev_tablero[(filas1*tamColumnas) + columnas1] = colorAux1;
+		dev_tablero[(fila2*tamColumnas) + columna2] = colorAux2;
+	
 	return explotan;
+	}
 }
 
 
 __global__ void probeMovPosi(int* dev_tablero, int filas1, int columnas1, int fila2, int columna2,int tamFilas,int tamColumnas,bool* dev_mov) {
-	int col = threadIdx.x;
-	int fil = threadIdx.y;
+	int fil = blockIdx.y * blockDim.y + threadIdx.y;		//Indice de la x
+	int col = blockIdx.x * blockDim.x + threadIdx.x;
 	bool TrueMov;
 	bool explot;
 	if ((col == columnas1 && fil == filas1)) {//comprobamos que el hilo que accede a la funcion sea el que queremos cambiar(se comprueban en las funciones los dos numeros)
 		TrueMov = adyacentes(filas1, columnas1, fila2, columna2);
 		explot = explotChange(dev_tablero, filas1, columnas1, fila2, columna2,tamFilas,tamColumnas);
+		if (TrueMov) printf("Adyacente\n");
+		if (explot) printf("Explota\n");
 		if (TrueMov && explot) {
 			//Si ambos son true realizamos el cmbio
-			int colorAux1 = dev_tablero[(filas1*tamFilas) + columnas1];
-			int colorAux2 = dev_tablero[(fila2*tamFilas) + columna2];
-			dev_tablero[(filas1*tamFilas) + columnas1] = colorAux2;
-			dev_tablero[(fila2*tamFilas) + columna2] = colorAux1;
+			int colorAux1 = dev_tablero[(filas1*tamColumnas) + columnas1];
+			int colorAux2 = dev_tablero[(fila2*tamColumnas) + columna2];
+			dev_tablero[(filas1*tamColumnas) + columnas1] = colorAux2;
+			dev_tablero[(fila2*tamColumnas) + columna2] = colorAux1;
 			*dev_mov = true;
 		}
 		else { printf("MOVIMIENTO ERRONEO, Las posiciones no son adyacentes o no explotan\n"); }
 	}
 }
 
-cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorEliminados, char m) {
+cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorEliminados, char m, int nColores) {
 
 	cudaError_t cudaStatus;
 	int fila1 = 0, columna1 = 0, fila2 = 0, columna2 = 0;
@@ -487,7 +477,7 @@ cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorElim
 		printf("Numero de columna: %d\n", columna);*/
 	}
 
-	jugarKernel<< <blocks, threads >> >(dev_tablero, fila1, columna1, fila2, columna2, tamFilas, tamColumnas, dev_contadorEliminados);
+	jugarKernel<< <blocks, threads >> >(dev_tablero, fila1, columna1, fila2, columna2, tamFilas, tamColumnas, dev_contadorEliminados,nColores);
 
 	cudaStatus = cudaGetLastError();
 	if (cudaStatus != cudaSuccess) {
@@ -568,11 +558,11 @@ int main() {
 		imprimeTablero(tablero, tamFilas, tamColumnas);
 
 		if (modo == 'm') {
-			cudaStatus = jugar(tablero, tamFilas, tamColumnas, &contadorEliminados, 'm');
+			cudaStatus = jugar(tablero, tamFilas, tamColumnas, &contadorEliminados, 'm',nColores);
 		}
 		else
 		{
-			cudaStatus = jugar(tablero, tamFilas, tamColumnas, &contadorEliminados, 'a');
+			cudaStatus = jugar(tablero, tamFilas, tamColumnas, &contadorEliminados, 'a',nColores);
 		}
 
 		imprimeTablero(tablero, tamFilas, tamColumnas);
