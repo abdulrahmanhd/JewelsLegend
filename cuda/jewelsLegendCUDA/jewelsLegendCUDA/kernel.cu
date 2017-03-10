@@ -1,4 +1,4 @@
-#include <stdio.h>
+ï»¿#include <stdio.h>
 #include <stdlib.h>
 #include <cuda.h>
 #include <cuda_runtime.h>
@@ -11,7 +11,7 @@
 #include <Windows.h>
 
 
-//Poniendo este DEFINE evitamos un error en el que falta la definición de HANDLE_ERROR
+//Poniendo este DEFINE evitamos un error en el que falta la definiciÃ³n de HANDLE_ERROR
 #define HANDLE_ERROR
 #define COLORES 2
 #define ID_BOMBA 8
@@ -19,7 +19,7 @@
 enum posicion {arriba, abajo, derecha, izquierda };
 
 
-//Función que devuelve un error si las dimensiones de la martiz son demasiado grandes para la gráfica
+//FunciÃ³n que devuelve un error si las dimensiones de la martiz son demasiado grandes para la grÃ¡fica
 cudaError_t comprobarPropiedades(int filas, int columnas) {
 	cudaDeviceProp prop;
 	cudaError_t cudaStatus = cudaSuccess;
@@ -39,7 +39,7 @@ cudaError_t comprobarPropiedades(int filas, int columnas) {
 
 		if ((filas*columnas * sizeof(int)) >= globalMem) {
 
-			fprintf(stderr, "La matriz solicitada ocupa %lu y excede la capacidad de memoria global de tu tarjeta gráfica que es %lu \n",
+			fprintf(stderr, "La matriz solicitada ocupa %lu y excede la capacidad de memoria global de tu tarjeta grÃ¡fica que es %lu \n",
 				filas*columnas * sizeof(int), globalMem);
 			goto Error;
 		}
@@ -47,7 +47,7 @@ cudaError_t comprobarPropiedades(int filas, int columnas) {
 
 		if ((filas*columnas * sizeof(int)) >= sharedMem) {
 
-			fprintf(stderr, "La matriz solicitada ocupa %lu y excede la capacidad de memoria compartida de tu tarjeta gráfica que es %lu \n",
+			fprintf(stderr, "La matriz solicitada ocupa %lu y excede la capacidad de memoria compartida de tu tarjeta grÃ¡fica que es %lu \n",
 				filas*columnas * sizeof(int), sharedMem);
 			goto Error;
 		}
@@ -109,75 +109,77 @@ __device__ void eliminar(int* dev_tablero, int fila, int columna, int tamColumna
 
 	//El valor se pone a 0
 	dev_tablero[fila * tamColumnas + columna] = 0;
-
+	 
 
 }
 
 
 //Elimina una fila completa
-__device__ void bomba1(int* dev_tablero, int fila, int filas) {
+__device__ void bomba1(int* dev_tablero, int fila, int columnas) {
 
 	int i = blockIdx.y * blockDim.y + threadIdx.y;		//Indice de la x
 	int j = blockIdx.x * blockDim.x + threadIdx.x;		//Indice de la y
-
+	printf("d%", i);
 	//Identificamos los diamantes por su fila
-	if (i == fila)	dev_tablero[i*filas + j] = 0;
+	if (i == fila)	dev_tablero[i*columnas + j] = 0;
 
 }
 
 //Elimina un columna completa
-__device__ void bomba2(int* dev_tablero, int columna, int filas) {
+__device__ void bomba2(int* dev_tablero, int columna, int columnas) {
 
 	int i = blockIdx.y * blockDim.y + threadIdx.y;		//Indice de la x
 	int j = blockIdx.x * blockDim.x + threadIdx.x;		//Indice de la y
 
 	//Identificamos los diamantes por su columna
-	if (j == columna)	dev_tablero[i*filas + j] = 0;
+	if (j == columna)	dev_tablero[i*columnas + j] = 0;
 
 }
 
 //Mueve la matriz en fomra de cuadrados
 __device__ void bomba3(int* dev_tablero, int filas , int columnas) {
-	
+
 	int i = blockIdx.y * blockDim.y + threadIdx.y;		//Indice de la x
 	int j = blockIdx.x * blockDim.x + threadIdx.x;		//Indice de la y
 	int colorAux = 0;
-
-	if ((i == 1 && j == 1) || (i % 4 == 0 && j % 4 == 0)) {
-		//Intercambio de las puntas del cuadrado
+	/*float fila = i%4;
+	float columna = j % 4;*/
+	//printf("\nEntro");
+	
+	if ((i == 1 && j == 1) || ((i-1) % 3 == 0 && (j-1) % 3 == 0) || ((i-1) % 3 == 0 && j==1) || (i==1 && (j-1) % 3 == 0)){
+					
 		if (j + 1 < columnas && i + 1 < filas) {
-			colorAux = dev_tablero[(i*filas) + (j - 1)];
-			dev_tablero[(i*filas) + (j - 1)] = dev_tablero[((i + 1)*filas) + j];
-			dev_tablero[((i + 1)*filas) + j] = dev_tablero[(i*filas) + (j + 1)];
-			dev_tablero[(i*filas) + (j + 1)] = dev_tablero[((i - 1)*filas) + j];
-			dev_tablero[((i - 1)*filas) + j] = colorAux;
-		}
 
-
-		//Intercambiamos flor del cuadrado
-		if (i + 1 < filas && j + 1 < columnas) {
-			colorAux = dev_tablero[((i - 1)*filas) + (j - 1)];
-			dev_tablero[((i - 1)*filas) + (j - 1)] = dev_tablero[((i + 1)*filas) + (j - 1)];
-			dev_tablero[((i + 1)*filas) + (j - 1)] = dev_tablero[((i + 1)*filas) + (j + 1)];
-			dev_tablero[((i + 1)*filas) + (j + 1)] = dev_tablero[((i - 1)*filas) + (j + 1)];
-			dev_tablero[((i - 1)*filas) + (j + 1)] = colorAux;
+			//Intercambio de las puntas del cuadrado
+			colorAux = dev_tablero[(i*columnas) + (j - 1)];
+			dev_tablero[(i*columnas) + (j - 1)] = dev_tablero[((i + 1)*columnas) + j];
+			dev_tablero[((i + 1)*columnas) + j] = dev_tablero[(i*columnas) + (j + 1)];
+			dev_tablero[(i*columnas) + (j + 1)] = dev_tablero[((i - 1)*columnas) + j];
+			dev_tablero[((i - 1)*columnas) + j] = colorAux;
+			
+			//Intercambiamos flor del cuadrado
+			colorAux = dev_tablero[((i - 1)*columnas) + (j - 1)];
+			dev_tablero[((i - 1)*columnas) + (j - 1)] = dev_tablero[((i + 1)*columnas) + (j - 1)];
+			dev_tablero[((i + 1)*columnas) + (j - 1)] = dev_tablero[((i + 1)*columnas) + (j + 1)];
+			dev_tablero[((i + 1)*columnas) + (j + 1)] = dev_tablero[((i - 1)*columnas) + (j + 1)];
+			dev_tablero[((i - 1)*columnas) + (j + 1)] = colorAux;
 		}
 	}
-
+	
 }
 
 //Menu de bombas
 __global__ void menuBombas(int *dev_tablero, int filas, int columnas, int explota, int bomba) {
 	
 	switch (bomba) {
-		case 91:	bomba1(dev_tablero, explota, filas);
+		case 91:	bomba1(dev_tablero, explota, columnas);
 					break;
-		case 92:	bomba2(dev_tablero, explota, filas);
+		case 92:	bomba2(dev_tablero, explota, columnas);
 					break;
 		case 93:	bomba3(dev_tablero, filas, columnas);
 					break;
-		default:	printf("Numero de bomba no permitida");
-					break;
+		/*default:	printf("Numero de bomba no permitida");
+					break;*/
 	}
 }
 // Funcion que determina si alineacion 1 es mayoor que 2 o viceversa
@@ -286,7 +288,7 @@ __device__ void reestructuracionArribaAbajo(int* dev_tablero, int filas, int col
 	int celdax = blockIdx.y* blockDim.y + threadIdx.y;		//Indice de la x
 	int celday = blockIdx.x* blockDim.x + threadIdx.x;		//Indice de la y
 	int nombre = celdax * columnas + celday;	//Valor del elemento en el array
-	int size = (filas*columnas); //Tamaño de la matriz
+	int size = (filas*columnas); //TamaÃ±o de la matriz
 	int actual = nombre;
 	int count = 0;
 	int comprobador = 0;
@@ -333,7 +335,7 @@ __device__ void reestructuracionArribaAbajo(int* dev_tablero, int filas, int col
 
 __device__ void reestructuracionIzquierdaDerecha(int* dev_tablero, int filas, int columnas, int fila, int columna) {
 
-	int size = (filas*columnas);						//Tamaño de la matriz
+	int size = (filas*columnas);						//TamaÃ±o de la matriz
 	int x = blockIdx.y * blockDim.y + threadIdx.y;		//Indice de la x
 	int y = blockIdx.x * blockDim.x + threadIdx.x;		//Indice de la y
 
@@ -547,6 +549,7 @@ cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorElim
 					scanf("%d", &explota);
 					menuBombas << <blocks, threads >> > (dev_tablero, tamFilas, tamColumnas, explota, bomba);
 				}
+				else menuBombas << <blocks, threads >> > (dev_tablero, tamFilas, tamColumnas, 0, bomba);
 
 				hayBomba = true;
 
@@ -582,8 +585,10 @@ cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorElim
 		printf("Numero de fila: %d\n", fila);
 		printf("Numero de columna: %d\n", columna);*/
 	}
-
-	jugarKernel<< <blocks, threads >> >(dev_tablero, fila1, columna1, fila2, columna2, tamFilas, tamColumnas, dev_contadorEliminados,nColores);
+	if (!hayBomba) {
+		jugarKernel << <blocks, threads >> >(dev_tablero, fila1, columna1, fila2, columna2, tamFilas, tamColumnas, dev_contadorEliminados, nColores);
+	}
+	
 
 	cudaStatus = cudaGetLastError();
 	if (cudaStatus != cudaSuccess) {
@@ -729,7 +734,7 @@ void imprimeTablero(int* tablero, int filas, int columnas) {
 
 
 		}
-		//Según el valor en la posición i del tablero se imprime de un color u otro
+		//SegÃºn el valor en la posiciÃ³n i del tablero se imprime de un color u otro
 		switch (tablero[i]) {
 		case 0: SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0);
 			break;
@@ -769,7 +774,7 @@ void imprimeTablero(int* tablero, int filas, int columnas) {
 
 /*
 Procedimiento que genera un tablero de size x size relleno con numeros del 1 al 2
-y con bombas representadas con el número 3
+y con bombas representadas con el nÃºmero 3
 */
 int* generaTablero(int filas, int columnas, int nColores) {
 
