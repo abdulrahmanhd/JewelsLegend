@@ -112,6 +112,74 @@ __device__ void eliminar(int* dev_tablero, int fila, int columna, int tamColumna
 
 
 }
+
+
+//Elimina una fila completa
+__device__ void bomba1(int* dev_tablero, int fila, int filas) {
+
+	int i = blockIdx.y * blockDim.y + threadIdx.y;		//Indice de la x
+	int j = blockIdx.x * blockDim.x + threadIdx.x;		//Indice de la y
+
+	//Identificamos los diamantes por su fila
+	if (i == fila)	dev_tablero[i*filas + j] = 0;
+
+}
+
+//Elimina un columna completa
+__device__ void bomba2(int* dev_tablero, int columna, int filas) {
+
+	int i = blockIdx.y * blockDim.y + threadIdx.y;		//Indice de la x
+	int j = blockIdx.x * blockDim.x + threadIdx.x;		//Indice de la y
+
+	//Identificamos los diamantes por su columna
+	if (j == columna)	dev_tablero[i*filas + j] = 0;
+
+}
+
+//Mueve la matriz en fomra de cuadrados
+__device__ void bomba3(int* dev_tablero, int filas , int columnas) {
+	
+	int i = blockIdx.y * blockDim.y + threadIdx.y;		//Indice de la x
+	int j = blockIdx.x * blockDim.x + threadIdx.x;		//Indice de la y
+	int colorAux = 0;
+
+	if ((i == 1 && j == 1) || (i % 4 == 0 && j % 4 == 0)) {
+		//Intercambio de las puntas del cuadrado
+		if (j + 1 < columnas && i + 1 < filas) {
+			colorAux = dev_tablero[(i*filas) + (j - 1)];
+			dev_tablero[(i*filas) + (j - 1)] = dev_tablero[((i + 1)*filas) + j];
+			dev_tablero[((i + 1)*filas) + j] = dev_tablero[(i*filas) + (j + 1)];
+			dev_tablero[(i*filas) + (j + 1)] = dev_tablero[((i - 1)*filas) + j];
+			dev_tablero[((i - 1)*filas) + j] = colorAux;
+		}
+
+
+		//Intercambiamos flor del cuadrado
+		if (i + 1 < filas && j + 1 < columnas) {
+			colorAux = dev_tablero[((i - 1)*filas) + (j - 1)];
+			dev_tablero[((i - 1)*filas) + (j - 1)] = dev_tablero[((i + 1)*filas) + (j - 1)];
+			dev_tablero[((i + 1)*filas) + (j - 1)] = dev_tablero[((i + 1)*filas) + (j + 1)];
+			dev_tablero[((i + 1)*filas) + (j + 1)] = dev_tablero[((i - 1)*filas) + (j + 1)];
+			dev_tablero[((i - 1)*filas) + (j + 1)] = colorAux;
+		}
+	}
+
+}
+
+//Menu de bombas
+__global__ void menuBombas(int *dev_tablero, int filas, int columnas, int explota, int bomba) {
+	
+	switch (bomba) {
+		case 91:	bomba1(dev_tablero, explota, filas);
+					break;
+		case 92:	bomba2(dev_tablero, explota, filas);
+					break;
+		case 93:	bomba3(dev_tablero, filas, columnas);
+					break;
+		default:	printf("Numero de bomba no permitida");
+					break;
+	}
+}
 // Funcion que determina si alineacion 1 es mayoor que 2 o viceversa
 __device__ bool comprobarMayor(int sameVertical1, int sameHorizon1, int sameVertical2, int sameHorizon2) {
 	bool mayor1 = true;
@@ -419,6 +487,9 @@ cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorElim
 	bool* mov = false, *dev_mov;
 	int* dev_tablero;
 	int *dev_contadorEliminados;
+	int bomba = 0;
+	int explota = 0;
+	bool hayBomba = false;
 
 	dim3 blocks(1);
 	dim3 threads(tamFilas, tamColumnas);
@@ -459,23 +530,43 @@ cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorElim
 	}
 	//Modo manual
 	if (m == 'm') {
-		while (!mov) {
-			printf("Introduzca la fila del primer diamante: ");
+		while (!mov && !hayBomba) {
+			printf("Para usar una bomba introduce 90 ");
+			printf("\nIntroduzca la fila del primer diamante: ");
 			scanf_s("%d", &fila1);
-			printf("Introduzca la columna del primer diamante: ");
-			scanf_s("%d", &columna1);
-			printf("Introduzca la fila del segundo diamante: ");
-			scanf_s("%d", &fila2);
-			printf("Introduzca la columna del segundo diamante: ");
-			scanf_s("%d", &columna2);
-			
-			//bool canMove = hasMoreMovements(tablero);
-			probeMovPosi<< <blocks, threads>> >(dev_tablero, fila1, columna1, fila2, columna2, tamFilas, tamColumnas,dev_mov);
+			if (fila1 == 90) {
+				printf("\nIntroduce el numero de la bomba:");
+				scanf("%d", &bomba);
+				if (bomba == 91) {
+					printf("Introduce el numero de la fila que deseas explotar:");
+					scanf("%d", &explota);
+					menuBombas << <blocks, threads >> > (dev_tablero, tamFilas, tamColumnas, explota, bomba);
+				}
+				if (bomba == 92) {
+					printf("Introduce el numero de la columna que deseas explotar:");
+					scanf("%d", &explota);
+					menuBombas << <blocks, threads >> > (dev_tablero, tamFilas, tamColumnas, explota, bomba);
+				}
 
-			cudaStatus = cudaMemcpy(&mov, dev_mov, sizeof(bool), cudaMemcpyDeviceToHost);
-			if (cudaStatus != cudaSuccess) {
-				fprintf(stderr, "cudaMemcpy device to host dev_mov failed!");
-				goto Error;
+				hayBomba = true;
+
+			}
+			else {
+				printf("Introduzca la columna del primer diamante: ");
+				scanf_s("%d", &columna1);
+				printf("Introduzca la fila del segundo diamante: ");
+				scanf_s("%d", &fila2);
+				printf("Introduzca la columna del segundo diamante: ");
+				scanf_s("%d", &columna2);
+
+				//bool canMove = hasMoreMovements(tablero);
+				probeMovPosi << <blocks, threads >> > (dev_tablero, fila1, columna1, fila2, columna2, tamFilas, tamColumnas, dev_mov);
+
+				cudaStatus = cudaMemcpy(&mov, dev_mov, sizeof(bool), cudaMemcpyDeviceToHost);
+				if (cudaStatus != cudaSuccess) {
+					fprintf(stderr, "cudaMemcpy device to host dev_mov failed!");
+					goto Error;
+				}
 			}
 
 		}
