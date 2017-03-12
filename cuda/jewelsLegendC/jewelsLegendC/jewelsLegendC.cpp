@@ -2,48 +2,50 @@
 //
 
 #include "stdafx.h"
-#include <iostream>
 #include "Diamante.h"
 #include <string.h>
 #include <time.h>
 #include <string>
 #include <stdlib.h>
+#include <fstream>
+#include <iostream>
+# include <stdio.h>
+# include <conio.h>
+
 
 using namespace std;
-int columnas = 10;
-int filas = 10;
 int nColores = 8;
-const int posFinal = (filas * columnas) - 1;
 enum posicion { todos, arriba, abajo, derecha, izquierda };
 FILE *doc;
 FILE *leer;
 
-void printDiamante(Diamante *tablero, HANDLE hConsole);
-int comprobarIgualesPos(Diamante *tablero, int posX, int posY, posicion pos);
-int comprobarIgualesDer(Diamante *tablero, int posX, int posY);
-int comprobarIgualesAbajo(Diamante *tablero, int posX, int posY);
-int comprobarIgualesIzquierda(Diamante *tablero, int posX, int posY);
-int comprobarIgualesArriba(Diamante *tablero, int posX, int posY);
-Diamante *explotarIguales(Diamante *tablero, int posX, int posY, posicion pos);
-Diamante *moverAbajo(Diamante *tablero);
-Diamante *menuBomba(Diamante *tablero, int tipBomba);
-bool explotan(Diamante *tablero, int f1, int c1, int f2, int c2, bool ady);
+void printDiamante(Diamante *tablero, HANDLE hConsole, int filas, int columnas);
+int comprobarIgualesPos(Diamante *tablero, int posX, int posY, posicion pos, int filas, int columnas);
+int comprobarIgualesDer(Diamante *tablero, int posX, int posY, int filas, int columnas);
+int comprobarIgualesAbajo(Diamante *tablero, int posX, int posY, int filas);
+int comprobarIgualesIzquierda(Diamante *tablero, int posX, int posY, int filas);
+int comprobarIgualesArriba(Diamante *tablero, int posX, int posY, int filas);
+Diamante *explotarIguales(Diamante *tablero, int posX, int posY, posicion pos, int filas, int columnas);
+Diamante *moverAbajo(Diamante *tablero, int filas, int columnas);
+Diamante *menuBomba(Diamante *tablero, int tipBomba, int filas, int columnas);
+bool explotan(Diamante *tablero, int f1, int c1, int f2, int c2, bool ady, int filas, int columnas);
+void guardarPartida(Diamante *tablero, int filas, int columnas, string dificultad);
 
-bool hasMoreMovements(Diamante *tablero) {
+bool hasMoreMovements(Diamante *tablero, int filas, int columnas) {
 	bool expl = false;
 	int posX = 0;
 	while (posX < filas && !expl) {
 		for (int posY = 0; posY < columnas; posY++) {
-			if (posX + 1 < filas && explotan(tablero, posX, posY, posX + 1, posY,true)) { // Abajo
+			if (posX + 1 < filas && explotan(tablero, posX, posY, posX + 1, posY,true, filas, columnas)) { // Abajo
 				expl = true;
 			}
-			else if (posY + 1 < columnas && explotan(tablero, posX, posY, posX, posY + 1, true)) { //Derecha
+			else if (posY + 1 < columnas && explotan(tablero, posX, posY, posX, posY + 1, true, filas, columnas)) { //Derecha
 				expl = true;
 			}
-			else if (posY - 1 >= 0 && explotan(tablero, posX, posY, posX, posY - 1, true) ) { //Izquierda
+			else if (posY - 1 >= 0 && explotan(tablero, posX, posY, posX, posY - 1, true, filas, columnas) ) { //Izquierda
 				expl = true;
 			}
-			else if (posX - 1 >= 0 && explotan(tablero, posX, posY, posX-1, posY, true)) {//Arriba
+			else if (posX - 1 >= 0 && explotan(tablero, posX, posY, posX-1, posY, true, filas, columnas)) {//Arriba
 				expl = true;
 			}
 		}
@@ -53,35 +55,35 @@ bool hasMoreMovements(Diamante *tablero) {
 	return expl;
 }
 
-Diamante *comprobarCadena(Diamante *tablero, int posX, int posY) {
-	int comFilas = comprobarIgualesDer(tablero, posX, posY) + comprobarIgualesIzquierda(tablero, posX, posY);
-	int comColumnas = comprobarIgualesAbajo(tablero, posX, posY) + comprobarIgualesArriba(tablero, posX, posY);
+Diamante *comprobarCadena(Diamante *tablero, int posX, int posY, int filas, int columnas) {
+	int comFilas = comprobarIgualesDer(tablero, posX, posY, filas,columnas) + comprobarIgualesIzquierda(tablero, posX, posY, filas);
+	int comColumnas = comprobarIgualesAbajo(tablero, posX, posY,filas) + comprobarIgualesArriba(tablero, posX, posY, filas);
 	//Comprobamos cual es la cadena mas larga para pasar a explotar la posicion del primer elemento;
 	if (comFilas > comColumnas) {
 		int i = posY;
 		while (tablero[posX*filas + posY].color == tablero[posX*filas + (i - 1)].color && i>0) {
 			i--;
 		}
-		tablero = explotarIguales(tablero, posX, i,derecha);
+		tablero = explotarIguales(tablero, posX, i,derecha, filas, columnas);
 	}
 	else {
 		int i = posX;
 		while (tablero[posX*filas + posY].color == tablero[(i - 1)*filas + posY].color && i>0) {
 			i--;
 		}
-		tablero = explotarIguales(tablero, i, posY,abajo);
+		tablero = explotarIguales(tablero, i, posY,abajo, filas, columnas);
 	}
 	
 	return tablero;
 }
 
-Diamante *explotarIguales(Diamante *tablero, int posX, int posY, posicion pos) {
+Diamante *explotarIguales(Diamante *tablero, int posX, int posY, posicion pos, int filas, int columnas) {
 	
-		if (comprobarIgualesDer(tablero, posX, posY) >= 1 && pos == derecha)
-			tablero = explotarIguales(tablero, posX, posY + 1, derecha);
+		if (comprobarIgualesDer(tablero, posX, posY, filas, columnas) >= 1 && pos == derecha)
+			tablero = explotarIguales(tablero, posX, posY + 1, derecha, filas, columnas);
 
-		if (comprobarIgualesAbajo(tablero, posX, posY) >= 1 && pos == abajo)
-			tablero = explotarIguales(tablero, posX + 1, posY, abajo);
+		if (comprobarIgualesAbajo(tablero, posX, posY, filas) >= 1 && pos == abajo)
+			tablero = explotarIguales(tablero, posX + 1, posY, abajo, filas, columnas);
 
 	tablero[posX*filas + posY].color = 0;
 
@@ -105,64 +107,64 @@ Diamante *explotarIguales(Diamante *tablero, int posX, int posY, posicion pos) {
 	diam = moverAbajo(diam);
 	return diam;
 }*/
-int comprobarIgualesArriba(Diamante *tablero, int posX, int posY) {
+int comprobarIgualesArriba(Diamante *tablero, int posX, int posY, int filas) {
 	int cont = 0;
 	if (posX - 1 >= 0 && tablero[(posX*filas) + posY].color == tablero[((posX-1) * filas) + posY].color) {
-		cont = 1 + comprobarIgualesArriba(tablero, posX-1, posY);
+		cont = 1 + comprobarIgualesArriba(tablero, posX-1, posY, filas);
 	}
 	return cont;
 }
-int comprobarIgualesIzquierda(Diamante *tablero, int posX, int posY) {
+int comprobarIgualesIzquierda(Diamante *tablero, int posX, int posY, int filas) {
 	int cont = 0;
 	if (posY - 1 >= 0 && tablero[(posX*filas) + posY].color == tablero[(posX * filas) + posY - 1].color ) {
-		cont = 1 + comprobarIgualesIzquierda(tablero, posX, posY - 1);
+		cont = 1 + comprobarIgualesIzquierda(tablero, posX, posY - 1, filas);
 	}
 	return cont;
 }
 
-int comprobarIgualesDer(Diamante *tablero, int posX, int posY) {
+int comprobarIgualesDer(Diamante *tablero, int posX, int posY, int filas, int columnas) {
 	int cont = 0;
 	if (posY + 1 < columnas && tablero[(posX*filas) + posY].color == tablero[(posX * filas) + posY + 1].color) {
-		cont = 1 + comprobarIgualesDer(tablero, posX, posY + 1);
+		cont = 1 + comprobarIgualesDer(tablero, posX, posY + 1, filas, columnas);
 	}
 	return cont;
 }
-int comprobarIgualesAbajo(Diamante *tablero, int posX, int posY) {
+int comprobarIgualesAbajo(Diamante *tablero, int posX, int posY, int filas) {
 	int cont = 0;
 	//if(posX >= filas - 1 && posY >= columnas - 1)
 	if (posX + 1 < filas && tablero[(posX*filas) + posY].color == tablero[((posX + 1) * filas) + posY].color) {
-		cont = 1 + comprobarIgualesAbajo(tablero, posX + 1, posY );
+		cont = 1 + comprobarIgualesAbajo(tablero, posX + 1, posY , filas);
 	}
 	return cont;
 }
-int comprobarIgualesPos(Diamante *tablero, int posX, int posY,posicion pos) {
+int comprobarIgualesPos(Diamante *tablero, int posX, int posY,posicion pos, int filas, int columnas) {
 	int cont = 0;
 	switch (pos)
 	{
 	case todos:
-		cont += comprobarIgualesPos(tablero, posX, posY, derecha);
-		cont += comprobarIgualesPos(tablero, posX, posY, izquierda);
-		cont += comprobarIgualesPos(tablero, posX, posY, arriba);
-		cont += comprobarIgualesPos(tablero, posX, posY, abajo);
+		cont += comprobarIgualesPos(tablero, posX, posY, derecha, filas,columnas);
+		cont += comprobarIgualesPos(tablero, posX, posY, izquierda, filas, columnas);
+		cont += comprobarIgualesPos(tablero, posX, posY, arriba, filas, columnas);
+		cont += comprobarIgualesPos(tablero, posX, posY, abajo, filas, columnas);
 		break;
 	case derecha:
 		if (posY + 1 < columnas && tablero[(posX*filas) + posY].color == tablero[(posX * filas) + posY + 1 ].color) { // comprobamos derecha 
-			cont += 1 + comprobarIgualesPos(tablero, posX, posY + 1,derecha);
+			cont += 1 + comprobarIgualesPos(tablero, posX, posY + 1,derecha, filas, columnas);
 		}
 		break;
 	case izquierda:
 		if (posY - 1 >= 0 && tablero[(posX*filas) + posY].color == tablero[(posX * filas) + posY - 1].color) { //comprobamos izquierda
-			cont += 1 + comprobarIgualesPos(tablero, posX, posY - 1,izquierda);
+			cont += 1 + comprobarIgualesPos(tablero, posX, posY - 1,izquierda, filas, columnas);
 		}
 		break;
 	case abajo:
 		if (posX + 1 < filas && tablero[(posX*filas) + posY].color == tablero[((posX + 1) * filas) + posY].color) { //comprobamos abajo
-			cont += 1 + comprobarIgualesPos(tablero, posX + 1, posY,abajo);
+			cont += 1 + comprobarIgualesPos(tablero, posX + 1, posY,abajo, filas, columnas);
 		}
 	break;
 	case arriba:
 		if (posX - 1 >= 0 && tablero[(posX*filas) + posY].color == tablero[((posX - 1) * filas) + posY].color) { //comprobamos arriba
-			cont += 1 + comprobarIgualesPos(tablero, posX - 1, posY,arriba);
+			cont += 1 + comprobarIgualesPos(tablero, posX - 1, posY,arriba, filas, columnas);
 		}
 	break;
 	default:
@@ -173,7 +175,7 @@ int comprobarIgualesPos(Diamante *tablero, int posX, int posY,posicion pos) {
 
 }
 
-void inicicializarArray(Diamante *tablero){
+void inicicializarArray(Diamante *tablero, int filas, int columnas, int nColores){
 	int numAleatorio = 0;
 
 	cout << "\n\n";
@@ -189,7 +191,7 @@ void inicicializarArray(Diamante *tablero){
 	}
 }
 
-Diamante *rellenarCeros(Diamante *tablero) {
+Diamante *rellenarCeros(Diamante *tablero, int nColores, int filas, int columnas) {
 	int numAleatorio = 0;
 	srand(time(NULL));//Cambiamos semillas
 
@@ -210,7 +212,7 @@ Diamante *rellenarCeros(Diamante *tablero) {
 
 //funcion para mover los diamantes hacia abajo
 //Recorremos la matriz de abajo hacia arriba para no tener que repetir movimientos
-Diamante *moverAbajo(Diamante *tablero) {
+Diamante *moverAbajo(Diamante *tablero, int filas, int columnas) {
 	int pos = 0;
 	int FilaAux = 0;
 	//Recorremos hacia atras el array
@@ -237,7 +239,7 @@ Diamante *moverAbajo(Diamante *tablero) {
 	return tablero;
 }
 ////MUEVE CEROS HACIA IZQUIERDA
-int moverIzquierda(Diamante *tablero) {
+int moverIzquierda(Diamante *tablero, int filas, int columnas) {
 	int columnaAux = 0;
 	int columna1 = 0;
 	
@@ -284,12 +286,12 @@ bool adyacentes(Diamante tablero, int fila1, int columna1, int fila2, int column
 
 
 //Funcion que comprueba si los diamantes explotan
-bool explotan(Diamante *tablero, int f1, int c1, int f2, int c2, bool ady) {
+bool explotan(Diamante *tablero, int f1, int c1, int f2, int c2, bool ady, int filas, int columnas) {
 	
 	bool expl = false;
 	int contIgualesArriba1=0, contIgualesAbajo1=0, contIgualesDer1=0, contIgualesIzq1=0, contIgualesVert1=0 , contIgualesHoriz1=0;
 	int contIgualesArriba2=0, contIgualesAbajo2=0, contIgualesDer2=0, contIgualesIzq2=0, contIgualesVert2=0, contIgualesHoriz2=0;
-	
+
 	//HAcemos el intercambio en la matriz para comprobar si se puede explotar
 	int colorAux1 = tablero[(f1*filas) + c1].color;
 	int colorAux2 = tablero[(f2*filas) + c2].color;
@@ -297,19 +299,19 @@ bool explotan(Diamante *tablero, int f1, int c1, int f2, int c2, bool ady) {
 	tablero[(f2*filas) + c2].color = colorAux1;
 
 	//Comprobamos todas las direcciones posibles
-	contIgualesArriba1 = comprobarIgualesPos(tablero, f1, c1, arriba);
-	contIgualesAbajo1 = comprobarIgualesPos(tablero, f1, c1, abajo);
-	contIgualesVert1 = comprobarIgualesPos(tablero, f1, c1, arriba) + comprobarIgualesPos(tablero, f1, c1, abajo);
-	contIgualesIzq1 = comprobarIgualesPos(tablero, f1, c1, izquierda);
-	contIgualesDer1 = comprobarIgualesPos(tablero, f1, c1, derecha);
-	contIgualesHoriz1 = comprobarIgualesPos(tablero, f1, c1, izquierda) + comprobarIgualesPos(tablero, f1, c1, derecha);
+	contIgualesArriba1 = comprobarIgualesPos(tablero, f1, c1, arriba, filas, columnas);
+	contIgualesAbajo1 = comprobarIgualesPos(tablero, f1, c1, abajo, filas, columnas);
+	contIgualesVert1 = comprobarIgualesPos(tablero, f1, c1, arriba, filas, columnas) + comprobarIgualesPos(tablero, f1, c1, abajo, filas, columnas);
+	contIgualesIzq1 = comprobarIgualesPos(tablero, f1, c1, izquierda, filas, columnas);
+	contIgualesDer1 = comprobarIgualesPos(tablero, f1, c1, derecha, filas, columnas);
+	contIgualesHoriz1 = comprobarIgualesPos(tablero, f1, c1, izquierda, filas, columnas) + comprobarIgualesPos(tablero, f1, c1, derecha, filas, columnas);
 
-	contIgualesArriba2 = comprobarIgualesPos(tablero, f2, c2, arriba);
-	contIgualesAbajo2 = comprobarIgualesPos(tablero, f2, c2, abajo);
-	contIgualesVert2 = comprobarIgualesPos(tablero, f2, c2, arriba) + comprobarIgualesPos(tablero, f2, c2, abajo);
-	contIgualesIzq2 = comprobarIgualesPos(tablero, f2, c2, izquierda);
-	contIgualesDer2 = comprobarIgualesPos(tablero, f2, c2, derecha);
-	contIgualesHoriz2 = comprobarIgualesPos(tablero, f2, c2, izquierda) + comprobarIgualesPos(tablero, f2, c2, derecha);
+	contIgualesArriba2 = comprobarIgualesPos(tablero, f2, c2, arriba, filas, columnas);
+	contIgualesAbajo2 = comprobarIgualesPos(tablero, f2, c2, abajo, filas, columnas);
+	contIgualesVert2 = comprobarIgualesPos(tablero, f2, c2, arriba, filas, columnas) + comprobarIgualesPos(tablero, f2, c2, abajo, filas, columnas);
+	contIgualesIzq2 = comprobarIgualesPos(tablero, f2, c2, izquierda, filas, columnas);
+	contIgualesDer2 = comprobarIgualesPos(tablero, f2, c2, derecha, filas, columnas);
+	contIgualesHoriz2 = comprobarIgualesPos(tablero, f2, c2, izquierda, filas, columnas) + comprobarIgualesPos(tablero, f2, c2, derecha, filas, columnas);
 
 	//En caso de que alguno de estos parametros sea 2 o más, al menos uno explota
 	if (contIgualesArriba1>=2 || contIgualesAbajo1>=2 || contIgualesVert1>=2 || contIgualesIzq1>=2 || contIgualesDer1>=2 || contIgualesHoriz1>=2) {
@@ -326,29 +328,35 @@ bool explotan(Diamante *tablero, int f1, int c1, int f2, int c2, bool ady) {
 }
 
 //Funcion que pide movimiento hasta que sea correcto
-bool movPosibleManual(Diamante *tablero) {
+bool movPosibleManual(Diamante *tablero, int filas, int columnas, string dificultad) {
 	int f1 = 0, c1 = 0, f2 = 0, c2 = 0;
 	bool expl = false, ady = false;
 	string tipBomb = "";
+	string guardar = "";
 
 	cout << "\n--INTRODUCE TU JUGADA--";
 	cout << "\nIntroduce la fila del primer diamante: ";
 	cin >> f1;
-	if (f1 == 99) exit(0);
+	if (f1 == 99) { 
+		cout << "\nQuieres guardar la partida? (si/no): ";
+		cin >> guardar;
+		if (guardar=="si") guardarPartida(tablero, filas, columnas, dificultad);
+		exit(0); 
+	}
 	if (f1 == 91) {
 		cout << "Activada bomba 1 ";
 		//tipBomb = (char)f1;
-		menuBomba(tablero, 91);
+		menuBomba(tablero, 91, filas, columnas);
 	}
 	else if (f1 == 92) {
 		cout << "Activada bomba 2 ";
 		//tipBomb = (char)f1;
-		menuBomba(tablero, 92);
+		menuBomba(tablero, 92, filas, columnas);
 	}
 	else if (f1 == 93) {
 		cout << "Activada bomba 3 ";
 		//tipBomb = (char)f1;
-		menuBomba(tablero, 93);
+		menuBomba(tablero, 93, filas, columnas);
 	}
 	else {
 		cout << "Introduce la columna del primer diamante: ";
@@ -357,12 +365,10 @@ bool movPosibleManual(Diamante *tablero) {
 		cin >> f2;
 		cout << "Introduce la columna del segundo diamante: ";
 		cin >> c2;
-
-
-
+		
 		ady = adyacentes(*tablero, f1, c1, f2, c2);
-		expl = explotan(tablero, f1, c1, f2, c2, ady);
-
+		expl = explotan(tablero, f1, c1, f2, c2, ady, filas, columnas);
+		
 		if (!expl) cout << "\nMOVIMIENTO ERRONEO, los diamantes seleccionados no explotan";
 
 		if (ady && expl) {
@@ -370,21 +376,21 @@ bool movPosibleManual(Diamante *tablero) {
 			int colorAux2 = tablero[(f2*filas) + c2].color;
 			tablero[(f1*filas) + c1].color = colorAux2;
 			tablero[(f2*filas) + c2].color = colorAux1;
-			if (comprobarIgualesDer(tablero, f1, c1) + comprobarIgualesIzquierda(tablero, f1, c1) >= 2 || comprobarIgualesAbajo(tablero, f1, c1) + comprobarIgualesArriba(tablero, f1, c1) >= 2) {
-				tablero = comprobarCadena(tablero, f1, c1);
+			if (comprobarIgualesDer(tablero, f1, c1, filas, columnas) + comprobarIgualesIzquierda(tablero, f1, c1, filas) >= 2 || comprobarIgualesAbajo(tablero, f1, c1, filas) + comprobarIgualesArriba(tablero, f1, c1, filas) >= 2) {
+				tablero = comprobarCadena(tablero, f1, c1, filas, columnas);
 			}
 			else {
-				tablero = comprobarCadena(tablero, f2, c2);
+				tablero = comprobarCadena(tablero, f2, c2, filas, columnas);
 			}
 		}
 
-		moverAbajo(tablero);
+		moverAbajo(tablero, filas, columnas);
 	}
 	return true;
 }
 
 
-Diamante *bomba1(Diamante *tablero) {
+Diamante *bomba1(Diamante *tablero, int filas, int columnas) {
 	int fila = 0;
 
 	cout << "Selecciona la fila que quieras explotar: ";
@@ -395,11 +401,11 @@ Diamante *bomba1(Diamante *tablero) {
 			tablero[(i*filas) + j].color = 0;
 		}
 	}
-	moverAbajo(tablero);
+	moverAbajo(tablero, filas, columnas);
 	return tablero;
 }
 
-Diamante *bomba2(Diamante *tablero) {
+Diamante *bomba2(Diamante *tablero, int filas, int columnas) {
 	int columna = 0;
 
 	cout << "Selecciona la columna que quieras explotar: ";
@@ -408,11 +414,11 @@ Diamante *bomba2(Diamante *tablero) {
 	for (int i = 0; i < filas; i++) {  //ponemos a 0 las posiciones que son de esa columna
 			tablero[(i*filas) + columna].color = 0;
 	}
-	moverIzquierda(tablero);
+	moverIzquierda(tablero, filas, columnas);
 	return tablero;
 }
 
-Diamante *bomba3(Diamante *tablero) {
+Diamante *bomba3(Diamante *tablero, int filas, int columnas) {
 	int colorAux = 0;
 	for (int i = 1; i < filas; i++) {
 		for (int j = 1; j < columnas; j++) {
@@ -443,7 +449,7 @@ Diamante *bomba3(Diamante *tablero) {
 	return tablero;
 }
 
-Diamante *menuBomba(Diamante *tablero, int tipBomba) {
+Diamante *menuBomba(Diamante *tablero, int tipBomba, int filas, int columnas) {
 	int numTipoBomba = 0;
 
 	if (tipBomba == 91) numTipoBomba = 1;
@@ -451,35 +457,35 @@ Diamante *menuBomba(Diamante *tablero, int tipBomba) {
 	else numTipoBomba = 3;
 
 	switch (numTipoBomba) {
-		case 1: bomba1(tablero);
+		case 1: bomba1(tablero, filas, columnas);
 			break;
-		case 2: bomba2(tablero);
+		case 2: bomba2(tablero, filas, columnas);
 			break;
-		case 3: bomba3(tablero);
+		case 3: bomba3(tablero, filas, columnas);
 			break;
 	}
 	return tablero;
 }
-Diamante *autoMov(Diamante *tablero, int movOptimoFila1, int movOptimoColumna1, int movOptimoFila2, int movOptimoColumna2) {
+Diamante *autoMov(Diamante *tablero, int movOptimoFila1, int movOptimoColumna1, int movOptimoFila2, int movOptimoColumna2, int filas, int columnas) {
 	int colorAux1 = tablero[(movOptimoFila1*filas) + movOptimoColumna1].color;
 	int colorAux2 = tablero[(movOptimoFila2*filas) + movOptimoColumna2].color;
 
 	tablero[(movOptimoFila1*filas) + movOptimoColumna1].color = colorAux2;
 	tablero[(movOptimoFila2*filas) + movOptimoColumna2].color = colorAux1;
 
-	if (comprobarIgualesDer(tablero, movOptimoFila1, movOptimoColumna1) + comprobarIgualesIzquierda(tablero, movOptimoFila1, movOptimoColumna1) >= 2
-		|| comprobarIgualesAbajo(tablero, movOptimoFila1, movOptimoColumna1) + comprobarIgualesArriba(tablero, movOptimoFila1, movOptimoColumna1) >= 2) {
-		tablero = comprobarCadena(tablero, movOptimoFila1, movOptimoColumna1);
+	if (comprobarIgualesDer(tablero, movOptimoFila1, movOptimoColumna1, filas, columnas) + comprobarIgualesIzquierda(tablero, movOptimoFila1, movOptimoColumna1, filas) >= 2
+		|| comprobarIgualesAbajo(tablero, movOptimoFila1, movOptimoColumna1, filas) + comprobarIgualesArriba(tablero, movOptimoFila1, movOptimoColumna1, filas) >= 2) {
+		tablero = comprobarCadena(tablero, movOptimoFila1, movOptimoColumna1, filas, columnas);
 	}
 	else {
-		tablero = comprobarCadena(tablero, movOptimoFila2, movOptimoColumna2);
+		tablero = comprobarCadena(tablero, movOptimoFila2, movOptimoColumna2, filas, columnas);
 	}
 
-	moverAbajo(tablero);
+	moverAbajo(tablero, filas, columnas);
 
 	return tablero;
 }
-int autoContMov(Diamante *tablero, int fila1, int columna1, int fila2, int columna2) {
+int autoContMov(Diamante *tablero, int fila1, int columna1, int fila2, int columna2, int filas, int columnas) {
 	int comFilas1, comColum1,comFilas2,comColum2 = 0;
 	
 	int colorAux1 = tablero[(fila1*filas) + columna1].color;
@@ -488,11 +494,11 @@ int autoContMov(Diamante *tablero, int fila1, int columna1, int fila2, int colum
 	tablero[(fila1*filas) + columna1].color = colorAux2;
 	tablero[(fila2*filas) + columna2].color = colorAux1;
 
-	comFilas1 = comprobarIgualesDer(tablero, fila1, columna1) + comprobarIgualesIzquierda(tablero, fila1, columna1);
-	comColum1 = comprobarIgualesAbajo(tablero, fila1, columna1) + comprobarIgualesArriba(tablero, fila1, columna1);
+	comFilas1 = comprobarIgualesDer(tablero, fila1, columna1, filas, columnas) + comprobarIgualesIzquierda(tablero, fila1, columna1, filas);
+	comColum1 = comprobarIgualesAbajo(tablero, fila1, columna1, filas) + comprobarIgualesArriba(tablero, fila1, columna1, filas);
 
-	comFilas2 = comprobarIgualesDer(tablero, fila2, columna2) + comprobarIgualesIzquierda(tablero, fila2, columna2);
-	comColum2 = comprobarIgualesAbajo(tablero, fila2, columna2) + comprobarIgualesArriba(tablero, fila2, columna2);
+	comFilas2 = comprobarIgualesDer(tablero, fila2, columna2, filas, columnas) + comprobarIgualesIzquierda(tablero, fila2, columna2, filas);
+	comColum2 = comprobarIgualesAbajo(tablero, fila2, columna2, filas) + comprobarIgualesArriba(tablero, fila2, columna2, filas);
 
 	tablero[(fila1*filas) + columna1].color = colorAux1;
 	tablero[(fila2*filas) + columna2].color = colorAux2;
@@ -510,26 +516,74 @@ int autoContMov(Diamante *tablero, int fila1, int columna1, int fila2, int colum
 		else return comColum2;
 	}
 }
-Diamante *movAutomaticMode(Diamante *tablero) {
+
+Diamante *movManualMode(Diamante *tablero, string opcionBomba, HANDLE hConsole, int filas, int columnas, string dificultad) {
+	
+	while (true) {
+
+		bool mov = false;
+		cout << "\n\n";
+		SetConsoleTextAttribute(hConsole, 15);
+
+		cout << "Introduce 99 para salir ";
+		if (!hasMoreMovements(tablero, filas, columnas)) {
+			cout << "\nNo hay movimiento disponibles\nQuieres usar una bomba? ";
+			cin >> opcionBomba;
+		}
+
+
+		if (opcionBomba == "si") {
+			cout << "Selecciona el tipo de bomba: ";
+			int tipoBomba;
+			cin >> tipoBomba;
+			menuBomba(tablero, tipoBomba, filas, columnas);
+			opcionBomba = "no";
+		}
+		else if (opcionBomba == "no") {
+			while (!mov) {
+
+				bool canMove = hasMoreMovements(tablero, filas, columnas);
+				mov = movPosibleManual(tablero,filas,columnas,dificultad);
+			}
+		}
+		else if (opcionBomba == "99") {
+			exit(0);
+		}
+
+		if (dificultad == "F") {
+			nColores = 4;
+		}
+		else if (dificultad == "M") {
+			nColores = 6;
+		}
+
+		tablero = rellenarCeros(tablero,nColores, filas, columnas);
+
+		cout << "\n\n";
+		printDiamante(tablero, hConsole, filas, columnas);
+		//getchar(); 
+	}
+}
+
+Diamante *movAutomaticMode(Diamante *tablero, int filas, int columnas) {
 	int posX = 0;
 	int movOptimoFila1, movOptimoColumna1, movOptimoFila2, movOptimoColumna2, contMovOptimo = 0;
 	int contDiamantesExplot = 0;
 	HANDLE h;
 	h = GetStdHandle(STD_OUTPUT_HANDLE);
-	if (!hasMoreMovements(tablero)) {	
+	if (!hasMoreMovements(tablero, filas, columnas)) {
 		SetConsoleTextAttribute(h, 15);
 		cout << "\nNo hay movimiento disponibles\n ";
 		cout << "Selecciona el tipo de bomba: ";
-		//getline(cin, opcionBomba);
 		int tipoBomba;
 		cin >> tipoBomba;
-		menuBomba(tablero, tipoBomba);
+		menuBomba(tablero, tipoBomba, filas, columnas);
 	}
 	else {
 		while (posX < filas) {
 				for (int posY = 0; posY < columnas; posY++) {
-					if (posX + 1 < filas && explotan(tablero, posX, posY, posX + 1, posY, true)) { // Abajo
-						contDiamantesExplot = autoContMov(tablero, posX, posY, posX + 1, posY);
+					if (posX + 1 < filas && explotan(tablero, posX, posY, posX + 1, posY, true, filas, columnas)) { // Abajo
+						contDiamantesExplot = autoContMov(tablero, posX, posY, posX + 1, posY, filas, filas);
 						if (contDiamantesExplot >= contMovOptimo) {
 								contMovOptimo = contDiamantesExplot;
 								movOptimoFila1 = posX;
@@ -538,8 +592,8 @@ Diamante *movAutomaticMode(Diamante *tablero) {
 								movOptimoColumna2 = posY;
 						}
 					}
-					else if (posY + 1 < columnas && explotan(tablero, posX, posY, posX, posY + 1, true)) { //Derecha
-						contDiamantesExplot = autoContMov(tablero, posX, posY, posX, posY+1);
+					else if (posY + 1 < columnas && explotan(tablero, posX, posY, posX, posY + 1, true, filas, columnas)) { //Derecha
+						contDiamantesExplot = autoContMov(tablero, posX, posY, posX, posY+1, filas, filas);
 						if (contDiamantesExplot >= contMovOptimo) {
 							contMovOptimo = contDiamantesExplot;
 							movOptimoFila1 = posX;
@@ -548,8 +602,8 @@ Diamante *movAutomaticMode(Diamante *tablero) {
 							movOptimoColumna2 = posY+1;
 						}
 					}
-					else if (posY - 1 >= 0 && explotan(tablero, posX, posY, posX, posY - 1, true)) { //Izquierda
-						contDiamantesExplot = autoContMov(tablero, posX, posY, posX, posY-1);
+					else if (posY - 1 >= 0 && explotan(tablero, posX, posY, posX, posY - 1, true, filas, columnas)) { //Izquierda
+						contDiamantesExplot = autoContMov(tablero, posX, posY, posX, posY-1, filas, filas);
 						if (contDiamantesExplot > contMovOptimo) {
 							contMovOptimo = contDiamantesExplot;
 							movOptimoFila1 = posX;
@@ -558,8 +612,8 @@ Diamante *movAutomaticMode(Diamante *tablero) {
 							movOptimoColumna2 = posY-1;
 						}
 					}
-					else if (posX - 1 >= 0 && explotan(tablero, posX, posY, posX - 1, posY, true)) {//Arriba
-						contDiamantesExplot = autoContMov(tablero, posX, posY, posX-1, posY);
+					else if (posX - 1 >= 0 && explotan(tablero, posX, posY, posX - 1, posY, true, filas, columnas)) {//Arriba
+						contDiamantesExplot = autoContMov(tablero, posX, posY, posX-1, posY, filas, filas);
 						if (contDiamantesExplot >= contMovOptimo) {
 							contMovOptimo = contDiamantesExplot;
 							movOptimoFila1 = posX;
@@ -577,95 +631,110 @@ Diamante *movAutomaticMode(Diamante *tablero) {
 	cout << "\nLa posicion mas optima es cambiar la fila y columna " << movOptimoFila1 << " " << movOptimoColumna1
 		<< " por " << movOptimoFila2 << " " << movOptimoColumna2 << " Este movimiento explotara : " << contMovOptimo << endl;
 	getchar();
-	tablero = autoMov(tablero, movOptimoFila1, movOptimoColumna1, movOptimoFila2, movOptimoColumna2);
+	tablero = autoMov(tablero, movOptimoFila1, movOptimoColumna1, movOptimoFila2, movOptimoColumna2, filas, columnas);
 	}
 	return tablero;
 
 }
-/*
-void guardarPartida() {
+
+//Metodo para guardar la partida en txt
+void guardarPartida(Diamante *tablero, int filas, int columnas, string dificultad) {
 	
-	char filasGuardadas[5];
-	char columnasGuardadas[5];
-	char tableroGuardado[200];
-	char nombre[13] = "guardado.txt";
-	int cont = 0;
-	int divisor = 1;
-	bool hayNum=true;
-
-	doc = fopen("guardado.txt", "w");
-
-	while (hayNum) {
-		filasGuardadas[cont] = (char)((int)(filas / divisor));
-		divisor = divisor * 10;
-		cont++;
-		if (filas / divisor < 0)  hayNum = false;
+	ofstream doc;
+	doc.open("guardado.txt");
+	doc << filas << "\n";
+	doc << columnas << "\n";
+	doc << dificultad << "\n";
+	for (int i = 0; i < (filas*columnas); i++) {
+		doc << tablero[i].color;
 	}
-
-	cout << filasGuardadas;
-	cout << "Columnas: ";
-	cin >> columnasGuardadas;
-	cout << "Tablero: ";
-	cin >> tableroGuardado;
-	fprintf(doc, "%s \n", filasGuardadas);
-	fprintf(doc, "%s \n", columnasGuardadas);
-	fprintf(doc, "%s \n", tableroGuardado);
-
-	fclose(doc);
-
-	leer = fopen("guardado.txt", "r");
-
-	char filasRecuperadas[5];
-	char columnasRecuperadas[5];
-	char tableroRecuperado[200];
-	int filasR = 0, columnasR = 0, i = 0;
-	hayNum = true;
-	cont = 0;
-	// leemos el txt
-	fscanf(leer, "%s", filasRecuperadas);
-	fscanf(leer, "%s", columnasRecuperadas);
-	//fscanf(leer, "%s", tableroRecuperado);
-	int auxfi = 0, auxcol = 0;
-
-	while(hayNum){
-
-		auxfi = (int)(filasRecuperadas[cont] - '0');
-		if (auxfi >= 0 && auxfi <= 9) {
-			filasR = (filasR * 10) + auxfi;
-		
-		}
-		else hayNum = false;
-		
-		cont++;
-	}
-
-	hayNum = true;
-	cont = 0;
-	while (hayNum) {
-
-		auxcol = (int)(columnasRecuperadas[cont] - '0');
-		if (auxcol >= 0 && auxcol <= 9) {
-			columnasR = (columnasR * 10) + auxcol;
-
-		}
-		else hayNum = false;
-
-		cont++;
-	}
-	
-	
-	cout << filasR;
-	cout << columnasR;
-	fclose(doc);
+	doc.close();
+	cout << "Partida guardada";
+	Sleep(1000);
+	system("exit");
 
 }
-*/
-int main(){
+
+//Metodo para cargar la partida guardada en el txt
+void cargarPartida() {
 	
+	HANDLE hConsole;
+	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	const string fichero = "guardado.txt";
+	ifstream leer;
+	leer.open(fichero.c_str());
+	string dificultad;
+	Diamante *tablero;
+	int i = 0, n = 48, filas = 0, columnas = 0;
+	char fila[80];
+
+	
+
+	if (!leer.fail()) {
+		leer.getline(fila, 80, '\n');
+		while (n > 47 && n < 58) {
+			n = (int)fila[i];
+			i++;
+			if (n > 47 && n < 58) {
+				filas = filas * 10 + (n - 48);
+			}
+		}
+	}
+
+	n = 48;
+	i = 0;
+	if (!leer.fail()) {
+		leer.getline(fila, 80, '\n');
+		while (n > 47 && n < 58) {
+			n = (int)fila[i];
+			i++;
+			if (n > 47 && n < 58) {
+				columnas = columnas * 10 + (n - 48);
+			}
+		}
+	}
+	
+	if (!leer.fail()) {
+		leer.getline(fila,80, '\n');
+		dificultad = fila[0];
+	}
+	
+	int lectura = (filas*columnas)-1;
+	tablero = new Diamante[filas*columnas];
+	inicicializarArray(tablero, filas, columnas, nColores);
+	
+	for (int i = 0; i < filas*columnas; i++) {
+		leer.getline(fila, 80, '\n');
+		n = (int)fila[i];
+		if (n > 47 && n < 58) {
+			tablero[i].color = (int)fila[i] - 48;
+		}
+		
+		
+	}
+	
+	
+	leer.close();
+	
+	printDiamante(tablero, hConsole, filas, columnas);
+	movManualMode(tablero, "no", hConsole, filas, columnas, dificultad);
+}
+
+
+int main() {
+
 	string modoJuego = "";
 	string dificultad = "";
+	string recuperar = "";
+	int filas = 0;
+	int columnas = 0;
 	cout << "Que modo de juego desea iniciar? Automatico (A), Manual (M)" << endl;
 	cin >> modoJuego;
+	if (modoJuego == "m" || modoJuego == "M") {
+		cout << "Quieres cargar la partida? (si/no) :";
+		cin >> recuperar;
+		if (recuperar == "si") { cargarPartida(); }
+	}
 	cout << "Introduzca las filas y columnas que desea para la matriz?\nFilas: ";
 	cin >> filas;
 	cout << "Columnas: ";
@@ -674,12 +743,12 @@ int main(){
 	cin >> dificultad;
 
 	if (dificultad == "F") {
-	nColores = 4;
+		nColores = 4;
 	}
 	else if (dificultad == "M") {
-	nColores = 6;
+		nColores = 6;
 	} //Se pone por defecto en 8 colores
-	
+
 
 	string opcionBomba = "no";
 	Diamante *tablero = new Diamante[filas*columnas];
@@ -687,59 +756,33 @@ int main(){
 	HANDLE hConsole;
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
-	inicicializarArray(tablero);
+	inicicializarArray(tablero,filas,columnas,nColores);
 	//diam = comprobarIguales(diam);
-	printDiamante(tablero, hConsole);
+	printDiamante(tablero, hConsole, filas, columnas);
 	//guardarPartida();
 	while (true) {
 		if (modoJuego == "a" || modoJuego == "A" || modoJuego == "automatico") {
-			movAutomaticMode(tablero);
+			movAutomaticMode(tablero,filas,columnas);
 		}
 		else {
-			bool mov = false;
-			cout << "\n\n";
-			SetConsoleTextAttribute(hConsole, 15);
-			cout << "Introduce 99 para salir ";
-			if (!hasMoreMovements(tablero)) {
-				cout << "\nNo hay movimiento disponibles\nQuieres usar una bomba? ";
-				cin >> opcionBomba;
-			}
-
-
-			if (opcionBomba == "si") {
-				cout << "Selecciona el tipo de bomba: ";
-				//getline(cin, opcionBomba);
-				int tipoBomba;
-				cin >> tipoBomba;
-				menuBomba(tablero, tipoBomba);
-				opcionBomba = "no";
-			}
-			else if (opcionBomba == "no") {
-				while (!mov) {
-
-					bool canMove = hasMoreMovements(tablero);
-					mov = movPosibleManual(tablero);
-				}
-			}
-			else if (opcionBomba == "99") { exit(0); }
-			
+			movManualMode(tablero, opcionBomba, hConsole, filas, columnas, dificultad);
 		}
-
-		//diam = explotarIguales(diam, filaInt, columnaInt);
 		int size = filas*columnas * sizeof(tablero);
-		//diam = comprobarIguales(diam);
-		tablero = rellenarCeros(tablero);
+		tablero = rellenarCeros(tablero,nColores, filas, columnas);
 
 		cout << "\n\n";
-		printDiamante(tablero, hConsole);
+		printDiamante(tablero, hConsole,filas,columnas);
 		getchar();
-		
 	}
 	free(tablero);
 	getchar();
-    return 0;
+	return 0;
+
 }
-void printDiamante(Diamante *tablero, HANDLE hConsole) {  //modulo para imprimir el tablero
+
+
+
+void printDiamante(Diamante *tablero, HANDLE hConsole, int filas, int columnas) {  //modulo para imprimir el tablero
 	for (int i = 0; i<filas; i++) {
 		for (int j = 0; j < columnas; j++) 
 			tablero[i*filas + j].printDiamante(hConsole);
@@ -747,3 +790,4 @@ void printDiamante(Diamante *tablero, HANDLE hConsole) {  //modulo para imprimir
 	}
 	    
 }
+
