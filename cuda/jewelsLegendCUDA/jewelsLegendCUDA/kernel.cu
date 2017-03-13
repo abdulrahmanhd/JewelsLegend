@@ -59,6 +59,69 @@ Error:
 	return cudaStatus;
 
 }
+
+
+int comprobarIgualesArriba(int *tablero, int posX, int posY,int tamColumnas) {
+	int cont = 0;
+	if (posX - 1 >= 0 && tablero[(posX*tamColumnas) + posY] == tablero[((posX - 1) * tamColumnas) + posY]) {
+		cont = 1 + comprobarIgualesArriba(tablero, posX - 1, posY, tamColumnas);
+	}
+	return cont;
+}
+int comprobarIgualesIzquierda(int *tablero, int posX, int posY, int tamColumnas) {
+	int cont = 0;
+	if (posY - 1 >= 0 && tablero[(posX*tamColumnas) + posY] == tablero[(posX * tamColumnas) + posY - 1]) {
+		cont = 1 + comprobarIgualesIzquierda(tablero, posX, posY - 1, tamColumnas);
+	}
+	return cont;
+}
+
+int comprobarIgualesDer(int*tablero, int posX, int posY,int tamColumnas) {
+	int cont = 0;
+	if (posY + 1 < tamColumnas && tablero[(posX*tamColumnas) + posY] == tablero[(posX * tamColumnas) + posY + 1]) {
+		cont = 1 + comprobarIgualesDer(tablero, posX, posY + 1, tamColumnas);
+	}
+	return cont;
+}
+int comprobarIgualesAbajo(int *tablero, int posX, int posY, int tamColumnas, int tamFilas) {
+	int cont = 0;
+	//if(posX >= filas - 1 && posY >= columnas - 1)
+	if (posX + 1 < tamFilas && tablero[(posX*tamColumnas) + posY] == tablero[((posX + 1) * tamColumnas) + posY]) {
+		cont = 1 + comprobarIgualesAbajo(tablero, posX + 1, posY,tamFilas, tamColumnas);
+	}
+	return cont;
+}
+bool explotan(int* dev_tablero, int fila1, int columna1, int fila2, int columna2, int tamFilas, int tamColumnas) {
+	bool explotan = false;
+
+	//HAcemos el intercambio en la matriz para comprobar si se puede explotar
+	int colorAux1 = dev_tablero[(fila1*tamColumnas) + columna1];
+	int colorAux2 = dev_tablero[(fila2*tamColumnas) + columna2];
+	dev_tablero[(fila1*tamColumnas) + columna1] = colorAux2;
+	dev_tablero[(fila2*tamColumnas) + columna2] = colorAux1;
+
+	int sameHorizon1 = comprobarIgualesDer(dev_tablero, fila1, columna1, tamColumnas) + comprobarIgualesIzquierda(dev_tablero, fila1, columna1, tamColumnas);
+	int sameVertical1 = comprobarIgualesArriba(dev_tablero, fila1, columna1, tamColumnas) + comprobarIgualesAbajo(dev_tablero, fila1, columna1, tamColumnas, tamFilas);
+
+	int sameHorizon2 = comprobarIgualesDer(dev_tablero, fila1, columna1, tamColumnas) + comprobarIgualesIzquierda(dev_tablero, fila1, columna1, tamColumnas);
+	int sameVertical2 = comprobarIgualesArriba(dev_tablero, fila1, columna1, tamColumnas) + comprobarIgualesAbajo(dev_tablero, fila1, columna1, tamColumnas, tamFilas);
+
+
+	// deshacemos los cambios en la matriz
+	dev_tablero[(fila1*tamColumnas) + columna1] = colorAux1;
+	dev_tablero[(fila2*tamColumnas) + columna2] = colorAux2;
+
+	if (sameVertical1 >= 2 || sameHorizon1 >= 2) { //Comprobamos que en cualquiera de las posiciones haya bombas que puedan explotar
+		explotan = true;
+	}
+	else if (sameVertical2 >= 2 || sameHorizon2 >= 2) {
+		explotan = true;
+	}
+
+
+
+	return explotan;
+}
 __device__ int comprobarIgualesPos(int *tablero, int posX, int posY, posicion pos, int tamFilas, int tamColumnas) {
 	int cont = 0;
 	switch (pos)
@@ -90,12 +153,56 @@ __device__ int comprobarIgualesPos(int *tablero, int posX, int posY, posicion po
 	return cont;
 
 }
-
+bool proveBig(int sameVertical1, int sameHorizon1, int sameVertical2, int sameHorizon2) {
+	bool mayor1 = true;
+	if (((sameVertical1 >= sameVertical2) && (sameVertical1 >= sameHorizon2)) || ((sameHorizon1 >= sameVertical2) && (sameHorizon1 >= sameHorizon2)))	mayor1 = true;
+	else mayor1 = false;
+	return mayor1;
+}
+// Funcion que determina si alineacion 1 es mayoor que 2 o viceversa
+__device__ bool comprobarMayor(int sameVertical1, int sameHorizon1, int sameVertical2, int sameHorizon2) {
+	bool mayor1 = true;
+	if (((sameVertical1 >= sameVertical2) && (sameVertical1 >= sameHorizon2)) || ((sameHorizon1 >= sameVertical2) && (sameHorizon1 >= sameHorizon2)))	mayor1 = true;
+	else mayor1 = false;
+	return mayor1;
+}
 //Funcion que comprueba los estaDentro de la matriz, ya que tratamos con un array
 __device__ bool estaDentro(int x, int y, int filas, int columnas) {
 
 	return !(x >= filas || x < 0 || y >= columnas || y < 0);
 
+}
+//Funcion que devuelve el numero mas alto de explosiones
+int autoContMov(int *dev_tablero, int fila1, int columna1, int fila2, int columna2, int tamFilas, int tamColumnas) {
+	int comFilas1, comColum1, comFilas2, comColum2 = 0;
+
+	int colorAux1 = dev_tablero[(fila1*tamColumnas) + columna1];
+	int colorAux2 = dev_tablero[(fila2*tamColumnas) + columna2];
+
+	dev_tablero[(fila1*tamColumnas) + columna1] = colorAux2;
+	dev_tablero[(fila2*tamColumnas) + columna2] = colorAux1;
+
+	comFilas1 = comprobarIgualesDer(dev_tablero, fila1, columna1, tamColumnas) + comprobarIgualesIzquierda(dev_tablero, fila1, columna1,tamColumnas);
+	comColum1 = comprobarIgualesArriba(dev_tablero, fila1, columna1, tamColumnas) + comprobarIgualesAbajo(dev_tablero, fila1, columna1, tamColumnas, tamFilas);
+
+	comFilas2 = comprobarIgualesDer(dev_tablero, fila1, columna1, tamColumnas) + comprobarIgualesIzquierda(dev_tablero, fila1, columna1, tamColumnas);
+	comColum2 = comprobarIgualesArriba(dev_tablero, fila1, columna1, tamColumnas) + comprobarIgualesAbajo(dev_tablero, fila1, columna1, tamColumnas, tamFilas);
+
+	dev_tablero[(fila1*tamColumnas) + columna1] = colorAux1;
+	dev_tablero[(fila2*tamColumnas) + columna2] = colorAux2;
+	
+	if (proveBig(comFilas1, comColum1, comFilas2, comColum2)) {
+		if (comFilas1 > comColum1) {
+			return comFilas1;
+		}
+		else return comColum1;
+	}
+	else {
+		if (comFilas2 > comColum2) {
+			return comFilas2;
+		}
+		else return comColum2;
+	}
 }
 
 //funcion que comprueba las posiciones iguales del array,
@@ -119,7 +226,6 @@ __device__ void bomba1(int* dev_tablero, int fila, int columnas) {
 
 	int i = blockIdx.y * blockDim.y + threadIdx.y;		//Indice de la x
 	int j = blockIdx.x * blockDim.x + threadIdx.x;		//Indice de la y
-	printf("d%", i);
 	//Identificamos los diamantes por su fila
 	if (i == fila)	dev_tablero[i*columnas + j] = 0;
 
@@ -178,17 +284,9 @@ __global__ void menuBombas(int *dev_tablero, int filas, int columnas, int explot
 					break;
 		case 93:	bomba3(dev_tablero, filas, columnas);
 					break;
-		/*default:	printf("Numero de bomba no permitida");
-					break;*/
 	}
 }
-// Funcion que determina si alineacion 1 es mayoor que 2 o viceversa
-__device__ bool comprobarMayor(int sameVertical1, int sameHorizon1, int sameVertical2, int sameHorizon2) {
-	bool mayor1 = true;
-	if (((sameVertical1 >= sameVertical2) && (sameVertical1 >= sameHorizon2)) || ((sameHorizon1 >= sameVertical2) && (sameHorizon1 >= sameHorizon2)))	mayor1 = true;
-	else mayor1 = false;
-	return mayor1;
-}
+
 
 
 // Funcion que elimina con un unico bloque
@@ -402,7 +500,7 @@ __device__ void rellenarMatriz(int* dev_tablero, int tamFilas, int tamColumnas, 
 
 }
 
-__global__ void jugarKernel(int* dev_tablero, int fila1, int columna1, int fila2, int columna2,int tamFila, int tamColumnas, int* dev_contadorEliminados, int nColores) {
+__global__ void jugarKernel(int* dev_tablero, int fila1, int columna1, int fila2, int columna2,int tamFila, int tamColumnas, int* dev_contadorEliminados) {
 
 	comprobarCadena(dev_tablero, fila1, columna1, fila2, columna2,tamFila,tamColumnas, dev_contadorEliminados);
 
@@ -462,16 +560,15 @@ __device__ bool explotChange(int* dev_tablero, int filas1, int columnas1, int fi
 }
 
 
-__global__ void probeMovPosi(int* dev_tablero, int filas1, int columnas1, int fila2, int columna2,int tamFilas,int tamColumnas,char modoJuego,bool* dev_mov) {
+__global__ void probeMovPosi(int* dev_tablero, int filas1, int columnas1, int fila2, int columna2,int tamFilas,int tamColumnas,char modoJuego,bool* dev_mov, int* dev_contadorEliminados) {
 	int fil = blockIdx.y * blockDim.y + threadIdx.y;		//Indice de la x
 	int col = blockIdx.x * blockDim.x + threadIdx.x;
 	bool TrueMov;
 	bool explot;
-	if(modoJuego == 'm'){
 		if ((col == columnas1 && fil == filas1)) {//comprobamos que el hilo que accede a la funcion sea el que queremos cambiar(se comprueban en las funciones los dos numeros)
 			TrueMov = adyacentes(filas1, columnas1, fila2, columna2);
-			explot = explotChange(dev_tablero, filas1, columnas1, fila2, columna2,tamFilas,tamColumnas);
-			if (TrueMov && explot) {
+			explot = explotChange(dev_tablero, filas1, columnas1, fila2, columna2, tamFilas, tamColumnas);
+		if (TrueMov && explot) {
 				//Si ambos son true realizamos el cmbio
 				int colorAux1 = dev_tablero[(filas1*tamColumnas) + columnas1];
 				int colorAux2 = dev_tablero[(fila2*tamColumnas) + columna2];
@@ -481,91 +578,7 @@ __global__ void probeMovPosi(int* dev_tablero, int filas1, int columnas1, int fi
 			}
 			else { printf("MOVIMIENTO ERRONEO, Las posiciones no son adyacentes o no explotan\n"); }
 		}
-	}
-	else {
-		int posX = 0;
-		int movOptimoFila1, movOptimoColumna1, movOptimoFila2, movOptimoColumna2, contMovOptimo = 0;
-		int contDiamantesExplot = 0;
-		while (posX < tamFilas) {
-			for (int posY = 0; posY < tamColumnas; posY++) {
-				if (posX + 1 < tamFilas && explotChange(tablero, posX, posY, posX + 1, posY, tamFilas, tamColumnas)) { // Abajo
-					contDiamantesExplot = autoContMov(tablero, posX, posY, posX + 1, posY, tamFilas, tamColumnas);
-					if (contDiamantesExplot >= contMovOptimo) {
-						contMovOptimo = contDiamantesExplot;
-						movOptimoFila1 = posX;
-						movOptimoColumna1 = posY;
-						movOptimoFila2 = posX + 1;
-						movOptimoColumna2 = posY;
-					}
-				}
-				else if (posY + 1 < tamColumnas && explotChange(tablero, posX, posY, posX, posY + 1, tamFilas, tamColumnas)) { //Derecha
-					contDiamantesExplot = autoContMov(tablero, posX, posY, posX, posY + 1, tamFilas, tamColumnas);
-					if (contDiamantesExplot >= contMovOptimo) {
-						contMovOptimo = contDiamantesExplot;
-						movOptimoFila1 = posX;
-						movOptimoColumna1 = posY;
-						movOptimoFila2 = posX;
-						movOptimoColumna2 = posY + 1;
-					}
-				}
-				else if (posY - 1 >= 0 && explotChange(tablero, posX, posY, posX, posY - 1, tamFilas, tamColumnas)) { //Izquierda
-					contDiamantesExplot = autoContMov(tablero, posX, posY, posX, posY - 1, tamFilas, tamColumnas);
-					if (contDiamantesExplot > contMovOptimo) {
-						contMovOptimo = contDiamantesExplot;
-						movOptimoFila1 = posX;
-						movOptimoColumna1 = posY;
-						movOptimoFila2 = posX;
-						movOptimoColumna2 = posY - 1;
-					}
-				}
-				else if (posX - 1 >= 0 && explotChange(tablero, posX, posY, posX - 1, posY, tamFilas, tamColumnas)) {//Arriba
-					contDiamantesExplot = autoContMov(tablero, posX, posY, posX - 1, posY, tamFilas, tamColumnas);
-					if (contDiamantesExplot >= contMovOptimo) {
-						contMovOptimo = contDiamantesExplot;
-						movOptimoFila1 = posX;
-						movOptimoColumna1 = posY;
-						movOptimoFila2 = posX - 1;
-						movOptimoColumna2 = posY;
-					}
-				}
-			}
-			posX++;
-		}
-		//Definimos el movimiento mas optimo para pasarlo al kernel
-		filas1 = movOptimoFila1; fila2 = movOptimoFila2;
-		columnas1 = movOptimoColumna1; columna2 = movOptimoColumna2;
-	}
-}
-int autoContMov(int *tablero, int fila1, int columna1, int fila2, int columna2,int tamFilas,int tamColumnas) {
-	int comFilas1, comColum1, comFilas2, comColum2 = 0;
 
-	int colorAux1 = tablero[(fila1*tamColumnas) + columna1];
-	int colorAux2 = tablero[(fila2*tamColumnas) + columna2];
-
-	tablero[(fila1*tamColumnas) + columna1] = colorAux2;
-	tablero[(fila2*tamColumnas) + columna2] = colorAux1;
-
-	comFilas1 = comprobarIgualesPos(tablero, fila1, columna1,derecha,tamFilas,tamColumnas) + comprobarIgualesPos(tablero, fila1, columna1, izquierda, tamFilas, tamColumnas);
-	comColum1 = comprobarIgualesPos(tablero, fila1, columna1, arriba, tamFilas, tamColumnas) + comprobarIgualesPos(tablero, fila1, columna1, abajo, tamFilas, tamColumnas);
-
-	comFilas2 = comprobarIgualesPos(tablero, fila2, columna2, derecha, tamFilas, tamColumnas) + comprobarIgualesPos(tablero, fila2, columna2, izquierda, tamFilas, tamColumnas);
-	comColum2 = comprobarIgualesPos(tablero, fila2, columna2, arriba, tamFilas, tamColumnas) + comprobarIgualesPos(tablero, fila2, columna2, abajo, tamFilas, tamColumnas);
-
-	tablero[(fila1*tamColumnas) + columna1] = colorAux1;
-	tablero[(fila2*tamColumnas) + columna2] = colorAux2;
-
-	if (comFilas1 > comFilas2 || comColum1 > comColum2) {
-		if (comFilas1 > comColum1) {
-			return comFilas1;
-		}
-		else return comColum1;
-	}
-	else {
-		if (comFilas2 > comColum2) {
-			return comFilas2;
-		}
-		else return comColum2;
-	}
 }
 
 cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorEliminados, char m, int nColores) {
@@ -627,15 +640,12 @@ cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorElim
 				if (bomba == 91) {
 					printf("Introduce el numero de la fila que deseas explotar:");
 					scanf("%d", &explota);
-					menuBombas << <blocks, threads >> > (dev_tablero, tamFilas, tamColumnas, explota, bomba);
 				}
 				if (bomba == 92) {
 					printf("Introduce el numero de la columna que deseas explotar:");
 					scanf("%d", &explota);
-					menuBombas << <blocks, threads >> > (dev_tablero, tamFilas, tamColumnas, explota, bomba);
 				}
-				else menuBombas << <blocks, threads >> > (dev_tablero, tamFilas, tamColumnas, 0, bomba);
-
+				menuBombas << <blocks, threads >> > (dev_tablero, tamFilas, tamColumnas, explota, bomba);
 				hayBomba = true;
 			}else {
 				printf("Introduzca la columna del primer diamante: ");
@@ -648,16 +658,76 @@ cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorElim
 				//bool canMove = hasMoreMovements(tablero);
 			}
 	}
+	else {
+		
+		int posX = 0;
+		int movOptimoFila1, movOptimoColumna1, movOptimoFila2, movOptimoColumna2, contMovOptimo = 0;
+		int contDiamantesExplot = 0;
+		while (posX < tamFilas) {
+			for (int posY = 0; posY < tamColumnas; posY++) {
+				if (posX + 1 < tamFilas && explotan(tablero, posX, posY, posX + 1, posY, tamFilas, tamColumnas)) { // Abajo
+					contDiamantesExplot = autoContMov(tablero, posX, posY, posX + 1, posY, tamFilas, tamColumnas);
+					if (contDiamantesExplot >= contMovOptimo) {
+						contMovOptimo = contDiamantesExplot;
+						movOptimoFila1 = posX;
+						movOptimoColumna1 = posY;
+						movOptimoFila2 = posX + 1;
+						movOptimoColumna2 = posY;
+					}
+				}
+				else if (posY + 1 < tamColumnas && explotan(tablero, posX, posY, posX, posY + 1, tamFilas, tamColumnas)) { //Derecha
+					contDiamantesExplot = autoContMov(tablero, posX, posY, posX, posY + 1, tamFilas, tamColumnas);
+					if (contDiamantesExplot >= contMovOptimo) {
+						contMovOptimo = contDiamantesExplot;
+						movOptimoFila1 = posX;
+						movOptimoColumna1 = posY;
+						movOptimoFila2 = posX;
+						movOptimoColumna2 = posY + 1;
+					}
+				}
+				else if (posY - 1 >= 0 && explotan(tablero, posX, posY, posX, posY - 1, tamFilas, tamColumnas)) { //Izquierda
+					contDiamantesExplot = autoContMov(tablero, posX, posY, posX, posY - 1, tamFilas, tamColumnas);
+					if (contDiamantesExplot > contMovOptimo) {
+						contMovOptimo = contDiamantesExplot;
+						movOptimoFila1 = posX;
+						movOptimoColumna1 = posY;
+						movOptimoFila2 = posX;
+						movOptimoColumna2 = posY - 1;
+					}
+				}
+				else if (posX - 1 >= 0 && explotan(tablero, posX, posY, posX - 1, posY, tamFilas, tamColumnas)) {//Arriba
+					contDiamantesExplot = autoContMov(tablero, posX, posY, posX - 1, posY, tamFilas, tamColumnas);
+					if (contDiamantesExplot >= contMovOptimo) {
+						contMovOptimo = contDiamantesExplot;
+						movOptimoFila1 = posX;
+						movOptimoColumna1 = posY;
+						movOptimoFila2 = posX - 1;
+						movOptimoColumna2 = posY;
+					}
+				}
+			}
+			posX++;
+		}
+			//Definimos el movimiento mas optimo para explotar
+			fila1 = movOptimoFila1; fila2 = movOptimoFila2;
+			columna1 = movOptimoColumna1; columna2 = movOptimoColumna2;
+			printf("Movimiento mas optimo: \n Fila: %d Columna: %d \n Fila: %d Columna: %d ", fila1, columna1, fila2, columna2);
+		}
 
-	probeMovPosi << <blocks, threads >> > (dev_tablero, fila1, columna1, fila2, columna2, tamFilas, tamColumnas,m, dev_mov);
 
-	cudaStatus = cudaMemcpy(&mov, dev_mov, sizeof(bool), cudaMemcpyDeviceToHost);
-	if (cudaStatus != cudaSuccess) {
-		fprintf(stderr, "cudaMemcpy device to host dev_mov failed!");
-		goto Error;
+	if (!hayBomba)
+	{
+		probeMovPosi << <blocks, threads >> > (dev_tablero, fila1, columna1, fila2, columna2, tamFilas, tamColumnas, m, dev_mov,dev_contadorEliminados);
+		cudaStatus = cudaMemcpy(&mov, dev_mov, sizeof(bool), cudaMemcpyDeviceToHost);
+		if (cudaStatus != cudaSuccess) {
+			fprintf(stderr, "cudaMemcpy device to host dev_mov failed!");
+			goto Error;
+		}
+
 	}
+	
 	if (mov && !hayBomba) {
-		jugarKernel << <blocks, threads >> >(dev_tablero, fila1, columna1, fila2, columna2, tamFilas, tamColumnas, dev_contadorEliminados, nColores);
+		jugarKernel << <blocks, threads >> >(dev_tablero, fila1, columna1, fila2, columna2, tamFilas, tamColumnas, dev_contadorEliminados);
 	}
 	
 
@@ -745,12 +815,14 @@ int main() {
 		}
 		else
 		{
+
 			cudaStatus = jugar(tablero, tamFilas, tamColumnas, &contadorEliminados, 'a',nColores);
+			getchar();
 		}
-		tablero = rellenarTablero(tablero, tamFilas, tamColumnas, nColores);
+	
 
 		imprimeTablero(tablero, tamFilas, tamColumnas);
-
+		tablero = rellenarTablero(tablero, tamFilas, tamColumnas, nColores);
 		printf("Contador  = %d\n ", contadorEliminados);
 
 	} while ((cudaStatus == 0) && (contadorEliminados < 100));
