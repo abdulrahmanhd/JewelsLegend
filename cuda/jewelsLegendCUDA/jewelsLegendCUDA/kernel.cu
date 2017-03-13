@@ -13,7 +13,6 @@
 
 //Poniendo este DEFINE evitamos un error en el que falta la definici�n de HANDLE_ERROR
 #define HANDLE_ERROR
-#define COLORES 2
 #define ID_BOMBA 8
 
 
@@ -60,7 +59,6 @@ Error:
 	return cudaStatus;
 
 }
-
 
 int comprobarIgualesArriba(int *tablero, int posX, int posY,int tamColumnas) {
 	int cont = 0;
@@ -123,6 +121,30 @@ bool explotan(int* dev_tablero, int fila1, int columna1, int fila2, int columna2
 
 	return explotan;
 }
+bool hasMoreMovements(int *tablero, int filas, int columnas) {
+	bool expl = false;
+	int posX = 0;
+	while (posX < filas && !expl) {
+		for (int posY = 0; posY < columnas; posY++) {
+			if (posX + 1 < filas && explotan(tablero, posX, posY, posX + 1, posY, filas, columnas)) { // Abajo
+				expl = true;
+			}
+			else if (posY + 1 < columnas && explotan(tablero, posX, posY, posX, posY + 1, filas, columnas)) { //Derecha
+				expl = true;
+			}
+			else if (posY - 1 >= 0 && explotan(tablero, posX, posY, posX, posY - 1, filas, columnas)) { //Izquierda
+				expl = true;
+			}
+			else if (posX - 1 >= 0 && explotan(tablero, posX, posY, posX - 1, posY, filas, columnas)) {//Arriba
+				expl = true;
+			}
+		}
+		posX++;
+	}
+
+	return expl;
+}
+
 __device__ int comprobarIgualesPos(int *tablero, int posX, int posY, posicion pos, int tamFilas, int tamColumnas) {
 	int cont = 0;
 	switch (pos)
@@ -596,8 +618,31 @@ cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorElim
 		fprintf(stderr, "cudaMemcpy dev_mov failed!");
 		goto Error;
 	}
+	bool activada = false;
+	while (!hasMoreMovements(tablero, tamFilas, tamColumnas) && !activada) {
+		
+		printf("NO HAY MOVIMIENTO\n\nIntroduce el numero de la bomba: ");
+		scanf("%d", &bomba);
+			if (bomba == 91) {
+				printf("Introduce el numero de la fila que deseas explotar:");
+				scanf("%d", &explota);
+				activada = true;
+			}
+			if (bomba == 92) {
+				printf("Introduce el numero de la columna que deseas explotar:");
+				scanf("%d", &explota);
+				activada = true;
+			}
+			if (bomba == 93) {
+				explota = 0;
+				activada = true;
+			}
+			menuBombas << <blocks, threads >> > (dev_tablero, tamFilas, tamColumnas, explota, bomba);
+			hayBomba = true;
+
+	}
 	//Modo manual
-	if (m == 'm') {
+	if (m == 'm' && hasMoreMovements(tablero, tamFilas, tamColumnas)) {
 			printf("Para usar una bomba introduce 90 ");
 			printf("\nIntroduzca la fila del primer diamante: ");
 			scanf_s("%d", &fila1);
@@ -612,6 +657,7 @@ cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorElim
 					printf("Introduce el numero de la columna que deseas explotar:");
 					scanf("%d", &explota);
 				}
+				if (bomba == 93) explota = 0;
 				menuBombas << <blocks, threads >> > (dev_tablero, tamFilas, tamColumnas, explota, bomba);
 				hayBomba = true;
 			}else {
@@ -625,7 +671,7 @@ cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorElim
 				//bool canMove = hasMoreMovements(tablero);
 			}
 	}
-	else {
+	else if(hasMoreMovements(tablero, tamFilas, tamColumnas)){
 		
 		int posX = 0;
 		int movOptimoFila1, movOptimoColumna1, movOptimoFila2, movOptimoColumna2, contMovOptimo = 0;
@@ -682,7 +728,7 @@ cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorElim
 		}
 
 
-	if (!hayBomba)
+	if (!hayBomba && hasMoreMovements(tablero, tamFilas, tamColumnas))
 	{
 		probeMovPosi << <blocks, threads >> > (dev_tablero, fila1, columna1, fila2, columna2, tamFilas, tamColumnas, m, dev_mov,dev_contadorEliminados);
 		cudaStatus = cudaMemcpy(&mov, dev_mov, sizeof(bool), cudaMemcpyDeviceToHost);
@@ -693,7 +739,7 @@ cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorElim
 
 	}
 	
-	if (mov && !hayBomba) {
+	if (mov && !hayBomba && hasMoreMovements(tablero, tamFilas, tamColumnas)) {
 		jugarKernel << <blocks, threads >> >(dev_tablero, fila1, columna1, fila2, columna2, tamFilas, tamColumnas, dev_contadorEliminados);
 	}
 	
@@ -732,7 +778,7 @@ int pedirFilasTablero();
 int pedirColumnasTablero();
 char pedirDificultad();
 void prop();
-//int* rellenarTablero(int* tablero, int tamFilas, int tamColumnas, int nColores);
+int* rellenarTablero(int* tablero, int tamFilas, int tamColumnas, int nColores);
 
 int main() {
 	//Declaracion de variables para la ejecucion del programa
@@ -965,31 +1011,6 @@ int pedirColumnasTablero() {
 	} while (columnas < 1 || columnas > 2147483647); //El numero de filas tiene que ser un numero entero positivo
 	return columnas;
 }
-/*
-bool hasMoreMovements(int *tablero) {
-	bool expl = false;
-	int posX = 0;
-	while (posX < filas && !expl) {
-		for (int posY = 0; posY < columnas; posY++) {
-			if (posX + 1 < filas && explotan(tablero, posX, posY, posX + 1, posY, true)) { // Abajo
-				expl = true;
-			}
-			else if (posY + 1 < columnas && explotan(tablero, posX, posY, posX, posY + 1, true)) { //Derecha
-				expl = true;
-			}
-			else if (posY - 1 >= 0 && explotan(tablero, posX, posY, posX, posY - 1, true)) { //Izquierda
-				expl = true;
-			}
-			else if (posX - 1 >= 0 && explotan(tablero, posX, posY, posX - 1, posY, true)) {//Arriba
-				expl = true;
-			}
-		}
-		posX++;
-	}
-
-	return expl;
-}*/
-
 
 void prop() {
 
