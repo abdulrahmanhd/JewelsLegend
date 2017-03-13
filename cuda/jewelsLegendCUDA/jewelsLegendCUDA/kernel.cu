@@ -279,13 +279,12 @@ __device__ void reestructuracionIzquierdaDerecha(int* dev_tablero, int filas, in
 	int j = blockIdx.x * blockDim.x + threadIdx.x;		//Indice de la y
 	
 	
-	if (dev_tablero[i*columnas - j] == 0 && j!=0) {
-		printf("%i",dev_tablero[i*columnas - j]);
-		//while (j>0) {
-		dev_tablero[i*columnas - j] ==  dev_tablero[(i*columnas - j)-1];
-			dev_tablero[(i*columnas - j)-1] == 0;
-			//j--;
-		//}
+	if (dev_tablero[i*columnas + j] == 0) {
+		while (j>0) {
+			dev_tablero[i*columnas + j] = dev_tablero[i*columnas + (j-1)];
+			dev_tablero[i*columnas + (j-1)] = 0;
+			j--;
+		}
 	}
 }
 
@@ -347,17 +346,16 @@ __global__ void menuBombas(int *dev_tablero, int filas, int columnas, int explot
 	
 	switch (bomba) {
 		case 91:	bomba1(dev_tablero, explota, columnas);
+					reestructuracionArribaAbajo(dev_tablero, filas, columnas);
 					break;
 		case 92:	bomba2(dev_tablero, explota, columnas);
+					reestructuracionIzquierdaDerecha(dev_tablero, filas, columnas);
 					break;
 		case 93:	bomba3(dev_tablero, filas, columnas);
 					break;
 	}
-	reestructuracionArribaAbajo(dev_tablero, filas, columnas);
-	reestructuracionIzquierdaDerecha(dev_tablero, filas, columnas);
+	
 }
-
-
 
 // Funcion que elimina con un unico bloque
 __device__ void comprobarCadena(int* dev_tablero, int fila1, int columna1, int fila2, int columna2,int tamFilas, int tamColumnas, int* dev_contadorEliminados) {
@@ -791,7 +789,7 @@ int main() {
 	
 
 		imprimeTablero(tablero, tamFilas, tamColumnas);
-		//tablero = rellenarTablero(tablero, tamFilas, tamColumnas, nColores);
+		tablero = rellenarTablero(tablero, tamFilas, tamColumnas, nColores);
 		printf("Contador  = %d\n ", contadorEliminados);
 
 	} while ((cudaStatus == 0) && (contadorEliminados < 100));
