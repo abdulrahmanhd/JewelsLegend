@@ -16,6 +16,7 @@
 #define COLORES 2
 #define ID_BOMBA 8
 
+
 enum posicion {arriba, abajo, derecha, izquierda };
 
 
@@ -220,6 +221,73 @@ __device__ void eliminar(int* dev_tablero, int fila, int columna, int tamColumna
 
 }
 
+// Metodo que sube los 0 que se encuentran en el tablero hacia la parte mas alta del mismo
+__device__ void reestructuracionArribaAbajo(int* dev_tablero, int filas, int columnas) {
+
+
+	int celdax = blockIdx.y* blockDim.y + threadIdx.y;		//Indice de la x
+	int celday = blockIdx.x* blockDim.x + threadIdx.x;		//Indice de la y
+	int nombre = celdax * columnas + celday;	//Valor del elemento en el array
+	int size = (filas*columnas); //Tamaño de la matriz
+	int actual = nombre;
+	int count = 0;
+	int comprobador = 0;
+	// Se comprueba que esa celda no es 0 para compararla con los elementos que tiene por debajo
+	if (dev_tablero[actual] != 0) {
+
+		actual += columnas;
+
+		// Se comprueban cuantos 0 hay por debajo de la celda. Este numero se guardara en la variable count
+		while (actual < size) {
+
+			if (dev_tablero[actual] == 0) {
+				count++;
+			}
+
+			actual += columnas;
+
+		}
+
+		//Cambio de valor de la celda que se comprueba con la celda de las posiciones que tiene que descender
+		if (count > 0) {
+			dev_tablero[nombre + (count * columnas)] = dev_tablero[nombre];
+		}
+
+		actual = nombre - filas;
+
+		//Comprobacion de cuantos 0 por encima tiene la celda que se comprueba
+		while (actual > 0) {
+			if (dev_tablero[actual] == 0) {
+				comprobador++;
+			}
+			actual -= filas;
+		}
+
+		//Poner a 0 el valor de la celda que se cambia si su fila menos el numero de 0 que tiene por encima
+		// es menor o igual que el numero de ceros que tiene por debajo
+		if (celdax - comprobador < count) {
+			dev_tablero[nombre] = 0;
+		}
+
+	}
+
+}
+
+__device__ void reestructuracionIzquierdaDerecha(int* dev_tablero, int filas, int columnas) {
+
+	int i = blockIdx.y * blockDim.y + threadIdx.y;		//Indice de la x
+	int j = blockIdx.x * blockDim.x + threadIdx.x;		//Indice de la y
+	
+	
+	if (dev_tablero[i*columnas - j] == 0 && j!=0) {
+		printf("%i",dev_tablero[i*columnas - j]);
+		//while (j>0) {
+		dev_tablero[i*columnas - j] ==  dev_tablero[(i*columnas - j)-1];
+			dev_tablero[(i*columnas - j)-1] == 0;
+			//j--;
+		//}
+	}
+}
 
 //Elimina una fila completa
 __device__ void bomba1(int* dev_tablero, int fila, int columnas) {
@@ -285,6 +353,8 @@ __global__ void menuBombas(int *dev_tablero, int filas, int columnas, int explot
 		case 93:	bomba3(dev_tablero, filas, columnas);
 					break;
 	}
+	reestructuracionArribaAbajo(dev_tablero, filas, columnas);
+	reestructuracionIzquierdaDerecha(dev_tablero, filas, columnas);
 }
 
 
@@ -379,108 +449,7 @@ __device__ void comprobarCadena(int* dev_tablero, int fila1, int columna1, int f
 
 
 
-// Metodo que sube los 0 que se encuentran en el tablero hacia la parte mas alta del mismo
-__device__ void reestructuracionArribaAbajo(int* dev_tablero, int filas, int columnas) {
 
-	
-	int celdax = blockIdx.y* blockDim.y + threadIdx.y;		//Indice de la x
-	int celday = blockIdx.x* blockDim.x + threadIdx.x;		//Indice de la y
-	int nombre = celdax * columnas + celday;	//Valor del elemento en el array
-	int size = (filas*columnas); //Tamaño de la matriz
-	int actual = nombre;
-	int count = 0;
-	int comprobador = 0;
-	// Se comprueba que esa celda no es 0 para compararla con los elementos que tiene por debajo
-	if (dev_tablero[actual] != 0) {
-
-		actual += columnas;
-
-		// Se comprueban cuantos 0 hay por debajo de la celda. Este numero se guardara en la variable count
-		while (actual < size) {
-
-			if (dev_tablero[actual] == 0) {
-				count++;
-			}
-
-			actual += columnas;
-
-		}
-
-		//Cambio de valor de la celda que se comprueba con la celda de las posiciones que tiene que descender
-		if (count > 0) {
-			dev_tablero[nombre + (count * columnas)] = dev_tablero[nombre];
-		}
-
-		actual = nombre - filas;
-
-		//Comprobacion de cuantos 0 por encima tiene la celda que se comprueba
-		while (actual > 0) {
-			if (dev_tablero[actual] == 0) {
-				comprobador++;
-			}
-			actual -= filas;
-		}
-
-		//Poner a 0 el valor de la celda que se cambia si su fila menos el numero de 0 que tiene por encima
-		// es menor o igual que el numero de ceros que tiene por debajo
-		if (celdax - comprobador < count) {
-			dev_tablero[nombre] = 0;
-		}
-
-	}
-
-}
-
-__device__ void reestructuracionIzquierdaDerecha(int* dev_tablero, int filas, int columnas, int fila, int columna) {
-
-	int size = (filas*columnas);						//Tamaño de la matriz
-	int x = blockIdx.y * blockDim.y + threadIdx.y;		//Indice de la x
-	int y = blockIdx.x * blockDim.x + threadIdx.x;		//Indice de la y
-
-	int comprobador = 0; // Numero de elementos que no son 0 por encima de la celda visitada que contiene un 0
-	int actual;
-	int auxiliar;
-
-	//La celda eliminada es quien reestructura la matriz
-	if (x == fila && y == columna) {
-
-		//Por cada celda se comprueba si es 0
-		for (int i = size; i >= 0; i--)
-		{
-			//Si es 0, el 0 se desplaza a la derecha tantas veces como numeros diferentes por la derecha tenga
-			if (dev_tablero[i] == 0) {
-
-				actual = i + 1;
-
-				while (actual % columnas != 0) {
-					if (dev_tablero[actual] != 0) {
-						comprobador++;
-					}
-					actual += 1;
-				}
-
-			}
-
-			actual = i;
-
-			//Intercambio
-			for (int k = 0; k < comprobador; k++) {
-
-				auxiliar = dev_tablero[actual + 1];
-				dev_tablero[actual + 1] = dev_tablero[actual];
-				dev_tablero[actual] = auxiliar;
-
-				actual += 1;
-
-			}
-
-			comprobador = 0;
-
-		}
-
-	}
-
-}
 __device__ void rellenarMatriz(int* dev_tablero, int tamFilas, int tamColumnas, int nColores) {
 
 	//Valores de los indices
@@ -765,7 +734,7 @@ int pedirFilasTablero();
 int pedirColumnasTablero();
 char pedirDificultad();
 void prop();
-int* rellenarTablero(int* tablero, int tamFilas, int tamColumnas, int nColores);
+//int* rellenarTablero(int* tablero, int tamFilas, int tamColumnas, int nColores);
 
 int main() {
 	//Declaracion de variables para la ejecucion del programa
@@ -822,7 +791,7 @@ int main() {
 	
 
 		imprimeTablero(tablero, tamFilas, tamColumnas);
-		tablero = rellenarTablero(tablero, tamFilas, tamColumnas, nColores);
+		//tablero = rellenarTablero(tablero, tamFilas, tamColumnas, nColores);
 		printf("Contador  = %d\n ", contadorEliminados);
 
 	} while ((cudaStatus == 0) && (contadorEliminados < 100));
