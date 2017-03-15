@@ -248,6 +248,7 @@ __device__ void eliminar(int* dev_tablero, int fila, int columna, int tamColumna
 __device__ void reestructuracionArribaAbajo(int* dev_tablero, int filas, int columnas) {
 
 
+
 	int celdax = blockIdx.y* blockDim.y + threadIdx.y;		//Indice de la x
 	int celday = blockIdx.x* blockDim.x + threadIdx.x;		//Indice de la y
 	int nombre = celdax * columnas + celday;	//Valor del elemento en el array
@@ -256,14 +257,14 @@ __device__ void reestructuracionArribaAbajo(int* dev_tablero, int filas, int col
 	int count = 0;
 	int comprobador = 0;
 	// Se comprueba que esa celda no es 0 para compararla con los elementos que tiene por debajo
-	if (dev_tablero[actual] != 0) {
+	if (dev_tablero[actual] != 0 && celday<columnas) {
 
 		actual += columnas;
 
 		// Se comprueban cuantos 0 hay por debajo de la celda. Este numero se guardara en la variable count
 		while (actual < size) {
 
-			if (dev_tablero[actual] == 0) {
+			if (dev_tablero[actual] == 0 && celday<columnas) {
 				count++;
 			}
 
@@ -272,14 +273,14 @@ __device__ void reestructuracionArribaAbajo(int* dev_tablero, int filas, int col
 		}
 
 		//Cambio de valor de la celda que se comprueba con la celda de las posiciones que tiene que descender
-		if (count > 0) {
+		if (count > 0 && celday<columnas) {
 			dev_tablero[nombre + (count * columnas)] = dev_tablero[nombre];
 		}
 
 		actual = nombre - filas;
 
 		//Comprobacion de cuantos 0 por encima tiene la celda que se comprueba
-		while (actual > 0) {
+		while (actual > 0 && celday<columnas) {
 			if (dev_tablero[actual] == 0) {
 				comprobador++;
 			}
@@ -288,7 +289,7 @@ __device__ void reestructuracionArribaAbajo(int* dev_tablero, int filas, int col
 
 		//Poner a 0 el valor de la celda que se cambia si su fila menos el numero de 0 que tiene por encima
 		// es menor o igual que el numero de ceros que tiene por debajo
-		if (celdax - comprobador < count) {
+		if (celdax - comprobador < count  && celday<columnas) {
 			dev_tablero[nombre] = 0;
 		}
 
@@ -303,7 +304,7 @@ __device__ void reestructuracionIzquierdaDerecha(int* dev_tablero, int filas, in
 	
 	
 	if (dev_tablero[i*columnas + j] == 0) {
-		while (j>0) {
+		while (j>0 && j<columnas) {
 			dev_tablero[i*columnas + j] = dev_tablero[i*columnas + (j-1)];
 			dev_tablero[i*columnas + (j-1)] = 0;
 			j--;
@@ -317,7 +318,7 @@ __device__ void bomba1(int* dev_tablero, int explota,int filas, int columnas) {
 	int i = blockIdx.y * blockDim.y + threadIdx.y;		//Indice de la x
 	int j = blockIdx.x * blockDim.x + threadIdx.x;		//Indice de la y
 	//Identificamos los diamantes por su fila
-	if (i == explota && j<columnas) 
+	if (i == explota && j<columnas)
 		dev_tablero[i*columnas + j] = 0;
 }
 
@@ -338,9 +339,6 @@ __device__ void bomba3(int* dev_tablero, int filas , int columnas) {
 	int i = blockIdx.y * blockDim.y + threadIdx.y;		//Indice de la x
 	int j = blockIdx.x * blockDim.x + threadIdx.x;		//Indice de la y
 	int colorAux = 0;
-	/*float fila = i%4;
-	float columna = j % 4;*/
-	//printf("\nEntro");
 	
 	if ((i == 1 && j == 1) || ((i-1) % 3 == 0 && (j-1) % 3 == 0) || ((i-1) % 3 == 0 && j==1) || (i==1 && (j-1) % 3 == 0)){
 					
