@@ -9,11 +9,31 @@
 #include <assert.h>
 #include <cmath>
 #include <Windows.h>
+#include <string.h>
+#include <time.h>
+#include <string>
+#include <stdlib.h>
+#include <fstream>
+#include <iostream>
+# include <stdio.h>
+# include <conio.h>
 
 
 //Poniendo este DEFINE evitamos un error en el que falta la definici�n de HANDLE_ERROR
 #define HANDLE_ERROR
 #define TESELA 32 // Valor hallado por las propiedades de la tarjera, en el que el numero maximo de hilos por bloque son 1024 que sqrt(1024) son 32
+
+int* generaTablero(int filas, int columnas, int bombas);
+void imprimeTablero(int* tablero, int filas, int columnas);
+char pedirModoEjecucion();
+int pedirFilasTablero();
+int pedirColumnasTablero();
+char pedirDificultad();
+void prop();
+int* rellenarTablero(int* tablero, int tamFilas, int tamColumnas, int nColores);
+void guardarPartida(int* tablero, int filas, int columnas, int dificultad);
+FILE *doc;
+FILE *leer;
 
 
 enum posicion { arriba, abajo, derecha, izquierda };
