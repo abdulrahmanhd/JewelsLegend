@@ -13,12 +13,22 @@
 
 //Poniendo este DEFINE evitamos un error en el que falta la definici�n de HANDLE_ERROR
 #define HANDLE_ERROR
-#define ID_BOMBA 8
 #define TESELA 32 // Valor hallado por las propiedades de la tarjera, en el que el numero maximo de hilos por bloque son 1024 que sqrt(1024) son 32
 
 
 enum posicion {arriba, abajo, derecha, izquierda };
+int* generaTablero(int filas, int columnas, int bombas);
+void imprimeTablero(int* tablero, int filas, int columnas);
+char pedirModoEjecucion();
+int pedirFilasTablero();
+int pedirColumnasTablero();
+char pedirDificultad();
+void prop();
+int* rellenarTablero(int* tablero, int tamFilas, int tamColumnas, int nColores);
+void guardarPartida(int* tablero, int filas, int columnas, int dificultad);
 
+FILE *doc;
+FILE *leer;
 
 //Funci�n que devuelve un error si las dimensiones de la martiz son demasiado grandes para la gr�fica
 cudaError_t comprobarPropiedades(int filas, int columnas) {
@@ -323,13 +333,13 @@ __device__ void bomba1(int* dev_tablero, int explota,int filas, int columnas) {
 }
 
 //Elimina un columna completa
-__device__ void bomba2(int* dev_tablero, int columna, int columnas) {
+__device__ void bomba2(int* dev_tablero, int columna , int filas, int columnas) {
 
 	int i = blockIdx.y * blockDim.y + threadIdx.y;		//Indice de la x
 	int j = blockIdx.x * blockDim.x + threadIdx.x;		//Indice de la y
 
 	//Identificamos los diamantes por su columna
-	if (j == columna)	dev_tablero[i*columnas + j] = 0;
+	if (j == columna && i<filas)	dev_tablero[i*columnas + j] = 0;
 
 }
 
@@ -368,7 +378,7 @@ __global__ void menuBombas(int *dev_tablero, int filas, int columnas, int explot
 		case 91:	bomba1(dev_tablero, explota,filas, columnas);
 					reestructuracionArribaAbajo(dev_tablero, filas, columnas);
 					break;
-		case 92:	bomba2(dev_tablero, explota, columnas);
+		case 92:	bomba2(dev_tablero, explota, filas, columnas);
 					reestructuracionIzquierdaDerecha(dev_tablero, filas, columnas);
 					break;
 		case 93:	bomba3(dev_tablero, filas, columnas);
@@ -578,6 +588,7 @@ cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorElim
 	int bomba = 0;
 	int explota = 0;
 	bool hayBomba = false;
+	char guardar = NULL;
 
 	int bloquex, bloquey;
 
@@ -654,9 +665,25 @@ cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorElim
 	}
 	//Modo manual
 	if (m == 'm' && hasMoreMovements(tablero, tamFilas, tamColumnas)) {
-			printf("Para usar una bomba introduce 90 ");
-			printf("\nIntroduzca la fila del primer diamante: ");
-			scanf_s("%d", &fila1);
+
+		printf("-Para usar una bomba introduce 90 ");
+		printf("\n-Para terminar el juego 99 ");
+		printf("\nIntroduzca la fila del primer diamante: ");
+		scanf_s("%d", &fila1);
+		if (fila1 == 99) {
+			printf("\nQuieres guardar la partida? (s/n): ");
+			fflush(stdin);
+			scanf_s("%c", &guardar);
+			getchar();
+			
+				guardarPartida(tablero, tamFilas, tamColumnas, nColores);
+				printf("\nPartida guardada correctamente");
+			
+
+			printf("\n\n-JUEGO TERMINADO-");
+			Sleep(1000);
+			exit(0);
+		}
 			if (fila1 == 90) {
 				printf("\nIntroduce el numero de la bomba:");
 				scanf("%d", &bomba);
@@ -782,20 +809,63 @@ Error:
 
 }
 
-int* generaTablero(int filas, int columnas, int bombas);
-void imprimeTablero(int* tablero, int filas, int columnas);
-char pedirModoEjecucion();
-int pedirFilasTablero();
-int pedirColumnasTablero();
-char pedirDificultad();
-void prop();
-int* rellenarTablero(int* tablero, int tamFilas, int tamColumnas, int nColores);
+
+//Metodo para guardar la partida en txt
+void guardarPartida(int* tablero, int filas, int columnas, int dificultad) {
+
+	doc = fopen("guardado.txt", "w");
+
+	fprintf(doc, "%i \n", filas);
+	fprintf(doc, "%i \n", columnas);
+	fprintf(doc, "%i \n", dificultad);
+	for (int i = 0; i < (filas*columnas); i++) {
+		fprintf(doc, "%i ", tablero[i]);
+	}
+	fclose(doc);
+}
+
+//Funcion para cargar una partida guardada en el txt guardado
+void cargarPartida() {
+
+	cudaError_t cudaStatus;
+	leer = fopen("guardado.txt", "r");
+	int filas = 0;
+	int columnas = 0;
+	int dificultad = 0;
+	int contadorEliminados = 0;
+
+	// leer el variables del txt
+	fscanf(leer, "%d", &filas);
+	printf("FILAS: %d", filas);
+
+	fscanf(leer, "%d", &columnas);
+	printf("\nCOLUMNAS: %d", columnas);
+
+	fscanf(leer, "%d", &dificultad);
+	printf("\nCOLORES: %d", dificultad);
+
+	int* tablero = (int*)malloc(filas*columnas * sizeof(int));
+
+	for (int i = 0; i < filas*columnas; i++) {
+		fscanf(leer, "%d", &tablero[i]);
+	}
+
+	do {
+
+		imprimeTablero(tablero, filas, columnas);
+		cudaStatus = jugar(tablero, filas, columnas, &contadorEliminados, 'm', dificultad);
+
+		imprimeTablero(tablero, filas, dificultad);
+		tablero = rellenarTablero(tablero, filas, columnas, dificultad);
+		printf("Contador  = %d\n ", contadorEliminados);
+
+	} while ((cudaStatus == 0) && (contadorEliminados < 100));
+}
 
 int main() {
 	//Declaracion de variables para la ejecucion del programa
 
 	cudaError_t cudaStatus;
-	//prop();
 	int tamFilas; //Filas que tendra el tablero del programa
 	int tamColumnas; //Columnas que tendra el tablero del programa
 	char modo; //Modo de ejecucion del programa
@@ -803,47 +873,54 @@ int main() {
 	char dificultad;
 	int* tablero;
 	int nColores;
+	char cargar;
 
-	modo = pedirModoEjecucion();
-	dificultad = pedirDificultad();
-	tamFilas = pedirFilasTablero();
-	tamColumnas = pedirColumnasTablero();
-
-	if (dificultad == 'F') {
-		nColores = 4;
-	}
-	else if (dificultad == 'M') {
-		nColores = 6;
-	}
+	printf("\nQuieres cargar una partida? (s/n): ");
+	scanf("%c", &cargar);
+	getchar();
+	if (cargar == 's') cargarPartida();
 	else {
-		nColores = 8;
+		modo = pedirModoEjecucion();
+		dificultad = pedirDificultad();
+		tamFilas = pedirFilasTablero();
+		tamColumnas = pedirColumnasTablero();
+
+		if (dificultad == 'F') {
+			nColores = 4;
+		}
+		else if (dificultad == 'M') {
+			nColores = 6;
+		}
+		else {
+			nColores = 8;
+		}
+
+		printf("\nLos datos introducidos por el usuario son: -%c %c %d %d\n", modo, dificultad, tamFilas, tamColumnas);
+		cudaStatus = comprobarPropiedades(tamFilas, tamColumnas);
+
+		if (cudaStatus != cudaSuccess) {
+			fprintf(stderr, "cudaMalloc failed!");
+			goto Error;
+		}
+
+		tablero = generaTablero(tamFilas, tamColumnas, nColores);
+
 	}
-
-	printf("\nLos datos introducidos por el usuario son: -%c %c %d %d\n", modo,dificultad, tamFilas, tamColumnas);
-
-	cudaStatus = comprobarPropiedades(tamFilas, tamColumnas);
-
-	if (cudaStatus != cudaSuccess) {
-		fprintf(stderr, "cudaMalloc failed!");
-		goto Error;
-	}
-
-	tablero = generaTablero(tamFilas, tamColumnas, nColores);
-
-
 	do {
+
 		imprimeTablero(tablero, tamFilas, tamColumnas);
 
 		if (modo == 'm') {
-			cudaStatus = jugar(tablero, tamFilas, tamColumnas, &contadorEliminados, 'm',nColores);
+			cudaStatus = jugar(tablero, tamFilas, tamColumnas, &contadorEliminados, 'm', nColores);
+
 		}
 		else
 		{
 
-			cudaStatus = jugar(tablero, tamFilas, tamColumnas, &contadorEliminados, 'a',nColores);
+			cudaStatus = jugar(tablero, tamFilas, tamColumnas, &contadorEliminados, 'a', nColores);
 			getchar();
 		}
-	
+
 
 		imprimeTablero(tablero, tamFilas, tamColumnas);
 		tablero = rellenarTablero(tablero, tamFilas, tamColumnas, nColores);
@@ -859,6 +936,7 @@ int main() {
 	printf(" - - - - - - JUEGO TERMINADO - - - - - - - ");
 
 Error:
+
 
 	getchar();
 	getchar();

@@ -669,13 +669,11 @@ cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorElim
 		scanf_s("%d", &fila1);
 		if (fila1 == 99) {
 			printf("\nQuieres guardar la partida? (s/n): ");
-			fflush(stdin);
-			scanf_s("%c", &guardar);
 			getchar();
-			if (guardar == 's') {
+			
 				guardarPartida(tablero, tamFilas, tamColumnas, nColores);
 				printf("\nPartida guardada correctamente");
-			}
+		
 			
 			printf("\n\n-JUEGO TERMINADO-");
 			Sleep(1000);
