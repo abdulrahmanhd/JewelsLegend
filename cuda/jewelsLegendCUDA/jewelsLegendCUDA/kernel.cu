@@ -21,7 +21,6 @@
 
 //Poniendo este DEFINE evitamos un error en el que falta la definici�n de HANDLE_ERROR
 #define HANDLE_ERROR
-#define ID_BOMBA 8
 
 
 int* generaTablero(int filas, int columnas, int bombas);
