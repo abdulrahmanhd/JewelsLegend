@@ -312,13 +312,13 @@ __device__ void reestructuracionIzquierdaDerecha(int* dev_tablero, int filas, in
 }
 
 //Elimina una fila completa
-__device__ void bomba1(int* dev_tablero, int fila, int columnas) {
+__device__ void bomba1(int* dev_tablero, int explota,int filas, int columnas) {
 
 	int i = blockIdx.y * blockDim.y + threadIdx.y;		//Indice de la x
 	int j = blockIdx.x * blockDim.x + threadIdx.x;		//Indice de la y
 	//Identificamos los diamantes por su fila
-	if (i == fila)	dev_tablero[i*columnas + j] = 0;
-
+	if (i == explota && j<columnas) 
+		dev_tablero[i*columnas + j] = 0;
 }
 
 //Elimina un columna completa
@@ -361,14 +361,13 @@ __device__ void bomba3(int* dev_tablero, int filas , int columnas) {
 			dev_tablero[((i - 1)*columnas) + (j + 1)] = colorAux;
 		}
 	}
-	
 }
 
 //Menu de bombas
 __global__ void menuBombas(int *dev_tablero, int filas, int columnas, int explota, int bomba) {
 	
 	switch (bomba) {
-		case 91:	bomba1(dev_tablero, explota, columnas);
+		case 91:	bomba1(dev_tablero, explota,filas, columnas);
 					reestructuracionArribaAbajo(dev_tablero, filas, columnas);
 					break;
 		case 92:	bomba2(dev_tablero, explota, columnas);
