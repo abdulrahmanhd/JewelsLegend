@@ -31,7 +31,7 @@ int pedirColumnasTablero();
 char pedirDificultad();
 void prop();
 int* rellenarTablero(int* tablero, int tamFilas, int tamColumnas, int nColores);
-enum posicion {arriba, abajo, derecha, izquierda };
+enum posicion {arriba, abajo, derecha, izquierda,ArribaIzquierda,ArribaDerecha, AbajoIzquierda,AbajoDerecha};
 void guardarPartida(int* tablero, int filas, int columnas, int dificultad);
 FILE *doc;
 FILE *leer;
@@ -184,6 +184,26 @@ __device__ int comprobarIgualesPos(int *tablero, int posX, int posY, posicion po
 	case arriba:
 		if (posX - 1 >= 0 && tablero[(posX*tamColumnas) + posY] == tablero[((posX - 1) * tamColumnas) + posY]) { //comprobamos arriba
 			cont += 1 + comprobarIgualesPos(tablero, posX - 1, posY, arriba, tamFilas, tamColumnas);
+		}
+		break;
+	case ArribaIzquierda:
+		if (posX - 1 >= 0 && posY>=0 && tablero[(posX*tamColumnas) + posY] == tablero[((posX - 1) * tamColumnas) + posY-1]) { //comprobamos arribaIzquierda
+			cont += 1 + comprobarIgualesPos(tablero, posX - 1, posY-1, ArribaIzquierda, tamFilas, tamColumnas);
+		}
+		break;
+	case ArribaDerecha:
+		if (posX - 1 >= 0 && posY+1<tamColumnas && tablero[(posX*tamColumnas) + posY] == tablero[((posX - 1) * tamColumnas) + posY+1]) { //comprobamos arribaDerecha
+			cont += 1 + comprobarIgualesPos(tablero, posX - 1, posY+1, ArribaDerecha, tamFilas, tamColumnas);
+		}
+		break;
+	case AbajoIzquierda:
+		if (posX + 1 < tamFilas && posY - 1 >=  0 && tablero[(posX*tamColumnas) + posY] == tablero[((posX + 1) * tamColumnas) + posY-1]) { //comprobamos abajoIzquierda
+			cont += 1 + comprobarIgualesPos(tablero, posX + 1, posY-1, AbajoIzquierda, tamFilas, tamColumnas);
+		}
+		break;
+	case AbajoDerecha:
+		if (posX + 1 <tamFilas && posY+1 <tamColumnas && tablero[(posX*tamColumnas) + posY] == tablero[((posX + 1) * tamColumnas) + posY+1]) { //comprobamos abajoDerecha
+			cont += 1 + comprobarIgualesPos(tablero, posX + 1, posY+1, AbajoDerecha, tamFilas, tamColumnas);
 		}
 		break;
 	default:
