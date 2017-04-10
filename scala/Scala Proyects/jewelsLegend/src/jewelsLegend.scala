@@ -4,14 +4,14 @@ object jewelsLegend {
   
   class Diamante (val pos:Int,val color:Int)
   
- 
-  /*def explotar(tablero:List[Diamante]):List[Diamante]={
+ //Funncion que explota elementos iguales
+  def explotar(tablero:List[Diamante]):List[Diamante]={
     val pos=tablero.head.pos
-    val diamante = Diamante(pos,0)
+    val diamante = new Diamante(pos,0)
     //explotarIguales(diamente, tablero)
     diamante::tablero.tail;
     return tablero
-  }*/
+  }
   
   //Cambia los ceros por otro numero alatorio
   def reponer(dificultad:Int, tablero:List[Diamante],pos:Int):List[Diamante]={
@@ -53,10 +53,10 @@ object jewelsLegend {
   }
   
   //Funciones de contar iguales 
-  /*def contar3(tablero:List[Int], filas:Int, columnas:Int):List[Int]={
+  def contar3(tablero:List[Diamante], filas:Int, columnas:Int):List[Diamante]={
     if(!tablero.isEmpty){
         println("Cabeza : " + tablero.head)
-        val cont = contarAbajo(tablero.head,tablero.tail, columnas-1, filas, columnas);
+        val cont = contarAbajo(tablero.head.color,tablero.tail, columnas-1, filas, columnas);
         if(cont >= 2){
           explotar(tablero);
         }
@@ -64,17 +64,121 @@ object jewelsLegend {
      }
     return tablero;
   }
- def contarAbajo(Diamante:Int, tablero:List[Int],pos:Int, filas:Int, columnas:Int):Int={
-   println("Posicion : " + pos + " y diamante: "+Diamante+ " y cabeza: "+tablero.head)
+  
+ //Contamos iguales abajo
+ def contarAbajo(color:Int, tablero:List[Diamante],pos:Int, filas:Int, columnas:Int):Int={
+   println("Posicion : " + pos + " y diamante: "+color+ " y cabeza: "+tablero.head)
    if(pos==0){
-     if(Diamante == tablero.head){
+     if(color == tablero.head.color){
        println("SUMO UNO")
-      return 1 + contarAbajo(Diamante,tablero.tail, columnas-1, filas, columnas);
+      return 1 + contarAbajo(color,tablero.tail, columnas-1, filas, columnas);
      }else{return 0}
-   }else if(pos > 0){return contarAbajo(Diamante,tablero.tail,pos-1,filas,columnas)}else{
+   }else if(pos > 0){return contarAbajo(color,tablero.tail,pos-1,filas,columnas)}else{
      return 0;
    }
- }*/
+ }
+ 
+ //Comprobar si un numero esta en la última columna
+ def ultima_columna(posDiamante:Int,columna:Int,filas:Int):Boolean={
+   if(posDiamante>columna)  false
+   else{
+     if(posDiamante==columna) true
+     else  ultima_columna(posDiamante,columna+(filas-1),filas)
+   }
+ }
+ 
+ //Comprobar si un numero esta en la primera columna
+  def primera_columna(posDiamante:Int,columna:Int,filas:Int):Boolean={
+   if(posDiamante>columna)  false
+   else{
+     if(posDiamante==columna) true
+     else  ultima_columna(posDiamante,columna+(filas-1),filas)
+   }
+ }
+ 
+ //Comprobar si un numero esta en la primera fila
+  def primera_fila(posDiamante:Int,columnas:Int):Boolean={
+    if(posDiamante<columnas) true
+    else false
+  }
+  
+  //Comprobar si un numero esta en la ultima fila
+  def ultima_fila(posDiamante:Int,columnas:Int,filas:Int):Boolean={
+    if(posDiamante<(filas*columnas)-columnas) true
+    else false
+  }
+  
+  
+ //Comprueba que dos posiciones sean contiguas
+  def diamantes_contiguos(pos1:Int, pos2:Int, filas:Int, columnas:Int):Boolean={
+   //Poicion central
+   if(!primera_columna(pos1,0,filas) && !ultima_columna(pos1,0,filas) && !primera_fila(pos1,columnas) && !ultima_fila(pos1,columnas,filas)){
+     /*Mirar derecha izquierda arriba abajo*/
+     if ((pos1==pos2+1) || (pos1==pos2-1) || (pos1==pos2-columnas) || (pos1==pos2-columnas))  true
+     else false
+   }
+   //Posicion en ultima fila o columna
+   else if(primera_fila(pos1,columnas) && !primera_columna(pos1,0,filas) && !ultima_columna(pos1,0,filas)){
+     /*mirar abajo derecha izquierda*/
+     if ((pos1==pos2+1) || (pos1==pos2-1) || (pos1==pos2+columnas))  true
+     else false
+   }
+   else if(ultima_fila(pos1,columnas,filas) && !primera_columna(pos1,0,filas) && !ultima_columna(pos1,0,filas)){
+     /*mirar arriba derecha izquierda*/
+     if ((pos1==pos2+1) || (pos1==pos2-1) || (pos1==pos2-columnas))  true
+     else false
+   }
+   else if(primera_columna(pos1,0,filas) && !primera_fila(pos1,columnas) && !ultima_fila(pos1,columnas,filas)){
+     /*mirar arriba abajo derecha*/
+     if ((pos1==pos2+1) || (pos1==pos2-columnas) || (pos1==pos2+columnas))  true
+     else false
+   }
+   else if(ultima_columna(pos1,0,filas) && !primera_fila(pos1,columnas) && !ultima_fila(pos1,columnas,filas)){
+     /*mirar arriba abajo izquierda*/
+     if ((pos1==pos2-1) || (pos1==pos2-columnas) || (pos1==pos2+columnas))  true
+     else false
+   }
+   //Posicion en esquina
+   else if(primera_fila(pos1,columnas) && primera_columna(pos1,0,filas)){
+     /*mirar derecha y abajo*/
+     if ((pos1==pos2+1) || (pos1==pos2+columnas))  true
+     else false
+   }
+   else if(primera_fila(pos1,columnas) && ultima_columna(pos1,0,filas)){
+     /*mirar izquierda y abajo*/
+     if ((pos1==pos2-1) || (pos1==pos2+columnas))  true
+     else false  
+   }
+   else if(ultima_fila(pos1,columnas,filas) && primera_columna(pos1,0,filas)){
+     /*mirar derecha y arriba*/
+     if ((pos1==pos2+1) || (pos1==pos2-columnas))  true
+     else false
+   }
+   else if(ultima_fila(pos1,columnas,filas) && ultima_columna(pos1,0,filas)){
+     /*mirar izquierda y arriba*/
+     if ((pos1==pos2-1) || (pos1==pos2-columnas))  true
+     else false
+   }
+   else false
+ }
+ 
+ //Comprobacion para saber si se puede realizar un movimiento
+ def comprobarMovimiento(diamante1:Diamante, diamante2:Diamante, tablero:List[Diamante], filas:Int, columnas:Int):Boolean={
+   val pos1 = diamante1.pos
+   val pos2 = diamante2.pos
+   val color1 = diamante1.color
+   val color2 = diamante2.color
+   
+   //Comprobamos que esten contiguos
+   val contiguo = diamantes_contiguos(pos1,pos2,filas,columnas)
+   
+   //Comprobamos que los iguales sean mayor que 3
+   val tableroAux1 = intercambiar(pos1,pos2,tablero)
+   //val iguales
+   //if (contiguos && iguales) return true
+   return contiguo
+ }
+ 
   //Intercambiar posicioines de diamantes
   def intercambiar(pos1:Int, pos2:Int, tablero:List[Diamante]):List[Diamante]={
     val color1 = devolver_bloque_lista(pos1:Int,tablero).color
