@@ -5,12 +5,17 @@ object jewelsLegend {
   class Diamante (val pos:Int,val color:Int)
   
  //Funncion que explota elementos iguales
-  def explotar(tablero:List[Diamante]):List[Diamante]={
-    val pos=tablero.head.pos
-    val diamante = new Diamante(pos,0)
-    //explotarIguales(diamente, tablero)
-    diamante::tablero.tail;
-    return tablero
+  def explotar(ListaExplotar:List[Int], tablero:List[Diamante]):List[Diamante]={
+    if(ListaExplotar.head == tablero.head.pos){
+      val diamante = new Diamante(tablero.head.pos,0);
+      if(ListaExplotar.tail.isEmpty){
+        return diamante::tablero.tail;
+      }else{
+        return diamante::explotar(ListaExplotar.tail,tablero.tail);
+      }
+    }else{
+      tablero.head::explotar(ListaExplotar.tail,tablero.tail);
+    }
   }
   
   //Cambia los ceros por otro numero alatorio
@@ -58,7 +63,7 @@ object jewelsLegend {
         println("Cabeza : " + tablero.head)
         val cont = contarAbajo(tablero.head.color,tablero.tail, columnas-1, filas, columnas);
         if(cont >= 2){
-          explotar(tablero);
+         // explotar(ListaExplotado,tablero);
         }
         println("Iguales : " + cont);
      }
