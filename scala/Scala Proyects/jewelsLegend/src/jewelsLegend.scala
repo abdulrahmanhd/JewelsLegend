@@ -196,6 +196,62 @@ object jewelsLegend {
     }
     else return cont
   }
+ 
+  //Recorre el array en busca de ceros (OK)
+def bucleMoverCeros(longTablero:Int,l:List[Diamante],aux:List[Diamante],filas:Int,columnas:Int):List[Diamante]={
+  
+   if(longTablero==0){
+    
+    if(devolverDiamanteLista(longTablero,l).color==0){
+      val aux2=subir_ceros(longTablero,longTablero-columnas,aux,filas,columnas)
+      return aux2
+    }
+    
+    else return aux
+    
+  }
+  else {
+    if(devolverDiamanteLista(longTablero,l).color==0){
+      val aux2=subir_ceros(longTablero,longTablero-columnas,aux,filas,columnas)
+      bucleMoverCeros(longTablero-1,l,aux2,filas,columnas)
+    }
+    else bucleMoverCeros(longTablero-1,aux,aux,filas,columnas)}
+  
+}
+   
+  //Enocontrar 0's en una columna (OK)
+def encontrarCero(posicion:Int,l:List[Diamante],columnas:Int):Int={
+  if(posicion<0 || devolverDiamanteLista(posicion,l).color==0){return posicion}
+  else encontrarCero(posicion-columnas,l,columnas)
+}
+
+  //Mueve los ceros hacia arriba  (OK)
+def subir_ceros(pos0:Int,posIntercambio:Int,l:List[Diamante],filas:Int,columnas:Int):List[Diamante]={
+  
+  
+  if((posIntercambio+columnas)-columnas<0)     return l
+  else {
+    
+      if(devolverDiamanteLista(posIntercambio,l).color!=0){
+        
+        val bloqAux1= devolverDiamanteLista(posIntercambio,l)
+        val bloqAux2= new Diamante(encontrarCero(pos0,l,columnas),0)
+        val bloqAux12=new Diamante(bloqAux1.pos,bloqAux2.color)
+        val bloqAux21=new Diamante(bloqAux2.pos,bloqAux1.color)
+        
+        //bajar el bloque k no es 0
+        val aux=insertar_diamante(bloqAux12.color,bloqAux1.pos,l,bloqAux1.pos)
+        
+        //poner el 0
+        val x=insertar_diamante(bloqAux21.color,bloqAux2.pos,aux,bloqAux2.pos)
+
+        subir_ceros(pos0-columnas,posIntercambio,x,filas,columnas)//-columnas
+        }
+      else {
+        subir_ceros(pos0,posIntercambio-columnas,l,filas,columnas)//pos0
+      } 
+  }
+ }
 
  //Comprueba si un mov es posible segun los diamantes iguales (OK)
   def comprobarIguales(pos1:Int, pos2:Int, filas:Int, columnas:Int, tablero:List[Diamante]):Boolean={
