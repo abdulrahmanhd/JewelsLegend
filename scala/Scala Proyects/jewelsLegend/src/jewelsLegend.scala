@@ -6,16 +6,13 @@ object jewelsLegend {
   
  //Funncion que explota elementos iguales
   def explotar(ListaExplotar:List[Int], tablero:List[Diamante]):List[Diamante]={
-    if(ListaExplotar.head == tablero.head.pos){
-      val diamante = new Diamante(tablero.head.pos,0);
+    
       if(ListaExplotar.tail.isEmpty){
-        return diamante::tablero.tail;
+        return tablero;
       }else{
-        return diamante::explotar(ListaExplotar.tail,tablero.tail);
+        val tablero1 = insertar_diamante(0, ListaExplotar.head, tablero, ListaExplotar.head)
+        return explotar(ListaExplotar.tail,tablero1);
       }
-    }else{
-      tablero.head::explotar(ListaExplotar.tail,tablero.tail);
-    }
   }
   
   //Cambia los ceros por otro numero alatorio
@@ -57,17 +54,20 @@ object jewelsLegend {
     else lista.head::insertar_diamante(color,pos,lista.tail,posAux-1)
   }
   
-  //Funciones de contar iguales 
-  def contar3(tablero:List[Diamante], filas:Int, columnas:Int):List[Diamante]={
-    if(!tablero.isEmpty){
-        println("Cabeza : " + tablero.head)
-        val cont = contarAbajo(tablero.head.color,tablero.tail, columnas-1, filas, columnas);
-        if(cont >= 2){
-         // explotar(ListaExplotado,tablero);
-        }
-        println("Iguales : " + cont);
-     }
-    return tablero;
+  //genera una lista con los elementos que tienen que explotar en esta ronda.
+  def generarListaIguales(tablero:List[Diamante], filas:Int, columnas:Int, pos:Int):List[Int]={
+    if(pos <= filas*columnas-1){
+      val horizontal = comprobarIgualesPos(pos,"derecha",0,filas,columnas,tablero) + comprobarIgualesPos(tablero.head.pos,"izquierda",0,filas,columnas,tablero)
+      val vertical= comprobarIgualesPos(pos,"arriba",0,filas,columnas,tablero) + comprobarIgualesPos(tablero.head.pos,"abajo",0,filas,columnas,tablero)
+         if(horizontal >= 2 || vertical >= 2){
+            return pos::generarListaIguales(tablero,filas,columnas,pos+1);
+          }else{
+            return generarListaIguales(tablero,filas,columnas,pos+1);
+          }
+     
+    }else{
+      return Nil;
+    }
   }
   
  //Contamos iguales abajo
@@ -302,6 +302,11 @@ def subir_ceros(pos0:Int,posIntercambio:Int,l:List[Diamante],filas:Int,columnas:
     if(comprobarMovimiento(devolverDiamanteLista(pos1,tablero),devolverDiamanteLista(pos2,tablero), tablero, filas, columnas)){
       val tableroAux1 = insertar_diamante(color1,pos2,tablero,pos2)
       val tableroAux2 = insertar_diamante(color2,pos1,tableroAux1,pos1)
+      
+      //val ListaEliminar = Lista
+      println("Lista de posiciones a eliminar : ");
+      val lista_eliminar = generarListaIguales(tableroAux2, filas, columnas,0);
+      print_lista(lista_eliminar,filas,columnas);
       return tableroAux2
     }
     else return tablero
@@ -336,7 +341,19 @@ def subir_ceros(pos0:Int,posIntercambio:Int,l:List[Diamante],filas:Int,columnas:
     }
     
   }
-  
+  def print_lista(tablero:List[Int], columnas:Int, cont:Int){
+    if(!tablero.isEmpty){
+      if(cont==columnas){
+        print(tablero.head + "\n")
+        print_lista(tablero.tail,columnas,1)
+      }
+      else{
+        print(tablero.head + " ")
+        print_lista(tablero.tail,columnas,cont+1)
+      }
+    }
+    
+  }
   def main(args: Array[String]){
     println("Introduzca dificultad")
     val dificultad=readInt
