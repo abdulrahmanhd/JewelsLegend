@@ -70,7 +70,21 @@ object jewelsLegend {
     }
   }
   
+ //Contamos iguales abajo
+ def contarAbajo(color:Int, tablero:List[Diamante],pos:Int, filas:Int, columnas:Int):Int={
+   println("Posicion : " + pos + " y diamante: "+color+ " y cabeza: "+tablero.head)
+   if(pos==0){
+     if(color == tablero.head.color){
+       println("SUMO UNO")
+      return 1 + contarAbajo(color,tablero.tail, columnas-1, filas, columnas);
+     }else{return 0}
+   }else if(pos > 0){return contarAbajo(color,tablero.tail,pos-1,filas,columnas)}else{
+     return 0;
+   }
+ }
+ 
  //Comprobar si un numero esta en la última columna (OK)
+ //auxiliar inicial columnas-1
  def ultima_columna(posDiamante:Int,columnas:Int,aux:Int):Boolean={
    if(aux>posDiamante)  false
    else{
@@ -80,6 +94,7 @@ object jewelsLegend {
  }
  
  //Comprobar si un numero esta en la primera columna (OK)
+ //auxiliar inicial 0
  def primera_columna(posDiamante:Int,columnas:Int,aux:Int):Boolean={
    if(aux>posDiamante) false
    else{
