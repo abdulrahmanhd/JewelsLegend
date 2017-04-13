@@ -15,18 +15,18 @@ object jewelsLegend {
       }
   }
   
-  //Cambia los ceros por otro numero alatorio
+ //Cambia los ceros por otro numero alatorio (OK)
   def reponer(dificultad:Int, tablero:List[Diamante],pos:Int):List[Diamante]={
     if(tablero.tail==Nil){return tablero}
     else{
       if(tablero.head.color==0){
         val rnd = scala.util.Random
-        val diamante = (pos,1+rnd.nextInt(colores_tablero(dificultad)))::reponer(dificultad,tablero.tail,pos+1)
-        return tablero
+        val diamante = new Diamante(pos,1+rnd.nextInt(colores_tablero(dificultad)))
+        //println(diamante.pos,diamante.color)
+        return diamante::reponer(dificultad,tablero.tail,pos+1)
       }
       else{
-        tablero.head::reponer(dificultad,tablero.tail,pos+1)
-        return tablero
+        return tablero.head::reponer(dificultad,tablero.tail,pos+1)
       }
     }
   }
