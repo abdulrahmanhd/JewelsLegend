@@ -7,7 +7,7 @@ object jewelsLegend {
  //Funncion que explota elementos iguales
   def explotar(ListaExplotar:List[Int], tablero:List[Diamante]):List[Diamante]={
     
-      if(ListaExplotar.tail.isEmpty){
+      if(ListaExplotar.isEmpty){
         return tablero;
       }else{
         val tablero1 = insertar_diamante(0, ListaExplotar.head, tablero, ListaExplotar.head)
@@ -54,12 +54,12 @@ object jewelsLegend {
     else lista.head::insertar_diamante(color,pos,lista.tail,posAux-1)
   }
   
-  //genera una lista con los elementos que tienen que explotar en esta ronda.
+  //genera una lista con los elementos que tienen que explotar en esta ronda.(OK)
   def generarListaIguales(tablero:List[Diamante], filas:Int, columnas:Int, pos:Int):List[Int]={
     if(pos <= filas*columnas-1){
-      val horizontal = comprobarIgualesPos(pos,"derecha",0,filas,columnas,tablero) + comprobarIgualesPos(tablero.head.pos,"izquierda",0,filas,columnas,tablero)
-      val vertical= comprobarIgualesPos(pos,"arriba",0,filas,columnas,tablero) + comprobarIgualesPos(tablero.head.pos,"abajo",0,filas,columnas,tablero)
-         if(horizontal >= 2 || vertical >= 2){
+      val horizontal = comprobarIgualesPos(pos,"derecha",0,filas,columnas,tablero) + comprobarIgualesPos(pos,"izquierda",0,filas,columnas,tablero)
+      val vertical= comprobarIgualesPos(pos,"arriba",0,filas,columnas,tablero) + comprobarIgualesPos(pos,"abajo",0,filas,columnas,tablero)
+         if((horizontal >= 2 || vertical >= 2) && obtenerColor(pos, tablero) != 0){
             return pos::generarListaIguales(tablero,filas,columnas,pos+1);
           }else{
             return generarListaIguales(tablero,filas,columnas,pos+1);
@@ -70,19 +70,6 @@ object jewelsLegend {
     }
   }
   
- //Contamos iguales abajo
- def contarAbajo(color:Int, tablero:List[Diamante],pos:Int, filas:Int, columnas:Int):Int={
-   println("Posicion : " + pos + " y diamante: "+color+ " y cabeza: "+tablero.head)
-   if(pos==0){
-     if(color == tablero.head.color){
-       println("SUMO UNO")
-      return 1 + contarAbajo(color,tablero.tail, columnas-1, filas, columnas);
-     }else{return 0}
-   }else if(pos > 0){return contarAbajo(color,tablero.tail,pos-1,filas,columnas)}else{
-     return 0;
-   }
- }
- 
  //Comprobar si un numero esta en la última columna (OK)
  def ultima_columna(posDiamante:Int,columnas:Int,aux:Int):Boolean={
    if(aux>posDiamante)  false
@@ -253,6 +240,41 @@ def subir_ceros(pos0:Int,posIntercambio:Int,l:List[Diamante],filas:Int,columnas:
   }
  }
 
+//Cambia 2 columnas de una 'matriz'
+def loopChangeColum(pos:Int,tablero:List[Diamante],columnas:Int):List[Diamante]={
+  if(primera_columna(pos, columnas, 0)) return tablero;
+  else{
+    
+    val diamante1=devolverDiamanteLista(pos, tablero);
+    val diamante2=devolverDiamanteLista(pos-1,tablero)
+    val diamante12= new Diamante(diamante1.pos,diamante2.color)
+    val diamante21= new Diamante(diamante2.pos,diamante1.color)
+    
+    val aux=insertar_diamante(diamante12.color,diamante12.pos,tablero,diamante12.pos);
+    
+    val x=insertar_diamante(diamante21.color,diamante21.pos,aux,diamante21.pos);
+    
+    return loopChangeColum(pos+columnas,x,columnas);
+  }
+  
+}
+
+//Funcion para cambiar columnas
+def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamante]={
+  if(pos>columnas) return tablero
+  else {
+      val firstDiamond=devolverDiamanteLista(pos,tablero);
+      if(firstDiamond.color==0 && comprobarIgualesPos(pos, "abajo", 1, filas, columnas, tablero) == columnas && primera_columna(pos, columnas, pos)){
+
+        val aux= loopChangeColum(pos,tablero,columnas);
+        
+        moveLeft(pos+1,aux,filas,columnas)
+     
+     } else moveLeft(pos+1,tablero,filas,columnas)
+    
+  }
+}
+
  //Comprueba si un mov es posible segun los diamantes iguales (OK)
   def comprobarIguales(pos1:Int, pos2:Int, filas:Int, columnas:Int, tablero:List[Diamante]):Boolean={
     val arriba1 = comprobarIgualesPos(pos1,"arriba",0,filas,columnas,tablero)
@@ -303,15 +325,23 @@ def subir_ceros(pos0:Int,posIntercambio:Int,l:List[Diamante],filas:Int,columnas:
       val tableroAux1 = insertar_diamante(color1,pos2,tablero,pos2)
       val tableroAux2 = insertar_diamante(color2,pos1,tableroAux1,pos1)
       
-      //val ListaEliminar = Lista
-      println("Lista de posiciones a eliminar : ");
-      val lista_eliminar = generarListaIguales(tableroAux2, filas, columnas,0);
-      print_lista(lista_eliminar,filas,columnas);
-      return tableroAux2
+      return loopDelete(tableroAux2,filas,columnas);
     }
     else return tablero
   }
-  
+  def loopDelete(tablero:List[Diamante],filas:Int, columnas:Int):List[Diamante]={
+    
+    val lista_eliminar = generarListaIguales(tablero, filas, columnas,0);
+   
+    if(lista_eliminar.isEmpty){
+      return tablero
+    }else{
+      val tableroExplotado = explotar(lista_eliminar,tablero);
+      val tableroCeros = bucleMoverCeros((filas*columnas)-1, tableroExplotado, tableroExplotado, filas, columnas);
+
+      return loopDelete(tableroCeros,filas,columnas);
+    }
+  }
   //generar un lista que sera el tablero (OK)
   def generarTablero(pos: Int, filas:Int, columnas:Int, dificultad:Int):List[Diamante]={
     if(pos==((filas*columnas)-1)){
