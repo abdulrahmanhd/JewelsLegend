@@ -241,7 +241,7 @@ def subir_ceros(pos0:Int,posIntercambio:Int,l:List[Diamante],filas:Int,columnas:
         val bloqAux12=new Diamante(bloqAux1.pos,bloqAux2.color)
         val bloqAux21=new Diamante(bloqAux2.pos,bloqAux1.color)
         
-        //bajar el bloque k no es 0
+        //bajar el diamante que no es 0
         val aux=insertar_diamante(bloqAux12.color,bloqAux1.pos,l,bloqAux1.pos)
         
         //poner el 0
@@ -333,8 +333,8 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
  
   //Intercambiar posicioines de diamantes (OK)
   def intercambiar(pos1:Int, pos2:Int, tablero:List[Diamante], filas:Int, columnas:Int):List[Diamante]={
-    val color1 = devolverDiamanteLista(pos1:Int,tablero).color
-    val color2 = devolverDiamanteLista(pos2:Int,tablero).color
+    val color1 = devolverDiamanteLista(pos1,tablero).color
+    val color2 = devolverDiamanteLista(pos2,tablero).color
     
     if(comprobarMovimiento(devolverDiamanteLista(pos1,tablero),devolverDiamanteLista(pos2,tablero), tablero, filas, columnas)){
       val tableroAux1 = insertar_diamante(color1,pos2,tablero,pos2)
@@ -344,6 +344,7 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
     }
     else return tablero
   }
+  //Bucle para ejecutar explotar 
   def loopDelete(tablero:List[Diamante],filas:Int, columnas:Int):List[Diamante]={
     
     val lista_eliminar = generarListaIguales(tablero, filas, columnas,0);
@@ -356,6 +357,145 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
 
       return loopDelete(tableroCeros,filas,columnas);
     }
+  }
+  //Modo intercambiar automatico
+  def changeAutomatic(pos1:Int, pos2:Int, tablero:List[Diamante], filas:Int, columnas:Int):List[Diamante]={
+    val color1 = devolverDiamanteLista(pos1,tablero).color
+    val color2 = devolverDiamanteLista(pos2,tablero).color
+    
+    if(checkAutomaticMove(devolverDiamanteLista(pos1,tablero),devolverDiamanteLista(pos2,tablero), tablero, filas, columnas)){
+      val tableroAux1 = insertar_diamante(color1,pos2,tablero,pos2)
+      val tableroAux2 = insertar_diamante(color2,pos1,tableroAux1,pos1)
+      
+      return tableroAux2;
+    }
+    else return tablero
+  }
+  
+  //ComprobarMovimiento automatico
+   def checkAutomaticMove(diamante1:Diamante, diamante2:Diamante, tablero:List[Diamante], filas:Int, columnas:Int):Boolean={
+   val pos1 = diamante1.pos
+   val pos2 = diamante2.pos
+   val color1 = diamante1.color
+   val color2 = diamante2.color
+   
+   //Comprobamos que esten contiguos
+   val contiguo = diamantes_contiguos(pos1,pos2,filas,columnas)
+   
+   //Comprobamos que los iguales sean mayor que 2
+   val tableroAux1 = insertar_diamante(color1,pos2,tablero,pos2)
+   val tableroAux2 = insertar_diamante(color2,pos1,tableroAux1,pos1)
+   val iguales=comprobarIguales(pos1,pos2,filas,columnas,tableroAux2)
+ 
+   return contiguo && iguales
+ }
+  //retorna la lista de explotados al cambiar las posiciones con el elemento de la derecha
+   def returnListRight(pos:Int,tablero:List[Diamante], filas:Int, columnas:Int):List[Int]={
+     
+     if(ultima_columna(pos, columnas, columnas-1)){
+       return Nil;
+     }else{
+       val tableroIntercambiarDerecha = changeAutomatic(pos, pos+1, tablero, filas, columnas);
+       return generarListaIguales(tableroIntercambiarDerecha, filas, columnas, 0);
+     }
+   }
+   
+   //retorna la lista de explotados al cambiar las posiciones con el elemento de la izquierda
+   def returnListLeft(pos:Int,tablero:List[Diamante], filas:Int, columnas:Int):List[Int]={
+     
+     if(primera_columna(pos, columnas, 0)){
+       return Nil;
+     }else{
+        val tableroIntercambiarIzquierda = changeAutomatic(pos, pos-1, tablero, filas, columnas);
+       return generarListaIguales(tableroIntercambiarIzquierda, filas, columnas, 0);
+     }
+   }
+   
+    //retorna la lista de explotados al cambiar las posiciones con el elemento de la abajo
+   def returnListDown(pos:Int,tablero:List[Diamante], filas:Int, columnas:Int):List[Int]={
+     if(ultima_fila(pos, columnas, filas)){
+       return Nil;
+     }else{
+        val tableroIntercambiarAbajo = changeAutomatic(pos, pos+columnas, tablero, filas, columnas);
+        return generarListaIguales(tableroIntercambiarAbajo, filas, columnas, 0);
+     }
+   }
+   
+  //retorna la lista de explotados al cambiar las posiciones con el elemento de la arriba
+   def returnListUp(pos:Int,tablero:List[Diamante], filas:Int, columnas:Int):List[Int]={
+     if(primera_fila(pos, columnas)){
+       return Nil;
+     }else{
+        val tableroIntercambiarArriba = changeAutomatic(pos, pos-columnas, tablero, filas, columnas);
+        return generarListaIguales(tableroIntercambiarArriba, filas, columnas, 0);
+     }
+   }
+   //Funcion que retorna una lista con el mejor cambio para explotar 
+  def returnGreaterList( tablero:List[Diamante], pos:Int, filas:Int, columnas:Int):(Int,Int)={
+
+      val listaDerecha = returnListRight(pos, tablero, filas, columnas);
+      val listaAbajo = returnListDown(pos, tablero, filas, columnas);
+      val listaIzquierda = returnListLeft(pos, tablero, filas, columnas);
+      val listaArriba = returnListUp(pos, tablero, filas, columnas);;
+    
+        if(listaDerecha.length > listaAbajo.length && listaDerecha.length > listaArriba.length && listaDerecha.length > listaIzquierda.length){
+         return (pos,pos+1);
+        }else if(listaIzquierda.length > listaAbajo.length && listaIzquierda.length > listaArriba.length){
+          return (pos,pos-1);
+        }else if(listaAbajo.length > listaArriba.length){
+          return (pos,pos+columnas);
+        }else if(!listaArriba.isEmpty){
+          return (pos,pos-columnas);
+        }else{
+          return (-1,-1);
+        }
+    
+  }
+  def biggerFour(number1:Int,number2:Int,number3:Int,number4:Int):Int={
+    if(number1>=number2 && number1 >= number3 && number1>= number4){
+      return number1;
+    }else if(number2 >= number3 && number2 >= number4){
+      return number2;      
+    }else if(number3 >= number4){
+      return number3;
+    }else return number4;
+  }
+  //MODO AUTOMATICO
+  def automaticMode(contSame:Int ,listaMayor:List[Int], tablero:List[Diamante], pos:Int, bestChange1:Int, bestChange2:Int,filas:Int, columnas:Int):List[Diamante]={
+    if(pos >= filas*columnas){
+      val tableroAux = changeAutomatic(bestChange1, bestChange2, tablero, filas, columnas);
+      
+      println("Mejor movimiento posicion : " + bestChange1 + " por posicion : " + bestChange2 + " y explotaran : "+contSame);
+      println();
+      print_tablero(tableroAux, columnas, 1);
+      val tableroFinal = loopDelete(tableroAux,filas,columnas);
+      println();
+      return tableroFinal;
+    }else { 
+     val betterMove = returnGreaterList(tablero, pos, filas, columnas);
+     if(betterMove._1 != -1 && betterMove._2 != -1){
+      
+       val tableroCambiado = changeAutomatic(betterMove._1, betterMove._2, tablero, filas, columnas);
+       val bestList = generarListaIguales(tableroCambiado, filas, columnas, 0);
+       
+       val horizontal1 = comprobarIgualesPos(betterMove._1,"derecha",1,filas,columnas,tableroCambiado) + comprobarIgualesPos(betterMove._1,"izquierda",1,filas,columnas,tableroCambiado)
+       val vertical1 = comprobarIgualesPos(betterMove._1,"arriba",1,filas,columnas,tableroCambiado) + comprobarIgualesPos(betterMove._1,"abajo",1,filas,columnas,tableroCambiado)
+       
+       val horizontal2 = comprobarIgualesPos(betterMove._2,"derecha",1,filas,columnas,tableroCambiado) + comprobarIgualesPos(betterMove._2,"izquierda",1,filas,columnas,tableroCambiado)
+       val vertical2 = comprobarIgualesPos(betterMove._2,"arriba",1,filas,columnas,tableroCambiado) + comprobarIgualesPos(betterMove._2,"abajo",1,filas,columnas,tableroCambiado)
+       
+       val bestFour = biggerFour(horizontal1,horizontal2,vertical1,vertical2);
+       
+       if(bestList.length >= listaMayor.length && bestFour >= contSame){
+         val reverseTablero = changeAutomatic(betterMove._2, betterMove._1, tableroCambiado, filas, columnas);
+         return automaticMode(bestFour,bestList, reverseTablero, pos+1, betterMove._1, betterMove._2, filas, columnas);
+       }else{
+          return automaticMode(contSame,listaMayor, tablero, pos+1, bestChange1, bestChange2, filas, columnas)
+       }
+     }else{
+       return automaticMode(contSame,listaMayor, tablero, pos+1, bestChange1, bestChange2, filas, columnas)
+     }
+    }  
   }
   //generar un lista que sera el tablero (OK)
   def generarTablero(pos: Int, filas:Int, columnas:Int, dificultad:Int):List[Diamante]={
@@ -410,7 +550,7 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
     val tablero = generarTablero(0,filas,columnas,dificultad)
     print_tablero(tablero,columnas,1)
     
-    println("Introduzca fila 1:")
+    /*println("Introduzca fila 1:")
     val fila1=readInt
     println("Introduzca columna 1:")
     val columna1=readInt
@@ -421,7 +561,10 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
     
     val pos1=(fila1*columnas)+columna1
     val pos2=(fila2*columnas)+columna2
-    val tableroAux1 = intercambiar(pos1, pos2, tablero, filas, columnas)
-    print_tablero(tableroAux1,columnas,1)
+   // val tableroAux1 = intercambiar(pos1, pos2, tablero, filas, columnas)
+    //val tableroFinal = loopDelete(tableroAux1,filas,columnas)*/
+   val tableroFinal =  automaticMode(0,Nil, tablero, 0, 0, 0, filas, columnas);
+    print_tablero(tableroFinal,columnas,1);
+    
   }
 }
