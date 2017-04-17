@@ -4,6 +4,48 @@ object jewelsLegend {
   
   class Diamante (val pos:Int,val color:Int)
   
+  //funcion para pintar indicadores al tablero
+def pintar_flechas_columnas(dificultad:Int) {
+  if(dificultad==1){
+    println("C O L U M N A S\n")
+    println("0 1 2 3 4 5 6")
+    println("| | | | | | |\n")
+  }
+  else{
+    if(dificultad==2){
+      println("C O L U M N A S\n")
+      println("0 1 2 3 4 5 6 7 8 9 10")
+      println("| | | | | | | | | | |\n")
+    }
+    else{
+      println("C O L U M N A S\n")
+      println("0 1 2 3 4 5 6 7 8 9 1011121314")
+      println("| | | | | | | | | | | | | | |\n")
+    }
+  }
+}
+ 
+  //funcion parra convertir cada numero a una letra
+def convertir_a_colores(valor:Int):String = {
+  if (valor==1)
+    return "A"
+  else if (valor==2)
+    return "R"
+  else if (valor==3)
+    return "N"
+  else if (valor==4)
+    return "V"
+  else if (valor==5)
+    return "P"
+  else if (valor==6)
+    return "M"
+  else if (valor==7)
+    return "G"
+  else if (valor==8)
+    return "B"
+  else return "*"
+}
+  
  //Funncion que explota elementos iguales
   def explotar(ListaExplotar:List[Int], tablero:List[Diamante]):List[Diamante]={
     
@@ -70,19 +112,15 @@ object jewelsLegend {
     }
   }
   
- //Contamos iguales abajo
- def contarAbajo(color:Int, tablero:List[Diamante],pos:Int, filas:Int, columnas:Int):Int={
-   println("Posicion : " + pos + " y diamante: "+color+ " y cabeza: "+tablero.head)
-   if(pos==0){
-     if(color == tablero.head.color){
-       println("SUMO UNO")
-      return 1 + contarAbajo(color,tablero.tail, columnas-1, filas, columnas);
-     }else{return 0}
-   }else if(pos > 0){return contarAbajo(color,tablero.tail,pos-1,filas,columnas)}else{
-     return 0;
-   }
- }
- 
+  //Devuelve la cantidad de ceros en el tablero para poder calcular la puntuacion
+  def getZero(tablero:List[Diamante], filas:Int, columnas:Int, pos:Int):Int={
+    if(pos <= filas*columnas-1){
+      if(devolverDiamanteLista(pos,tablero).color == 0){
+        return 1 + getZero(tablero,filas,columnas,pos+1)
+      }else return getZero(tablero,filas,columnas,pos+1)
+    }else return 0
+  }
+  
  //Comprobar si un numero esta en la última columna (OK)
  //auxiliar inicial columnas-1
  def ultima_columna(posDiamante:Int,columnas:Int,aux:Int):Boolean={
@@ -330,24 +368,6 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
    return contiguo && iguales
  }
  
- 
-  //Intercambiar posicioines de diamantes (OK)
-  def intercambiar(pos1:Int, pos2:Int, tablero:List[Diamante], filas:Int, columnas:Int):List[Diamante]={
-    val color1 = devolverDiamanteLista(pos1,tablero).color
-    val color2 = devolverDiamanteLista(pos2,tablero).color
-    
-    if(comprobarMovimiento(devolverDiamanteLista(pos1,tablero),devolverDiamanteLista(pos2,tablero), tablero, filas, columnas)){
-      val tableroAux1 = insertar_diamante(color1,pos2,tablero,pos2)
-      val tableroAux2 = insertar_diamante(color2,pos1,tableroAux1,pos1)
-      
-      return loopDelete(tableroAux2,filas,columnas);
-    }
-    else return tablero
-  }
-<<<<<<< HEAD
-  //Bucle para ejecutar explotar 
-=======
-  
   
   //Intercambia dos diamantes sin comprobar (OK)
   def intercambiarSinComprobar(pos1:Int, pos2:Int, tablero:List[Diamante], filas:Int, columnas:Int):List[Diamante]={
@@ -358,8 +378,7 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
     val tableroAux2 = insertar_diamante(color2,pos1,tableroAux1,pos1)
     return tableroAux2    
   }
-  
->>>>>>> 51dc8d6603c09a38bb1e3c524d966f8f9a7f8bfa
+    //Bucle para ejecutar explotar 
   def loopDelete(tablero:List[Diamante],filas:Int, columnas:Int):List[Diamante]={
     
     val lista_eliminar = generarListaIguales(tablero, filas, columnas,0);
@@ -368,7 +387,8 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
       return tablero
     }else{
       val tableroExplotado = explotar(lista_eliminar,tablero);
-      val tableroCeros = bucleMoverCeros((filas*columnas)-1, tableroExplotado, tableroExplotado, filas, columnas);
+      val tableroCerosIzquierda = moveLeft(0, tableroExplotado, filas, columnas);
+      val tableroCeros = bucleMoverCeros((filas*columnas)-1, tableroCerosIzquierda, tableroCerosIzquierda, filas, columnas);
 
       return loopDelete(tableroCeros,filas,columnas);
     }
@@ -476,16 +496,22 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
     }else return number4;
   }
   //MODO AUTOMATICO
-  def automaticMode(contSame:Int ,listaMayor:List[Int], tablero:List[Diamante], pos:Int, bestChange1:Int, bestChange2:Int,filas:Int, columnas:Int):List[Diamante]={
+  def automaticMode(contSame:Int,dificultad:Int,listaMayor:List[Int], tablero:List[Diamante], pos:Int, bestChange1:Int, bestChange2:Int,filas:Int, columnas:Int, score:Int):List[Diamante]={
     if(pos >= filas*columnas){
       val tableroAux = changeAutomatic(bestChange1, bestChange2, tablero, filas, columnas);
+      println("*********************************************************************");
+      println("* Mejor movimiento posicion : " + bestChange1 + " por posicion : " + bestChange2 + " y explotaran : "+contSame + " *");
+      println("*********************************************************************");
+      print_tablero(tableroAux,dificultad, columnas, filas);
+      val boardScore = checkLoopDelete(tablero,dificultad,filas,columnas,score);
+      print_tablero(boardScore._1,dificultad,columnas,filas);
+      readLine();
+       if(boardScore._2>=2000){
+         println("\n-- JUEGO TERMINADO --")
+         return boardScore._1;
+       }
+       else automaticMode(0,dificultad,Nil, boardScore._1, 0, 0, 0, filas, columnas,boardScore._2);
       
-      println("Mejor movimiento posicion : " + bestChange1 + " por posicion : " + bestChange2 + " y explotaran : "+contSame);
-      println();
-      print_tablero(tableroAux, columnas, 1);
-      val tableroFinal = loopDelete(tableroAux,filas,columnas);
-      println();
-      return tableroFinal;
     }else { 
      val betterMove = returnGreaterList(tablero, pos, filas, columnas);
      if(betterMove._1 != -1 && betterMove._2 != -1){
@@ -503,12 +529,12 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
        
        if(bestList.length >= listaMayor.length && bestFour >= contSame){
          val reverseTablero = changeAutomatic(betterMove._2, betterMove._1, tableroCambiado, filas, columnas);
-         return automaticMode(bestFour,bestList, reverseTablero, pos+1, betterMove._1, betterMove._2, filas, columnas);
+         return automaticMode(bestFour,dificultad,bestList, reverseTablero, pos+1, betterMove._1, betterMove._2, filas, columnas,score);
        }else{
-          return automaticMode(contSame,listaMayor, tablero, pos+1, bestChange1, bestChange2, filas, columnas)
+          return automaticMode(contSame,dificultad,listaMayor, tablero, pos+1, bestChange1, bestChange2, filas, columnas,score)
        }
      }else{
-       return automaticMode(contSame,listaMayor, tablero, pos+1, bestChange1, bestChange2, filas, columnas)
+       return automaticMode(contSame,dificultad,listaMayor, tablero, pos+1, bestChange1, bestChange2, filas, columnas,score)
      }
     }  
   }
@@ -578,8 +604,9 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
   
   
   //Blucle para jugada del usuario
-  def bucleJugador(tablero:List[Diamante],filas:Int,columnas:Int,puntuacion:Int){
+  def bucleJugador(tablero:List[Diamante],dificultad:Int,filas:Int,columnas:Int,score:Int){
     
+    print_tablero(tablero, dificultad, columnas, filas)
     println("Introduzca fila 1:")
     val fila1=readInt
     println("Introduzca columna 1:")
@@ -591,25 +618,50 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
     
     val pos1=(fila1*columnas)+columna1
     val pos2=(fila2*columnas)+columna2
-    val tableroAux1 = intercambiar(pos1, pos2, tablero, filas, columnas)
-    print_tablero(tableroAux1,columnas,1)
-    println("\nPUNTUACION: "+puntuacion)
-    if(puntuacion>=20) println("\n-- JUEGO TERMINADO --")
-    else bucleJugador(tableroAux1,filas,columnas,puntuacion)
+    if(comprobarMovimiento(devolverDiamanteLista(pos1,tablero),devolverDiamanteLista(pos2,tablero), tablero, filas, columnas)){
+       val tableroAux = intercambiarSinComprobar(pos1, pos2, tablero, filas, columnas)
+       val boardScore = checkLoopDelete(tableroAux,dificultad,filas,columnas,score);
+      
+       if(boardScore._2>=2000) println("\n-- JUEGO TERMINADO --")
+       else bucleJugador(boardScore._1,dificultad,filas,columnas,boardScore._2)
+    }else{
+      bucleJugador(tablero,dificultad,filas,columnas,score)
+    }
+    
+    
+  }
+  def checkLoopDelete(tablero:List[Diamante],dificultad:Int,filas:Int, columnas:Int, score:Int): (List[Diamante],Int)={
+    val tableroAux = loopDelete(tablero,filas,columnas)
+    val Score = score + (getZero(tableroAux, filas, columnas, 0) * 25);
+    print_tablero(tableroAux,dificultad,columnas,filas)
+    println("\nPUNTUACIÓN : " + Score +"\n");
+    val tableroFinal = reponer(dificultad, tableroAux, 0);
+
+    if(generarListaIguales(tableroFinal, filas, columnas, 0).length == 0){
+      return (tableroFinal, Score)
+    }else{
+      return checkLoopDelete(tableroFinal,dificultad,filas,columnas,Score);
+    } 
   }
   
-  
   //funcion para imprimir un tablero (OK)
-  def print_tablero(tablero:List[Diamante], columnas:Int, cont:Int){
-    if(!tablero.isEmpty){
-      if(cont==columnas){
-        print(tablero.head.color + "\n")
-        print_tablero(tablero.tail,columnas,1)
+  def print_tablero(tablero:List[Diamante],dificultad:Int, columnas:Int, filas:Int){
+   if (!tablero.isEmpty) {
+    if (tablero.length==filas*columnas)
+      pintar_flechas_columnas(dificultad)
+
+
+    print(convertir_a_colores(tablero.head.color) + " ")
+    if ((tablero.head.pos + 1) % columnas == 0) {
+      print(" - " + ((tablero.head.pos + 1) / columnas - 1))
+      if ((tablero.head.pos + 1) / columnas==1) println("  F")
+      if ((tablero.head.pos + 1) / columnas==2) println("  I")
+      if ((tablero.head.pos + 1) / columnas==3) println("  L")
+      if ((tablero.head.pos + 1) / columnas==4) println("  A")
+      if ((tablero.head.pos + 1) / columnas==5) println("  S")
+      if ((tablero.head.pos + 1) / columnas>5) println()
       }
-      else{
-        print(tablero.head.color + " ")
-        print_tablero(tablero.tail,columnas,cont+1)
-      }
+      print_tablero(tablero.tail,dificultad, columnas,filas)
     }
     
   }
@@ -629,34 +681,36 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
     
   }
   
+  def getLevel(dificultad:Int):(Int,Int)={
+    if(dificultad == 1){
+      return (7,9)
+    }else if(dificultad ==2){
+      return (11,17)
+    }else{
+      return (15,27)
+    }
+  }
+  
   def main(args: Array[String]){
     println("Introduzca dificultad")
     val dificultad=readInt
-    println("Introduce filas")
-    val filas=readInt
-    println("Introduce columnas")
-    val columnas=readInt
+    println("Introduzca el modo (usuario:0, automatico:1) : ")
+    val modo=readInt
     
+    val dimensiones = getLevel(dificultad);
+    val columnas= dimensiones._1
+    val filas = dimensiones._2
     val tablero = generarTablero(0,filas,columnas,dificultad)
     println("\nPUNTUACION: "+0)
-    print_tablero(tablero,columnas,1)
+    print_tablero(tablero,dificultad,columnas,filas)
+    val boardScore = checkLoopDelete(tablero,dificultad,filas,columnas,0);
     
-    /*println("Introduzca fila 1:")
-    val fila1=readInt
-    println("Introduzca columna 1:")
-    val columna1=readInt
-    println("Introduzca fila 2:")
-    val fila2=readInt
-    println("Introduzca columna 1:")
-    val columna2=readInt
+   if(modo ==1){
+     val tableroFinal =  automaticMode(0,dificultad,Nil, boardScore._1, 0, 0, 0, filas, columnas,boardScore._2);
+   }
+   if(modo==0){
+      bucleJugador(boardScore._1,dificultad,filas,columnas,boardScore._2)
+   }
     
-    val pos1=(fila1*columnas)+columna1
-    val pos2=(fila2*columnas)+columna2
-   // val tableroAux1 = intercambiar(pos1, pos2, tablero, filas, columnas)
-    //val tableroFinal = loopDelete(tableroAux1,filas,columnas)*/
-   val tableroFinal =  automaticMode(0,Nil, tablero, 0, 0, 0, filas, columnas);
-    print_tablero(tableroFinal,columnas,1);
-    
-    bucleJugador(tablero,filas,columnas,0)
   }
 }
