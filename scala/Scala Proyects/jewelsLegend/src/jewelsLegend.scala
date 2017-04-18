@@ -314,7 +314,7 @@ def loopChangeColum(pos:Int,tablero:List[Diamante],columnas:Int):List[Diamante]=
 
 //Funcion para cambiar columnas
 def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamante]={
-  if(pos>columnas) return tablero
+  if(pos>columnas-1) return tablero
   else {
       val firstDiamond=devolverDiamanteLista(pos,tablero);
       if(firstDiamond.color==0 && comprobarIgualesPos(pos, "abajo", 1, filas, columnas, tablero) == columnas && primera_columna(pos, columnas, pos)){
