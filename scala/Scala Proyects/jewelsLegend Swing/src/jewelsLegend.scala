@@ -10,7 +10,7 @@ object jewelsLegend extends SimpleSwingApplication{
    
  def top = new MainFrame {
     title = "JEWELS LEGEND"
-    val dificultad = 2;
+    val dificultad = 1;
     val dimensiones = getLevel(dificultad);
     val columnas= dimensiones._1
     val filas = dimensiones._2

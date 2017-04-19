@@ -603,29 +603,29 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
       return tableroAux6
   } 
  def saveFile(puntuacion: Int, dificultad:Int): Unit = {
-  println("\n\nHas conseguido " + puntuacion + " puntos.")
-  println("¿Con qué nombre de usuario quieres guardar la puntuación? (Máximo 12 caracteres")
-  val rl = readLine()
-  if (rl != null){
+  println("¿Quieres guardar tu puntuacion?\n");
+  val answer = readLine();
+  if(answer == "S" || answer == "s" || answer == "Si" || answer == "si"){
+  println("\n\nHas conseguido " + puntuacion + " puntos.\n En la dificultad : "+dificultad+"\n\n")
+  println("¿Con qué nombre de usuario quieres guardar la puntuación? (Máximo 12 caracteres)\n")
+  val name = readLine()
+  if (name != null){
       val fw = new FileWriter("puntuaciones.txt", true)
-      if (rl.length()<8){
-       fw.write("\n"+rl+"  "+"----> " + puntuacion + "------>" + dificultad)
-       println("Se ha guardado la puntuacion de " + puntuacion + " puntos a nombre de " + rl)
-   }
-      if (rl.length()>7 && rl.length()<13){
-       fw.write("\n"+rl+" "+"----> " + puntuacion)
-       println("Se ha guardado la puntuacion de " + puntuacion + " puntos a nombre de " + rl)
-   
-      }else if (rl.length() > 12){
+      if (name.length()<13){
+       fw.write("\n"+name+"  "+"----> " + puntuacion + "------>" + dificultad)
+       println("Se ha guardado la puntuacion de " + puntuacion + " puntos a nombre de " + name)
+     }
+      else if (name.length() > 12){
        println("\n Error: Has introducido más de 12 carácteres.")
        saveFile(puntuacion, dificultad)
      }
    fw.close()
-  }   
+  }
+  }   else return;
  }
   
   //Blucle para jugada del usuario
-  def bucleJugador(tablero:List[Diamante],dificultad:Int,filas:Int,columnas:Int,score:Int){
+  def bucleJugador(tablero:List[Diamante],dificultad:Int,filas:Int,columnas:Int,score:Int): Int={
     
     print_tablero(tablero, dificultad, columnas, filas)
     println("Introduzca fila 1:")
@@ -634,7 +634,7 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
     val columna1=readInt
     println("Introduzca fila 2:")
     val fila2=readInt
-    println("Introduzca columna 1:")
+    println("Introduzca columna 2:")
     val columna2=readInt
     
     val pos1=(fila1*columnas)+columna1
@@ -643,10 +643,13 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
        val tableroAux = intercambiarSinComprobar(pos1, pos2, tablero, filas, columnas)
        val boardScore = checkLoopDelete(tableroAux,dificultad,filas,columnas,score);
       
-       if(boardScore._2>=2000) println("\n-- JUEGO TERMINADO --")
-       else bucleJugador(boardScore._1,dificultad,filas,columnas,boardScore._2)
+       if(boardScore._2>=2000) {
+         println("\n-- JUEGO TERMINADO --")
+         return boardScore._2
+       }
+       else return bucleJugador(boardScore._1,dificultad,filas,columnas,boardScore._2)
     }else{
-      bucleJugador(tablero,dificultad,filas,columnas,score)
+      return bucleJugador(tablero,dificultad,filas,columnas,score)
     }
     
     
@@ -712,7 +715,25 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
     }
   }
   
+/*Función para obtener las puntuaciones de un fichero de texto guardado
+  en nuestro directorio*/
+ def verPuntuaciones(): Unit = {
+  if(scala.io.Source.fromFile("puntuaciones.txt").nonEmpty){
+    val source = scala.io.Source.fromFile("puntuaciones.txt")
+    val lines = source.mkString
+    source.close()
+    println("\n")
+    print("La tabla de puntuaciones es:\n" +
+        "NOMBRE    PUNTUACION    DIFICULTAD  \n"+
+        "-------------------------------------------"+lines + "\n\n") 
+  }
+    
+ }
   def main(args: Array[String]){
+    println("=====================================================================");
+    println("*                  BIENVENIDO A JEWELS LEGEND                       *");
+    println("===================================================================== \n\n");
+    verPuntuaciones();
     println("Introduzca dificultad")
     val dificultad=readInt
     println("Introduzca el modo (usuario:0, automatico:1) : ")
@@ -727,10 +748,13 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
     val boardScore = checkLoopDelete(tablero,dificultad,filas,columnas,0);
     
    if(modo ==1){
+     println("SE HA INICIADO EL JUEGO EN MODO AUTOMATICO\n ESTA OPCION DE JUEGO NO GUARDA LA PUNTUACION");
      val tableroFinal =  automaticMode(0,dificultad,Nil, boardScore._1, 0, 0, 0, filas, columnas,boardScore._2);
    }
    if(modo==0){
-      bucleJugador(boardScore._1,dificultad,filas,columnas,boardScore._2)
+     println("SE HA INICIADO EL JUEGO EN MODO MANUAL\n")
+      val score = bucleJugador(boardScore._1,dificultad,filas,columnas,boardScore._2)
+      saveFile(score, dificultad);
    }
     
   }
