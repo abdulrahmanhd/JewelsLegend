@@ -2,23 +2,48 @@ import java.io.File;
 import java.io.FileWriter;
 import scala.swing._
 import scala.swing.event._
+import java.awt.{Color, Font}
 
 object jewelsLegend extends SimpleSwingApplication{
 
  class Diamante (val pos:Int,val color:Int)
-   def top = new MainFrame {
-    title = "My Frame"
-    contents = new GridPanel(30, 30) {
-      hGap = 10
+   
+ def top = new MainFrame {
+    title = "JEWELS LEGEND"
+    val dificultad = 2;
+    val dimensiones = getLevel(dificultad);
+    val columnas= dimensiones._1
+    val filas = dimensiones._2
+    val tablero = generarTablero(0,filas,columnas,dificultad)
+    contents = new BorderPanel {
+      import BorderPanel.Position._
+      layout{new Button("Dificultad")} = North;
+      
+      layout(new GridPanel(7,9) {
+        contents ++= 0 to tablero.length-1 map(
+          n =>  new Button(){
+            val diamante = devolverDiamanteLista(n.toInt,tablero).color;
+            val color = convertir_a_colores(diamante);
+            background = color
+          }
+        )
+      }) = Center;
+      Thread.sleep(2000);
+      /* layout(new GridPanel(7,9) {
+        contents ++= 2 to 64 map(
+          n =>  new Button(n.toString)
+        )
+      }) = Center;*/
+      /*hGap = 10
       vGap = 10
       contents += new Button {
         text = "Press Me!"
         reactions += {
           case ButtonClicked(_) => text = "Hello Scala"
-        }
-      }
+        }*/
+      
     }
-    size = new Dimension(1000, 1000)
+    size = new Dimension(500, 500)
   }
   
   //funcion para pintar indicadores al tablero
@@ -43,24 +68,24 @@ def pintar_flechas_columnas(dificultad:Int) {
 }
  
   //funcion parra convertir cada numero a una letra
-def convertir_a_colores(valor:Int):String = {
+def convertir_a_colores(valor:Int):Color = {
   if (valor==1)
-    return "A"
+    return Color.blue
   else if (valor==2)
-    return "R"
+    return Color.red
   else if (valor==3)
-    return "N"
+    return Color.black
   else if (valor==4)
-    return "V"
+    return Color.green
   else if (valor==5)
-    return "P"
+    return Color.pink
   else if (valor==6)
-    return "M"
+    return Color.orange
   else if (valor==7)
-    return "G"
+    return Color.darkGray
   else if (valor==8)
-    return "B"
-  else return "*"
+    return Color.yellow
+  else return Color.white
 }
   
  //Funncion que explota elementos iguales
