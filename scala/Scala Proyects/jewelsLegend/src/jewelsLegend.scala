@@ -733,6 +733,7 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
     println("=====================================================================");
     println("*                  BIENVENIDO A JEWELS LEGEND                       *");
     println("===================================================================== \n\n");
+    val fw = new FileWriter("puntuaciones.txt", true)
     verPuntuaciones();
     println("Introduzca dificultad")
     val dificultad=readInt
