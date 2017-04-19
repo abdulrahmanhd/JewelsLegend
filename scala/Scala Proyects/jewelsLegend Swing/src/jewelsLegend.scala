@@ -14,36 +14,11 @@ object jewelsLegend extends SimpleSwingApplication{
     val dimensiones = getLevel(dificultad);
     val columnas= dimensiones._1
     val filas = dimensiones._2
-    val tablero = generarTablero(0,filas,columnas,dificultad)
-    contents = new BorderPanel {
-      import BorderPanel.Position._
-      layout{new Button("Dificultad")} = North;
-      
-      layout(new GridPanel(7,9) {
-        contents ++= 0 to tablero.length-1 map(
-          n =>  new Button(){
-            val diamante = devolverDiamanteLista(n.toInt,tablero).color;
-            val color = convertir_a_colores(diamante);
-            background = color
-          }
-        )
-      }) = Center;
-      Thread.sleep(2000);
-      /* layout(new GridPanel(7,9) {
-        contents ++= 2 to 64 map(
-          n =>  new Button(n.toString)
-        )
-      }) = Center;*/
-      /*hGap = 10
-      vGap = 10
-      contents += new Button {
-        text = "Press Me!"
-        reactions += {
-          case ButtonClicked(_) => text = "Hello Scala"
-        }*/
-      
-    }
+    val tablero = generarTablero(0,filas,columnas,dificultad);
+    
+    contents =  print_tablero(tablero, dificultad, columnas, filas)
     size = new Dimension(500, 500)
+    
   }
   
   //funcion para pintar indicadores al tablero
@@ -707,8 +682,39 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
   }
   
   //funcion para imprimir un tablero (OK)
-  def print_tablero(tablero:List[Diamante],dificultad:Int, columnas:Int, filas:Int){
-   if (!tablero.isEmpty) {
+  def print_tablero(tablero:List[Diamante],dificultad:Int, columnas:Int, filas:Int): BorderPanel={
+   return new BorderPanel {
+      import BorderPanel.Position._
+      layout(new GridPanel(1,3) {
+        contents +={new Button("Manual");}
+        contents +={new Button("Automatico");}
+        
+      }) = North;
+      
+      layout(new GridPanel(7,9) {
+        contents ++= 0 to tablero.length-1 map(
+          n =>  new Button(){
+            val diamante = devolverDiamanteLista(n.toInt,tablero);
+            val color = convertir_a_colores(diamante.color);
+            background = color
+            reactions += {
+                case ButtonClicked(_) => {
+                  selected = true 
+                  background = Color.LIGHT_GRAY
+                  println(diamante.pos);
+                  
+                }
+            }
+          }
+        )
+      }) = Center;
+      
+     layout(new GridPanel(1,2) {
+        contents +={new Label("   Dificultad : ");}
+        contents +={new Label(dificultad.toString());}
+   })  = West;
+   }
+    /*if (!tablero.isEmpty) {
     if (tablero.length==filas*columnas)
       pintar_flechas_columnas(dificultad)
 
@@ -724,7 +730,7 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
       if ((tablero.head.pos + 1) / columnas>5) println()
       }
       print_tablero(tablero.tail,dificultad, columnas,filas)
-    }
+    }*/
     
   }
   
