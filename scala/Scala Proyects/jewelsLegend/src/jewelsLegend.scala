@@ -1,8 +1,9 @@
-
+import java.io.File;
+import java.io.FileWriter;
 
 object jewelsLegend {
-  
-  class Diamante (val pos:Int,val color:Int)
+
+ class Diamante (val pos:Int,val color:Int)
   
   //funcion para pintar indicadores al tablero
 def pintar_flechas_columnas(dificultad:Int) {
@@ -601,7 +602,27 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
       
       return tableroAux6
   } 
-  
+ def saveFile(puntuacion: Int, dificultad:Int): Unit = {
+  println("\n\nHas conseguido " + puntuacion + " puntos.")
+  println("¿Con qué nombre de usuario quieres guardar la puntuación? (Máximo 12 caracteres")
+  val rl = readLine()
+  if (rl != null){
+      val fw = new FileWriter("puntuaciones.txt", true)
+      if (rl.length()<8){
+       fw.write("\n"+rl+"  "+"----> " + puntuacion + "------>" + dificultad)
+       println("Se ha guardado la puntuacion de " + puntuacion + " puntos a nombre de " + rl)
+   }
+      if (rl.length()>7 && rl.length()<13){
+       fw.write("\n"+rl+" "+"----> " + puntuacion)
+       println("Se ha guardado la puntuacion de " + puntuacion + " puntos a nombre de " + rl)
+   
+      }else if (rl.length() > 12){
+       println("\n Error: Has introducido más de 12 carácteres.")
+       saveFile(puntuacion, dificultad)
+     }
+   fw.close()
+  }   
+ }
   
   //Blucle para jugada del usuario
   def bucleJugador(tablero:List[Diamante],dificultad:Int,filas:Int,columnas:Int,score:Int){
