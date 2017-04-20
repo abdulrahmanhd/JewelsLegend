@@ -11,6 +11,7 @@ import javax.swing.JPanel
 import javax.swing.JButton
 import javax.swing.JLabel
 import javax.swing.border.EmptyBorder
+import scala.collection.mutable.ListBuffer
 
 object jewelsLegend extends SimpleSwingApplication{
 
@@ -45,6 +46,17 @@ object jewelsLegend extends SimpleSwingApplication{
     facil.addActionListener(new ActionListener() {
             def actionPerformed(e:ActionEvent){
               println("FACILITO")
+              val dificultad = 1;
+              val dimensiones = getLevel(dificultad)
+              val columnas= dimensiones._1
+              val filas = dimensiones._2
+              val tablero = generarTablero(0,filas,columnas,dificultad)
+    
+              contents =  print_tablero(tablero, dificultad, columnas, filas,0)
+              size = new Dimension(400, 400)
+              //ventanaNivel.setVisible(false)
+              bucleJugador(tablero,dificultad,filas,columnas,0,contents)
+              size = new Dimension(400, 400)
             }
         });
     
@@ -53,6 +65,15 @@ object jewelsLegend extends SimpleSwingApplication{
     medio.addActionListener(new ActionListener() {
             def actionPerformed(e:ActionEvent){
               println("SE PUE SACAR")
+              val dificultad = 2;
+              val dimensiones = getLevel(dificultad)
+              val columnas= dimensiones._1
+              val filas = dimensiones._2
+              val tablero = generarTablero(0,filas,columnas,dificultad)
+    
+              contents =  print_tablero(tablero, dificultad, columnas, filas,0)
+              size = new Dimension(600, 600)
+              //ventanaNivel.setVisible(false)
             }
         });
     
@@ -61,6 +82,15 @@ object jewelsLegend extends SimpleSwingApplication{
     dificil.addActionListener(new ActionListener() {
             def actionPerformed(e:ActionEvent){
               println("TE DA UN CHUNGUELE")
+              val dificultad = 3;
+              val dimensiones = getLevel(dificultad)
+              val columnas= dimensiones._1
+              val filas = dimensiones._2
+              val tablero = generarTablero(0,filas,columnas,dificultad)
+    
+              contents =  print_tablero(tablero, dificultad, columnas, filas,0)
+              size = new Dimension(700, 700)
+              //ventanaNivel.setVisible(false)
             }
         });
 
@@ -108,17 +138,15 @@ def convertir_a_colores(valor:Int):Color = {
   else if (valor==2)
     return Color.red
   else if (valor==3)
-    return Color.black
+    return Color.yellow
   else if (valor==4)
     return Color.green
   else if (valor==5)
     return Color.pink
   else if (valor==6)
-    return Color.orange
+    return Color.black
   else if (valor==7)
     return Color.darkGray
-  else if (valor==8)
-    return Color.yellow
   else return Color.white
 }
   
@@ -160,7 +188,7 @@ def convertir_a_colores(valor:Int):Color = {
     if(dificultad==1) return 4
     else{
       if(dificultad==2) return 6
-      else return 8
+      else return 7
     }
   }
   
@@ -578,9 +606,9 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
       println("*********************************************************************");
       println("* Mejor movimiento posicion : " + bestChange1 + " por posicion : " + bestChange2 + " y explotaran : "+contSame + " *");
       println("*********************************************************************");
-      print_tablero(tableroAux,dificultad, columnas, filas);
+      print_tablero(tableroAux,dificultad, columnas, filas,score);
       val boardScore = checkLoopDelete(tablero,dificultad,filas,columnas,score);
-      print_tablero(boardScore._1,dificultad,columnas,filas);
+      print_tablero(boardScore._1,dificultad,columnas,filas,score);
       readLine();
        if(boardScore._2>=2000){
          println("\n-- JUEGO TERMINADO --")
@@ -700,9 +728,9 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
  }
   
   //Blucle para jugada del usuario
-  def bucleJugador(tablero:List[Diamante],dificultad:Int,filas:Int,columnas:Int,score:Int){
+  def bucleJugador(tablero:List[Diamante],dificultad:Int,filas:Int,columnas:Int,score:Int,contents:Seq[Component]){
     
-    print_tablero(tablero, dificultad, columnas, filas)
+    //contents =  print_tablero(tablero, dificultad, columnas, filas,0)
     println("Introduzca fila 1:")
     val fila1=readInt
     println("Introduzca columna 1:")
@@ -718,18 +746,20 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
        val tableroAux = intercambiarSinComprobar(pos1, pos2, tablero, filas, columnas)
        val boardScore = checkLoopDelete(tableroAux,dificultad,filas,columnas,score);
       
-       if(boardScore._2>=2000) println("\n-- JUEGO TERMINADO --")
-       else bucleJugador(boardScore._1,dificultad,filas,columnas,boardScore._2)
+       if(boardScore._2>=2000){ 
+         println("\n-- JUEGO TERMINADO --") 
+       }
+       else bucleJugador(boardScore._1,dificultad,filas,columnas,boardScore._2,contents)
     }else{
-      bucleJugador(tablero,dificultad,filas,columnas,score)
+      bucleJugador(tablero,dificultad,filas,columnas,score,contents)
     }
     
-    
   }
+  
   def checkLoopDelete(tablero:List[Diamante],dificultad:Int,filas:Int, columnas:Int, score:Int): (List[Diamante],Int)={
     val tableroAux = loopDelete(tablero,filas,columnas)
     val Score = score + (getZero(tableroAux, filas, columnas, 0) * 25);
-    print_tablero(tableroAux,dificultad,columnas,filas)
+    print_tablero(tableroAux,dificultad,columnas,filas,score)
     println("\nPUNTUACIÓN : " + Score +"\n");
     val tableroFinal = reponer(dificultad, tableroAux, 0);
 
@@ -741,16 +771,26 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
   }
   
   //funcion para imprimir un tablero (OK)
-  def print_tablero(tablero:List[Diamante],dificultad:Int, columnas:Int, filas:Int): BorderPanel={
-   return new BorderPanel {
+  def print_tablero(tablero:List[Diamante],dificultad:Int, columnas:Int, filas:Int, puntuacion:Int): BorderPanel={
+    
+    val dimensiones = getLevel(dificultad);
+    val columnas= dimensiones._1
+    val filas = dimensiones._2
+    
+    return new BorderPanel {
       import BorderPanel.Position._
-      layout(new GridPanel(1,3) {
+      /*layout(new GridPanel(1,3) {
         contents +={new Button("Manual");}
         contents +={new Button("Automatico");}
         
-      }) = North;
+      }) = North;*/
+      layout(new GridPanel(1,3) {
+        contents +={new Label("   Puntuacion : ");}
+        contents +={new Label(puntuacion.toString());}
+     })  = North;
       
-      layout(new GridPanel(7,9) {
+     getLevel(dificultad:Int):(Int,Int)
+      layout(new GridPanel(filas,columnas) {
         contents ++= 0 to tablero.length-1 map(
           n =>  new Button(){
             val diamante = devolverDiamanteLista(n.toInt,tablero);
@@ -768,10 +808,6 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
         )
       }) = Center;
       
-     layout(new GridPanel(1,2) {
-        contents +={new Label("   Dificultad : ");}
-        contents +={new Label(dificultad.toString());}
-   })  = West;
    }
     /*if (!tablero.isEmpty) {
     if (tablero.length==filas*columnas)
