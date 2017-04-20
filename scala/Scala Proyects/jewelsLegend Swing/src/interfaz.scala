@@ -15,6 +15,7 @@ import java.awt.Image;
 import java.awt.Color;
 
 object interfaz extends App {
+   class Diamante (val pos:Int,val color:Int)
 	
 	//                 0    1    2    3    4    5    6    7    8
 	def letras = List(' ', 'A', 'R', 'N', 'V', 'P', 'M', 'G', 'B')
@@ -48,16 +49,7 @@ object interfaz extends App {
 	 * 
 	 */
 	def bucle(
-			filas:Int, 
-			columnas:Int, 
-			tablero:List[Int],
-			vidas:Int, 
-			puntuacion:Int, 
-			posMax:Int, 
-			puntuacionTotal:Int, 
-			dificultad:Int, 
-			partidas:Int,
-			modo:Char):Unit = {
+			tablero:List[Diamante],dificultad:Int,filas:Int,columnas:Int,score:Int,modo:Char):Unit = {
 		//Si el numero de vidas es 0 se acaba el juego
 		if(vidas == 0){
 			JOptionPane.showMessageDialog(
