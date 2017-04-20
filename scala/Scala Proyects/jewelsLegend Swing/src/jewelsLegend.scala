@@ -13,9 +13,20 @@ import javax.swing.JLabel
 import javax.swing.border.EmptyBorder
 import scala.collection.mutable.ListBuffer
 
-object jewelsLegend extends SimpleSwingApplication{
+object jewelsLegend extends App{
 
  class Diamante (val pos:Int,val color:Int)
+ /********************************filas*columnas*dificultad******************************/
+ def dameDatosPartida(nivel:Int):(Int, Int, Int,Int,Int )  = {
+    	nivel match{
+		    case 1 =>
+		    	(9,11,3,2,8)
+		    case 2 =>
+		    	(12,16,5,3,10)
+		    case 3 =>
+		    	(25,15,7,5,15)
+    	}
+  	}
    
  def top = new MainFrame {
     
@@ -45,7 +56,6 @@ object jewelsLegend extends SimpleSwingApplication{
     facil.setBounds(170,190,150,23)
     facil.addActionListener(new ActionListener() {
             def actionPerformed(e:ActionEvent){
-              println("FACILITO")
               val dificultad = 1;
               val dimensiones = getLevel(dificultad)
               val columnas= dimensiones._1
