@@ -65,8 +65,8 @@ object jewelsLegend extends App{
               contents =  print_tablero(tablero, dificultad, columnas, filas,0)
               size = new Dimension(400, 400)
               //ventanaNivel.setVisible(false)
-              bucleJugador(tablero,dificultad,filas,columnas,0,contents)
-              size = new Dimension(400, 400)
+              //bucleJugador(tablero,dificultad,filas,columnas,0,contents)
+              //size = new Dimension(400, 400)
             }
         });
     
@@ -141,7 +141,7 @@ def pintar_flechas_columnas(dificultad:Int) {
   }
 }
  
-  //funcion parra convertir cada numero a una letra
+  //funcion parra convertir cada numero a color
 def convertir_a_colores(valor:Int):Color = {
   if (valor==1)
     return Color.blue

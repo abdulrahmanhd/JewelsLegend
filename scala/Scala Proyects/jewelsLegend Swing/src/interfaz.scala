@@ -28,6 +28,7 @@ object interfaz extends App {
   	 * 
   	 */
 	def iniciarPartida(ventana:JFrame, dificultad:Int, modo:Char) = {
+     println("EL DIABLO LOCO")
 		val partida = jewelsLegend.getLevel(dificultad)
 		val filas = partida._1
 		val columnas = partida._2
@@ -43,7 +44,8 @@ object interfaz extends App {
 	 * hasta llegar a una puntuacion max.
 	 */
 	def bucle(tablero:List[jewelsLegend.Diamante],dificultad:Int,filas:Int,columnas:Int,score:Int,modo:Char):Unit = {
-		//Si el numero de vidas es 0 se acaba el juego
+		println("EL DIABLO LOCO1")
+	  //Si el numero de vidas es 0 se acaba el juego
 		if(score >= 2000){
 			JOptionPane.showMessageDialog(null,"JUEGO TERMINADO!!",null,JOptionPane.ERROR_MESSAGE)
 		}
@@ -90,7 +92,7 @@ object interfaz extends App {
 			dificultad:Int, 
 			modo:Char) = {
 		
-		
+		println("EL DIABLO LOCO2")
 		val tableroGrafico = new JFrame("ANTIQUE BLOCKS")
 		tableroGrafico.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		tableroGrafico.setBounds(200, 0, 800,720);
@@ -106,7 +108,9 @@ object interfaz extends App {
 		panel_tablero.setBounds(84, 150, 600, 500);
 		panel.add(panel_tablero);
 		panel_tablero.setLayout(new GridLayout(filas, columnas, 0, 0));
-           
+     
+		tableroGrafico.setVisible(true)
+		panel_tablero.setVisible(true)
 		
 		//Se introducen los botones en el panel_tablero, y la informaci�n de la partida
   		anadirBotones(
@@ -136,6 +140,7 @@ object interfaz extends App {
 		modo_label.setBounds(290, 105, 70, 30);
 		modo_label.setFont(new Font("Tribeca", Font.PLAIN, 18));
 		panel.add(modo_label);
+		panel.setVisible(true)
       		
       		
   		val numero_puntuacion_total_label = new JLabel("Puntuaci�n total");
@@ -182,7 +187,7 @@ object interfaz extends App {
 							tablero,
 							filas, 
 							columnas,  
-							//posMax, 
+							filas*columnas-1, 
 							puntuacion, 
 							//posMax, 
 							//puntuacionTotal, 
@@ -206,7 +211,7 @@ object interfaz extends App {
 			tablero:List[jewelsLegend.Diamante],
 			filas:Int, 
 			columnas:Int , 
-			//pos:Int, , 
+			pos:Int, 
 			puntuacion:Int, 
 			//posMax:Int, 
 			//puntuacionTotal: Int, 
@@ -215,59 +220,45 @@ object interfaz extends App {
 		
 		
 		//si no es una posici�n vac�a
-		if(antique.obtenerEntero(pos, tablero)!=0) {
+		if(jewelsLegend.devolverDiamanteLista(pos, tablero).color!=0) {
 			//Se extrae la fila y la columna
  			val columna = pos % columnas
  			val fila = (pos - columna)/columnas
- 			
- 			//si es bomba suena una explosi�n
- 			if(antique.esBomba(fila*columnas+columna, tablero)){
-   				antique.reproduceSonidoExplosion()
- 			}
+ 		
  			/*  Se elimina la celda de la posici�n recibida 
-				Se obtiene el tablero, las vidas y los puntos como consecuencia 
+				Se obtiene el tablero y los puntos como consecuencia 
 				de la eliminaci�n */
-	 		val dato = antique.obtenerEntero(fila*columnas+columna,tablero)
-	 		val listaEliminar = antique.consultaTablero(
+	    val dato = jewelsLegend.devolverDiamanteLista(fila*columnas+columna,tablero).color
+	 		val ListaExplotar = jewelsLegend.generarListaIguales(tablero,filas,columnas,0)
+	 		val resultado = jewelsLegend.explotar(ListaExplotar, tablero)
+	 		val puntuacionF = puntuacion + jewelsLegend.getZero(resultado, filas, columnas, 0)
+	 		/*val listaEliminar = antique.consultaTablero(
 											dato,
 											fila, 
 											columna,
 											filas, 
 											columnas, 
-											tablero)
+											tablero)*/
 											
-	 		val resultado = antique.eliminaCeldas(
+	 		/*val resultado = antique.eliminaCeldas(
 											listaEliminar,
 											listaEliminar.length,pos, 
 											tablero, 
-											vidas, 
 											puntuacion)
 			val tablero_1 = resultado._1
 			val vidas_1= resultado._2
-			val puntuacionFinal = resultado._3
+			val puntuacionFinal = resultado._3*/
+	 		
+	 		
 			//Se reestructura el tablero
-			val tablero2 = antique.subirCeros(tablero_1, 0, 0, filas, columnas, false)
-			val tablero_final = antique.desplazarCerosDerecha(
-											tablero2, 
-											filas-1, 
-											columnas-1, 
-											filas, 
-											columnas, 
-											false)
+			val tablero2 = jewelsLegend.bucleMoverCeros(filas*columnas-1,tablero,tablero,filas,columnas)
+			val tablero_3 = jewelsLegend.moveLeft(0,tablero2,filas,columnas)
+			val tablero_final = jewelsLegend.reponer(dificultad, tablero_3, 0)
 			//se cierra la ventana 
 			ventana.dispose()
 			//Y se vuelve a ejecutar el bucle del juego
-			bucle(
-					filas, 
-					columnas, 
-					tablero_final, 
-					vidas_1,
-					puntuacionFinal, 
-					posMax, 
-					puntuacionTotal, 
-					dificultad, 
-					partidas,
-					modo)
+			
+			bucle(tablero_final,dificultad,filas,columnas,puntuacionF,modo)
 		}else{
 			Nil
 		}
@@ -299,9 +290,9 @@ object interfaz extends App {
 		}else{
 			
 			val boton = new JButton();
-			val dato = antique.obtenerEntero(filas*columnas - tablero.length, tablero_1)
+			val dato = jewelsLegend.devolverDiamanteLista(filas*columnas - tablero.length, tablero_1).color
 	        val botonColoreado = cambiarColorBoton(boton, dato, filas, columnas)
-			if(filas*columnas - tablero.length == posMax)
+			if(filas*columnas - tablero.length == filas*columnas-1)
 				botonColoreado.setBorder(new LineBorder(Color.yellow,4))
 				
 			panel.add(botonColoreado);
@@ -312,30 +303,26 @@ object interfaz extends App {
 							v, 
 							tablero_1,
 							filas, 
-							columnas, 
-							filas*columnas - tablero.length, 
-							vidas, 
-							puntuacion,
-							posMax, 
-							puntuacionTotal, 
+							columnas,  
+						  filas*columnas-1, 
+							puntuacion, 
+							//posMax, 
+							//puntuacionTotal, 
 							dificultad, 
-							partidas,
-							modo);
+							modo)   
 				}});
 			}
 			anadirBotones(
-					v, 
-					panel, 
-					filas, 
-					columnas, 
-					tablero.tail, 
-					tablero_1,vidas, 
-					puntuacion,
-					posMax, 
-					puntuacionTotal, 
-					dificultad, 
-					partidas, 
-					modo)
+				v,
+				panel, 
+				filas, 
+				columnas, 
+				tablero, 
+				tablero,  
+				puntuacion,   
+				dificultad, 
+				modo)
+  		
 		}
 	}
 	
