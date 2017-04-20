@@ -23,8 +23,8 @@ object interfaz extends App {
 	
   	/**
   	 * Funci�n que recibe un JFrame, la dificultad, un numero entre 1 y 3 , 
-	 * genera un tablero con las caracter�sticas del nivel indicado y ejecuta 
-	 * el bucle principal del juego
+	   * genera un tablero con las caracter�sticas del nivel indicado y ejecuta 
+	   * el bucle principal del juego
   	 * 
   	 */
 	def iniciarPartida(ventana:JFrame, dificultad:Int, modo:Char) = {
@@ -34,66 +34,21 @@ object interfaz extends App {
 		val puntuacion = 0
 		val tablero = jewelsLegend.generarTablero(0, filas, columnas, dificultad)
 		ventana.dispose()
-		bucle(
-				tablero,dificultad,filas,columnas,puntuacion,modo)
+		bucle(tablero,dificultad,filas,columnas,puntuacion,modo)
 
 	}
 	  
 	/**
-	 * Funci�n recursiva que ejecuta las instrucciones principales del juego 
-	 * hasta que vidas == 0, que informa al jugador que ha perdido todas las vidas.
-	 * Si se consiguen eliminar todas las celdas de un tablero sin perder se
-	 * genera un tablero nuevo para continuar jugando con las vidas que se 
-	 * ten�an antes. Se reinicia la puntuaci�n para el nuevo tablero y se guarda
-	 * una puntuaci�n total acumulada con la suma de las puntuaciones de cada tablero 
-	 * 
+	 * Funcion recursiva que ejecuta las instrucciones principales del juego 
+	 * hasta llegar a una puntuacion max.
 	 */
-	def bucle(
-			tablero:List[Diamante],dificultad:Int,filas:Int,columnas:Int,score:Int,modo:Char):Unit = {
+	def bucle(tablero:List[jewelsLegend.Diamante],dificultad:Int,filas:Int,columnas:Int,score:Int,modo:Char):Unit = {
 		//Si el numero de vidas es 0 se acaba el juego
-		if(vidas == 0){
-			JOptionPane.showMessageDialog(
-					null,
-					"HAS PERDIDO TODAS LAS VIDAS, JUEGO TEMINADO!!",
-					null, 
-					JOptionPane.ERROR_MESSAGE)
+		if(score >= 2000){
+			JOptionPane.showMessageDialog(null,"JUEGO TERMINADO!!",null,JOptionPane.ERROR_MESSAGE)
 		}
-		else{
-			//Si el jugador termina un tablero sin perder las vidas...
-			if(antique.haGanado(filas, columnas, tablero)) {
-				
-				JOptionPane.showMessageDialog(
-						null, 
-							"���ENHORABUENA, HAS SUPERADO EL TABLERO!!!")
-				
-				//Se genera un nuevo tablero manteniendo vidas, y acumulando a un 
-				//total los puntos conseguidos en el tablero anterior
-				//Para el nuevo tablero se inicializa la puntuaci�n
-				val partida = antique.dameDatosPartida(dificultad)
-				val filas = partida._1
-				val columnas = partida._2
-				val bloques = partida._3
-				val bombas = partida._4
-				val tablero = antique.generaTablero(filas*columnas,bloques, Nil)
-				val posicionesBombas = antique.generarBombas(bombas, tablero.length, Nil)
-				val tableroInicial = antique.introducirBombas(posicionesBombas, tablero)
-				
-				bucle(
-						filas,
-						columnas,
-						tableroInicial , 
-						vidas, 
-						0, 				//Puntuaci�n para el nuevo tablero
-						0,  
-						puntuacion + puntuacionTotal, //Puntuaci�n total
-						dificultad, 
-						partidas+1, 	//Se incrementa el numero de partidas
-						modo
-					)
-				
-			}
-			else{
-				val puntuacionMaxima = antique.mejorJugada(
+	  else{
+				/*val puntuacionMaxima = antique.mejorJugada(
 													tablero,
 													0, 
 													filas, 
@@ -106,23 +61,17 @@ object interfaz extends App {
 													
 				val mejorPuntuacion = puntuacionMaxima._1
 				val puntuacionMaximaFila = puntuacionMaxima._2
-				val puntuacionMaximaColumna = puntuacionMaxima._3            
+				val puntuacionMaximaColumna = puntuacionMaxima._3 */           
 				
-				mostrarTablero(
-						filas, 
-						columnas, 
-						tablero, 
-						vidas, 
-						puntuacion,
-						puntuacionMaximaFila*columnas+puntuacionMaximaColumna, 
-						mejorPuntuacion, 
-						puntuacionTotal, 
+				mostrarTablero(filas,columnas,tablero,score,
+						//puntuacionMaximaFila*columnas+puntuacionMaximaColumna, 
+						//mejorPuntuacion, 
+						//puntuacionTotal, 
 						dificultad, 
-						partidas, 
 						modo)
 			}
 			
-		}
+		//}
 		
 		
 	}	 
@@ -133,14 +82,12 @@ object interfaz extends App {
 	def mostrarTablero(
 			filas:Int, 
 			columnas:Int, 
-			tablero:List[Int],
-			vidas:Int,
+			tablero:List[jewelsLegend.Diamante],
 			puntuacion:Int, 
-			posMax:Int, 
-			mejorPuntuacion:Int, 
-			puntuacionTotal: Int, 
+			//posMax:Int, 
+			//mejorPuntuacion:Int, 
+			//puntuacionTotal: Int, 
 			dificultad:Int, 
-			partidas:Int, 
 			modo:Char) = {
 		
 		
@@ -168,34 +115,11 @@ object interfaz extends App {
 				filas, 
 				columnas, 
 				tablero, 
-				tablero, 
-				vidas, 
-				puntuacion, 
-				posMax, 
-				puntuacionTotal, 
+				tablero,  
+				puntuacion,   
 				dificultad, 
-				partidas, 
 				modo)
   		
-  		val vidas_label = new JLabel("Vidas");
-  		vidas_label.setBounds(100, 35, 70, 30);
-  		vidas_label.setFont(new Font("Tribeca", Font.PLAIN, 18));
-  		panel.add(vidas_label);
-  		
-  		val numero_vidas_label = new JLabel(""+vidas);
-  		numero_vidas_label.setBounds(290, 35, 70, 30);
-  		numero_vidas_label.setFont(new Font("Tribeca", Font.PLAIN, 18));
-  		panel.add(numero_vidas_label);
-  		
-  		val partida_label = new JLabel("Partida");
-  		partida_label.setBounds(100, 70, 150, 30);
-  		partida_label.setFont(new Font("Tribeca", Font.PLAIN, 18));
-  		panel.add(partida_label);
-  		
-  		val numero_partida_label = new JLabel(""+partidas);
-  		numero_partida_label.setBounds(290, 70, 70, 30);
-  		numero_partida_label.setFont(new Font("Tribeca", Font.PLAIN, 18));
-  		panel.add(numero_partida_label);
   		
   		val modo_label_texto = new JLabel("Modo");
   		modo_label_texto.setBounds(100, 105, 150, 30);
@@ -219,10 +143,10 @@ object interfaz extends App {
   		numero_puntuacion_total_label.setFont(new Font("Tribeca", Font.PLAIN, 18));
   		panel.add(numero_puntuacion_total_label);
   		
-  		val numero_puntuacion_total = new JLabel(""+puntuacionTotal);
+  		/*val numero_puntuacion_total = new JLabel(""+puntuacionTotal);
   		numero_puntuacion_total.setBounds(620, 35, 70, 30);
   		numero_puntuacion_total.setFont(new Font("Tribeca", Font.PLAIN, 18));
-  		panel.add(numero_puntuacion_total);
+  		panel.add(numero_puntuacion_total);*/
   		
   		val puntuacion_label = new JLabel("Puntuaci�n");
   		puntuacion_label.setBounds(350, 70, 150, 30);
@@ -239,14 +163,14 @@ object interfaz extends App {
   		maxima_puntuacion_label.setFont(new Font("Tribeca", Font.PLAIN, 18));
   		panel.add(maxima_puntuacion_label);
   		
-  		val maxima_puntuacion = new JLabel(""+mejorPuntuacion);
+  		/*val maxima_puntuacion = new JLabel(""+mejorPuntuacion);
   		maxima_puntuacion.setBounds(620, 105, 70, 30);
   		maxima_puntuacion.setFont(new Font("Tribeca", Font.PLAIN, 18));
-  		panel.add(maxima_puntuacion);
+  		panel.add(maxima_puntuacion);*/
       	
   		
-  		//Si el modo elegido es autom�tico se crea el bot�n que permite hacer 
-  		//continuar la partida de manera autom�tica
+  		//Si el modo elegido es automatico se crea el boton que permite hacer 
+  		//continuar la partida de manera automatica
   		if(modo =='a'){
 			val botonContinuar = new JButton("Continuar")
       		botonContinuar.setBounds(350, 660, 100, 23)
@@ -258,13 +182,11 @@ object interfaz extends App {
 							tablero,
 							filas, 
 							columnas,  
-							posMax, 
-							vidas, 
+							//posMax, 
 							puntuacion, 
-							posMax, 
-							puntuacionTotal, 
+							//posMax, 
+							//puntuacionTotal, 
 							dificultad, 
-							partidas, 
 							modo)
 	                    
 				}
@@ -367,14 +289,12 @@ object interfaz extends App {
 			panel:JPanel, 
 			filas:Int, 
 			columnas:Int, 
-			tablero:List[Int],
-			tablero_1:List[Int], 
-			vidas:Int, 
+			tablero:List[jewelsLegend.Diamante],
+			tablero_1:List[jewelsLegend.Diamante], 
 			puntuacion:Int, 
-			posMax:Int, 
-			puntuacionTotal: Int, 
+			//posMax:Int, 
+			//puntuacionTotal: Int, 
 			dificultad:Int, 
-			partidas:Int, 
 			modo:Char ): Unit ={
 			
 		if(tablero.length == 0 ){
