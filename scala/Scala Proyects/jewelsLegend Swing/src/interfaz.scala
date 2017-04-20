@@ -187,8 +187,7 @@ object interfaz extends App {
 							//posMax, 
 							//puntuacionTotal, 
 							dificultad, 
-							modo)
-	                    
+							modo)      
 				}
    
 			}
@@ -204,16 +203,14 @@ object interfaz extends App {
 	 */
 	def  botonActionPerformed(
 			ventana:JFrame, 
-			tablero:List[Int],
+			tablero:List[jewelsLegend.Diamante],
 			filas:Int, 
 			columnas:Int , 
-			pos:Int, 
-			vidas:Int, 
+			//pos:Int, , 
 			puntuacion:Int, 
-			posMax:Int, 
-			puntuacionTotal: Int, 
+			//posMax:Int, 
+			//puntuacionTotal: Int, 
 			dificultad:Int , 
-			partidas:Int, 
 			modo:Char): Unit = { 
 		
 		
