@@ -643,7 +643,7 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
        val tableroAux = intercambiarSinComprobar(pos1, pos2, tablero, filas, columnas)
        val boardScore = checkLoopDelete(tableroAux,dificultad,filas,columnas,score);
       
-       if(boardScore._2>=2000) {
+       if(boardScore._2>=20) {
          println("\n-- JUEGO TERMINADO --")
          return boardScore._2
        }

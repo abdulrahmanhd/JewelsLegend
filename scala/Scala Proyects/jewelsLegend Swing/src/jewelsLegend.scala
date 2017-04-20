@@ -3,13 +3,72 @@ import java.io.FileWriter;
 import scala.swing._
 import scala.swing.event._
 import java.awt.{Color, Font}
+import java.awt.BorderLayout
+import java.awt.event.ActionListener
+import java.awt.event.ActionEvent
+import javax.swing.JFrame
+import javax.swing.JPanel
+import javax.swing.JButton
+import javax.swing.JLabel
+import javax.swing.border.EmptyBorder
 
 object jewelsLegend extends SimpleSwingApplication{
 
  class Diamante (val pos:Int,val color:Int)
    
  def top = new MainFrame {
-    title = "JEWELS LEGEND"
+    
+   //Creamos los componentes
+    val ventanaNivel = new JFrame("JEWELS LEGEND")
+    val contentPanel = new JPanel
+    val jLabel1 = new javax.swing.JLabel();
+    val facil = new javax.swing.JButton();
+    val medio = new javax.swing.JButton();
+    val dificil = new javax.swing.JButton();
+    
+    ventanaNivel.setVisible(true)
+    ventanaNivel.setBounds(200,100,500,450)
+    jLabel1.setText("JEWELS LEGEND SELECCION DE NIVEL");
+    jLabel1.setBounds(140,50,300,100)
+    
+    ventanaNivel.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
+    ventanaNivel.add(contentPanel)
+    
+    contentPanel.setBorder(new EmptyBorder(5,5,5,5));
+    contentPanel.setLayout(new BorderLayout(0,0))
+    contentPanel.setVisible(true)
+    contentPanel.setLayout(null);
+    
+    //Acciones de los botones
+    facil.setText("FACIL");
+    facil.setBounds(170,190,150,23)
+    facil.addActionListener(new ActionListener() {
+            def actionPerformed(e:ActionEvent){
+              println("FACILITO")
+            }
+        });
+    
+    medio.setText("MEDIO");
+    medio.setBounds(170,240,150,23)
+    medio.addActionListener(new ActionListener() {
+            def actionPerformed(e:ActionEvent){
+              println("SE PUE SACAR")
+            }
+        });
+    
+    dificil.setText("DIFICIL");
+    dificil.setBounds(170,290,150,23)
+    dificil.addActionListener(new ActionListener() {
+            def actionPerformed(e:ActionEvent){
+              println("TE DA UN CHUNGUELE")
+            }
+        });
+
+    contentPanel.add(jLabel1)
+    contentPanel.add(facil)
+    contentPanel.add(medio)
+    contentPanel.add(dificil)
+    /*  
     val dificultad = 1;
     val dimensiones = getLevel(dificultad);
     val columnas= dimensiones._1
@@ -17,9 +76,9 @@ object jewelsLegend extends SimpleSwingApplication{
     val tablero = generarTablero(0,filas,columnas,dificultad);
     
     contents =  print_tablero(tablero, dificultad, columnas, filas)
-    size = new Dimension(500, 500)
+    size = new Dimension(500, 500)*/
     
-  }
+}
   
   //funcion para pintar indicadores al tablero
 def pintar_flechas_columnas(dificultad:Int) {
