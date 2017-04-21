@@ -86,14 +86,11 @@ object interfaz extends App {
 			columnas:Int, 
 			tablero:List[jewelsLegend.Diamante],
 			puntuacion:Int, 
-			//posMax:Int, 
-			//mejorPuntuacion:Int, 
-			//puntuacionTotal: Int, 
 			dificultad:Int, 
 			modo:Char) = {
 		
 		println("EL DIABLO LOCO2")
-		val tableroGrafico = new JFrame("ANTIQUE BLOCKS")
+		val tableroGrafico = new JFrame("JEWELS LEGEND")
 		tableroGrafico.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		tableroGrafico.setBounds(200, 0, 800,720);
 		tableroGrafico.getContentPane().setLayout(null);
@@ -109,8 +106,8 @@ object interfaz extends App {
 		panel.add(panel_tablero);
 		panel_tablero.setLayout(new GridLayout(filas, columnas, 0, 0));
      
-		tableroGrafico.setVisible(true)
-		panel_tablero.setVisible(true)
+		//tableroGrafico.setVisible(true)
+		//panel_tablero.setVisible(true)
 		
 		//Se introducen los botones en el panel_tablero, y la informaci�n de la partida
   		anadirBotones(
@@ -118,11 +115,11 @@ object interfaz extends App {
 				panel_tablero, 
 				filas, 
 				columnas, 
-				tablero, 
-				tablero,  
+				tablero,   
 				puntuacion,   
 				dificultad, 
-				modo)
+				modo,
+				0)
   		
   		
   		val modo_label_texto = new JLabel("Modo");
@@ -278,21 +275,19 @@ object interfaz extends App {
 			filas:Int, 
 			columnas:Int, 
 			tablero:List[jewelsLegend.Diamante],
-			tablero_1:List[jewelsLegend.Diamante], 
 			puntuacion:Int, 
-			//posMax:Int, 
-			//puntuacionTotal: Int, 
 			dificultad:Int, 
-			modo:Char ): Unit ={
+			modo:Char,
+			pos: Int): Unit ={
 			
-		if(tablero.length == 0 ){
+		if(pos > filas*columnas-1 ){
 			Nil
 		}else{
 			
 			val boton = new JButton();
-			val dato = jewelsLegend.devolverDiamanteLista(filas*columnas - tablero.length, tablero_1).color
+			val dato = jewelsLegend.devolverDiamanteLista(pos, tablero).color
 	        val botonColoreado = cambiarColorBoton(boton, dato, filas, columnas)
-			if(filas*columnas - tablero.length == filas*columnas-1)
+			if(pos <= filas*columnas-1)
 				botonColoreado.setBorder(new LineBorder(Color.yellow,4))
 				
 			panel.add(botonColoreado);
@@ -301,27 +296,26 @@ object interfaz extends App {
 				def actionPerformed(evento:ActionEvent):Unit = {    
 					botonActionPerformed(
 							v, 
-							tablero_1,
+							tablero,
 							filas, 
 							columnas,  
 						  filas*columnas-1, 
 							puntuacion, 
-							//posMax, 
-							//puntuacionTotal, 
 							dificultad, 
 							modo)   
 				}});
 			}
+			println("BOTON AÑADIDO CON COLOR "+dato);
 			anadirBotones(
 				v,
 				panel, 
 				filas, 
 				columnas, 
-				tablero, 
-				tablero,  
+				tablero,
 				puntuacion,   
 				dificultad, 
-				modo)
+				modo,
+				pos+1)
   		
 		}
 	}
@@ -337,12 +331,6 @@ object interfaz extends App {
 			filas:Int, 
 			columnas:Int): JButton = {
 		    
-		
-		val iconoBomba = new ImageIcon(
-				(new ImageIcon("res/bomba.gif")).getImage().getScaledInstance(  
-															600/columnas,
-															500/filas, 
-															Image.SCALE_FAST))
 															
 		val iconoBloqueAzul = new ImageIcon(
 				(new ImageIcon("res/azul.png")).getImage().getScaledInstance( 
@@ -399,10 +387,8 @@ object interfaz extends App {
 			boton.setIcon(iconoBloqueMarron)
 		else if(numero == 7)
 			boton.setIcon(iconoBloqueAmarillo)
-		else
-			boton.setIcon(iconoBomba)
-	   
-		boton
+
+		return boton
 	}	
 			    
 }
