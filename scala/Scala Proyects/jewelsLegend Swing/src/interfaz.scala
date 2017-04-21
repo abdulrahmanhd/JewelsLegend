@@ -22,13 +22,13 @@ object interfaz extends App {
 	
 	
   	/**
-  	 * Funci�n que recibe un JFrame, la dificultad, un numero entre 1 y 3 , 
-	   * genera un tablero con las caracter�sticas del nivel indicado y ejecuta 
-	   * el bucle principal del juego
+  	 * Funcion que recibe un JFrame, la dificultad 
+	   * genera un tablero con las caracterasticas del nivel indicado 
+	   * y ejecuta el bucle principal del juego
   	 * 
   	 */
 	def iniciarPartida(ventana:JFrame, dificultad:Int, modo:Char) = {
-     println("EL DIABLO LOCO")
+     
 		val partida = jewelsLegend.getLevel(dificultad)
 		val filas = partida._1
 		val columnas = partida._2
@@ -44,42 +44,20 @@ object interfaz extends App {
 	 * hasta llegar a una puntuacion max.
 	 */
 	def bucle(tablero:List[jewelsLegend.Diamante],dificultad:Int,filas:Int,columnas:Int,score:Int,modo:Char):Unit = {
-		println("EL DIABLO LOCO1")
+		
 	  //Si el numero de vidas es 0 se acaba el juego
 		if(score >= 2000){
 			JOptionPane.showMessageDialog(null,"JUEGO TERMINADO!!",null,JOptionPane.ERROR_MESSAGE)
 		}
 	  else{
-				/*val puntuacionMaxima = antique.mejorJugada(
-													tablero,
-													0, 
-													filas, 
-													columnas, 
-													Nil, 
-													0, 
-													0, 
-													0, 
-													0)
-													
-				val mejorPuntuacion = puntuacionMaxima._1
-				val puntuacionMaximaFila = puntuacionMaxima._2
-				val puntuacionMaximaColumna = puntuacionMaxima._3 */           
-				
-				mostrarTablero(filas,columnas,tablero,score,
-						//puntuacionMaximaFila*columnas+puntuacionMaximaColumna, 
-						//mejorPuntuacion, 
-						//puntuacionTotal, 
-						dificultad, 
-						modo)
+				mostrarTablero(filas,columnas,tablero,score,dificultad,modo)
 			}
-			
-		//}
 		
 		
 	}	 
 		
 	/**
-	 * Funci�n que genera los elementos para mostrar el tablero en un JFrame
+	 * Funcion que genera los elementos para mostrar el tablero en un JFrame
 	 */
 	def mostrarTablero(
 			filas:Int, 
@@ -89,7 +67,7 @@ object interfaz extends App {
 			dificultad:Int, 
 			modo:Char) = {
 		
-		println("EL DIABLO LOCO2")
+	  
 		val tableroGrafico = new JFrame("JEWELS LEGEND")
 		tableroGrafico.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		tableroGrafico.setBounds(200, 0, 800,720);
@@ -105,21 +83,9 @@ object interfaz extends App {
 		panel_tablero.setBounds(84, 150, 600, 500);
 		panel.add(panel_tablero);
 		panel_tablero.setLayout(new GridLayout(filas, columnas, 0, 0));
-     
-		//tableroGrafico.setVisible(true)
-		//panel_tablero.setVisible(true)
 		
-		//Se introducen los botones en el panel_tablero, y la informaci�n de la partida
-  		anadirBotones(
-				tableroGrafico,
-				panel_tablero, 
-				filas, 
-				columnas, 
-				tablero,   
-				puntuacion,   
-				dificultad, 
-				modo,
-				0)
+		//Se introducen los botones en el panel_tablero, y la informacion de la partida
+  		anadirBotones(tableroGrafico,panel_tablero,filas,columnas,tablero,puntuacion,dificultad,modo,0)
   		
   		
   		val modo_label_texto = new JLabel("Modo");
@@ -140,17 +106,13 @@ object interfaz extends App {
 		panel.setVisible(true)
       		
       		
-  		val numero_puntuacion_total_label = new JLabel("Puntuaci�n total");
+  		val numero_puntuacion_total_label = new JLabel("Puntuacion total");
   		numero_puntuacion_total_label.setBounds(350, 35, 250, 30);
   		numero_puntuacion_total_label.setFont(new Font("Tribeca", Font.PLAIN, 18));
   		panel.add(numero_puntuacion_total_label);
+  
   		
-  		/*val numero_puntuacion_total = new JLabel(""+puntuacionTotal);
-  		numero_puntuacion_total.setBounds(620, 35, 70, 30);
-  		numero_puntuacion_total.setFont(new Font("Tribeca", Font.PLAIN, 18));
-  		panel.add(numero_puntuacion_total);*/
-  		
-  		val puntuacion_label = new JLabel("Puntuaci�n");
+  		val puntuacion_label = new JLabel("Puntuacion");
   		puntuacion_label.setBounds(350, 70, 150, 30);
   		puntuacion_label.setFont(new Font("Tribeca", Font.PLAIN, 18));
   		panel.add(puntuacion_label);
@@ -160,17 +122,12 @@ object interfaz extends App {
   		numero_puntuacion_label.setFont(new Font("Tribeca", Font.PLAIN, 18));
   		panel.add(numero_puntuacion_label);      		
   		
-  		val maxima_puntuacion_label = new JLabel("Mejor puntuaci�n");
+  		val maxima_puntuacion_label = new JLabel("Mejor puntuacion");
   		maxima_puntuacion_label.setBounds(350, 105, 250, 30);
   		maxima_puntuacion_label.setFont(new Font("Tribeca", Font.PLAIN, 18));
   		panel.add(maxima_puntuacion_label);
   		
-  		/*val maxima_puntuacion = new JLabel(""+mejorPuntuacion);
-  		maxima_puntuacion.setBounds(620, 105, 70, 30);
-  		maxima_puntuacion.setFont(new Font("Tribeca", Font.PLAIN, 18));
-  		panel.add(maxima_puntuacion);*/
-      	
-  		
+
   		//Si el modo elegido es automatico se crea el boton que permite hacer 
   		//continuar la partida de manera automatica
   		if(modo =='a'){
@@ -179,21 +136,11 @@ object interfaz extends App {
       		botonContinuar.addActionListener(new java.awt.event.ActionListener() {
                     
 				def actionPerformed(evento:ActionEvent):Unit = {
-					botonActionPerformed(
-							tableroGrafico, 
-							tablero,
-							filas, 
-							columnas,  
-							filas*columnas-1, 
-							puntuacion, 
-							//posMax, 
-							//puntuacionTotal, 
-							dificultad, 
-							modo)      
+					botonActionPerformed(tableroGrafico,tablero,filas,columnas,filas*columnas-1,
+					    puntuacion,dificultad,modo)      
 				}
    
-			}
-			);
+			});
 			panel.add(botonContinuar)
 		}
 		tableroGrafico.setVisible(true)
@@ -201,19 +148,10 @@ object interfaz extends App {
 		
 	}
 	/**
-	 * Secuencia de instrucciones al pulsar un bloque con el rat�n
+	 * Secuencia de instrucciones al pulsar un bloque con el raton
 	 */
-	def  botonActionPerformed(
-			ventana:JFrame, 
-			tablero:List[jewelsLegend.Diamante],
-			filas:Int, 
-			columnas:Int , 
-			pos:Int, 
-			puntuacion:Int, 
-			//posMax:Int, 
-			//puntuacionTotal: Int, 
-			dificultad:Int , 
-			modo:Char): Unit = { 
+	def  botonActionPerformed(ventana:JFrame, tablero:List[jewelsLegend.Diamante],filas:Int, 
+			columnas:Int,pos:Int,puntuacion:Int,dificultad:Int,modo:Char): Unit = { 
 		
 		
 		//si no es una posicion vacia
@@ -222,35 +160,17 @@ object interfaz extends App {
  			val columna = pos % columnas
  			val fila = (pos - columna)/columnas
  		
- 			/*  Se elimina la celda de la posici�n recibida 
-				Se obtiene el tablero y los puntos como consecuencia 
-				de la eliminaci�n */
+ 			/*  Se elimina la celda de la posicion recibida y se obtiene el tablero y los puntos  */
 	    val dato = jewelsLegend.devolverDiamanteLista(fila*columnas+columna,tablero).color
 	 		val ListaExplotar = jewelsLegend.generarListaIguales(tablero,filas,columnas,0)
 	 		val resultado = jewelsLegend.explotar(ListaExplotar, tablero)
 	 		val puntuacionF = puntuacion + jewelsLegend.getZero(resultado, filas, columnas, 0)
-	 		/*val listaEliminar = antique.consultaTablero(
-											dato,
-											fila, 
-											columna,
-											filas, 
-											columnas, 
-											tablero)*/
-											
-	 		/*val resultado = antique.eliminaCeldas(
-											listaEliminar,
-											listaEliminar.length,pos, 
-											tablero, 
-											puntuacion)
-			val tablero_1 = resultado._1
-			val vidas_1= resultado._2
-			val puntuacionFinal = resultado._3*/
-	 		
-	 		
+	 			 		
 			//Se reestructura el tablero
 			val tablero2 = jewelsLegend.bucleMoverCeros(filas*columnas-1,tablero,tablero,filas,columnas)
 			val tablero_3 = jewelsLegend.moveLeft(0,tablero2,filas,columnas)
 			val tablero_final = jewelsLegend.reponer(dificultad, tablero_3, 0)
+			
 			//se cierra la ventana 
 			ventana.dispose()
 			//Y se vuelve a ejecutar el bucle del juego
@@ -264,10 +184,10 @@ object interfaz extends App {
 	
 	
 	/**
-	 * Funci�n que a�ade los botones a un JPanel recursivamente.
-	 * A cada bot�n se le a�ade una imagen correspondiente al numero que contiene 
-	 * en el tablero, y se le a�ade tambi�n el m�todo que ejecutar� al pulsarlo si el modo 
-	 * es manual. En caso de ser autom�tico los botones no tienen accion a ejecutar.
+	 * Funcion que añade los botones a un JPanel recursivamente.
+	 * A cada boton se le añade una imagen correspondiente al numero que contiene 
+	 * en el tablero, y se le añade  el metodo que ejecutar al pulsarlo si el modo 
+	 * es manual. En caso de ser automatico los botones no tienen accion a ejecutar.
 	 */
 	def anadirBotones(
 			v:JFrame, 
@@ -286,9 +206,9 @@ object interfaz extends App {
 			
 			val boton = new JButton();
 			val dato = jewelsLegend.devolverDiamanteLista(pos, tablero).color
-	        val botonColoreado = cambiarColorBoton(boton, dato, filas, columnas)
-			if(pos <= filas*columnas-1)
-				botonColoreado.setBorder(new LineBorder(Color.yellow,4))
+	    val botonColoreado = cambiarColorBoton(boton, dato, filas, columnas)
+			/*if(pos <= filas*columnas-1)
+				botonColoreado.setBorder(new LineBorder(Color.yellow,4))*/
 				
 			panel.add(botonColoreado);
 			if(modo == 'm'){
@@ -321,7 +241,7 @@ object interfaz extends App {
 	
 	
 	/**
-	 * Funci�n que recibe un numero y un bot�n y le coloca una imagen distinta
+	 * Funcion que recibe un numero y un boton y le coloca una imagen distinta
 	 * dependiendo del numero recibido
 	 */
 	def cambiarColorBoton(

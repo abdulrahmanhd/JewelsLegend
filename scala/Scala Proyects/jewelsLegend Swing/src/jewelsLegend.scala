@@ -16,17 +16,6 @@ import scala.collection.mutable.ListBuffer
 object jewelsLegend extends App{
 
  class Diamante (val pos:Int,val color:Int)
- /********************************filas*columnas*dificultad******************************/
- def dameDatosPartida(nivel:Int):(Int, Int, Int,Int,Int )  = {
-    	nivel match{
-		    case 1 =>
-		    	(9,11,3,2,8)
-		    case 2 =>
-		    	(12,16,5,3,10)
-		    case 3 =>
-		    	(25,15,7,5,15)
-    	}
-  	}
    
  def top = new MainFrame {
     
