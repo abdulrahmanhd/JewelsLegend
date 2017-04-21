@@ -32,6 +32,18 @@ object jewelsLegend extends App{
    }
  }
   
+ //Devuelve true si hay 2 pulsados
+ def dosPulsados(tablero:List[Diamante], pos:Int, cont:Int):Boolean={
+   if(tablero.tail==Nil){
+     if(cont==2) return true
+     else return false
+   }
+   else{
+     if(tablero.head.selected==true) return dosPulsados(tablero.tail,pos+1,cont+1)
+     else return dosPulsados(tablero.tail,pos+1,cont)
+   }
+ }
+ 
   //funcion para pintar indicadores al tablero
 def pintar_flechas_columnas(dificultad:Int) {
   if(dificultad==1){
