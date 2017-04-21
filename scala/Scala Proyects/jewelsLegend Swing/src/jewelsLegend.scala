@@ -611,31 +611,19 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
  }
   
   //Blucle para jugada del usuario
-  def bucleJugador(tablero:List[Diamante],dificultad:Int,filas:Int,columnas:Int,score:Int){
+  def bucleJugador(tablero:List[Diamante],dificultad:Int,filas:Int,columnas:Int,score:Int,pos1:Int,pos2:Int):(List[Diamante],Int)={
     
     //contents =  print_tablero(tablero, dificultad, columnas, filas,0)
-    println("Introduzca fila 1:")
-    val fila1=readInt
-    println("Introduzca columna 1:")
-    val columna1=readInt
-    println("Introduzca fila 2:")
-    val fila2=readInt
-    println("Introduzca columna 1:")
-    val columna2=readInt
-    
-    val pos1=(fila1*columnas)+columna1
-    val pos2=(fila2*columnas)+columna2
-    if(comprobarMovimiento(devolverDiamanteLista(pos1,tablero),devolverDiamanteLista(pos2,tablero), tablero, filas, columnas)){
        val tableroAux = intercambiarSinComprobar(pos1, pos2, tablero, filas, columnas)
        val boardScore = checkLoopDelete(tableroAux,dificultad,filas,columnas,score);
       
        if(boardScore._2>=2000){ 
          println("\n-- JUEGO TERMINADO --") 
+         return boardScore
+       }else{
+         return boardScore
        }
-       else bucleJugador(boardScore._1,dificultad,filas,columnas,boardScore._2)
-    }else{
-      bucleJugador(tablero,dificultad,filas,columnas,score)
-    }
+
     
   }
   

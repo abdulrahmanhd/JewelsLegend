@@ -35,7 +35,8 @@ object interfaz extends App {
 		val puntuacion = 0
 		val tablero = jewelsLegend.generarTablero(0, filas, columnas, dificultad)
 		ventana.dispose()
-		bucle(tablero,dificultad,filas,columnas,puntuacion,modo)
+		val tableroFinal = jewelsLegend.checkLoopDelete(tablero, dificultad, filas, columnas, puntuacion)
+		bucle(tableroFinal._1,dificultad,filas,columnas,tableroFinal._2,modo)
 
 	}
 	  
@@ -48,11 +49,11 @@ object interfaz extends App {
 		
 	  //Si el numero de vidas es 0 se acaba el juego
 
-		if(score >= 2000){
+		if(score >= 4000){
 			JOptionPane.showMessageDialog(null,"JUEGO TERMINADO!!",null,JOptionPane.ERROR_MESSAGE)
 		}
 	  else{
-				        		
+				  		
 				mostrarTablero(filas,columnas,tablero,score,
 						dificultad, 
 						modo)
@@ -184,16 +185,21 @@ object interfaz extends App {
 		    val diamante2 = jewelsLegend.devolverDiamanteLista(listaPulsados._2,tablero)
 		    
 		    if(jewelsLegend.comprobarMovimiento(diamante1, diamante2, tableroAux, filas, columnas)){
-		      
+		      val tableroFinal = jewelsLegend.bucleJugador(tableroAux, dificultad, filas, columnas, puntuacion, listaPulsados._1, listaPulsados._2)
+		      ventana.dispose();
+		      bucle(tableroFinal._1,dificultad,filas,columnas,tableroFinal._2,modo)
 		    }else{
 		      JOptionPane.showMessageDialog(null,"ERROR EN EL MOVIMIENTO !!",null,JOptionPane.ERROR_MESSAGE)
-		      val tableroAux2 = jewelsLegend.insertar_diamante(diamante1.color, pos, tableroAux, pos, false)
-		      val tableroAux3 = jewelsLegend.insertar_diamante(diamante2.color, pos, tableroAux2, pos, false)
+		      val tableroAux2 = jewelsLegend.insertar_diamante(diamante1.color, listaPulsados._1, tableroAux, listaPulsados._1, false)
+		      val tableroAux3 = jewelsLegend.insertar_diamante(diamante2.color, listaPulsados._2, tableroAux2, listaPulsados._2, false)
+		      ventana.dispose();
 		      bucle(tableroAux3,dificultad,filas,columnas,puntuacion,modo)
 		    }
+		  }else{
+		    ventana.dispose();
+  			bucle(tableroAux,dificultad,filas,columnas,puntuacion,modo)
 		  }
   			
-  			bucle(tableroAux,dificultad,filas,columnas,puntuacion,modo)
   		}
 		
 
