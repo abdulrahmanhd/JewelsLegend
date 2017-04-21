@@ -164,51 +164,47 @@ object interfaz extends App {
 			dificultad:Int , 
 			modo:Char): Unit = { 
 		
-		
-		//si no es una posicion vacia
-		if(jewelsLegend.devolverDiamanteLista(pos, tablero).color!=0) {
-			//Se extrae la fila y la columna
- 			val columna = pos % columnas
- 			val fila = (pos - columna)/columnas
- 		
- 			/*  Se elimina la celda de la posici�n recibida 
-				Se obtiene el tablero y los puntos como consecuencia 
-				de la eliminaci�n */
-	    val dato = jewelsLegend.devolverDiamanteLista(fila*columnas+columna,tablero).color
-	 		val ListaExplotar = jewelsLegend.generarListaIguales(tablero,filas,columnas,0)
-	 		val resultado = jewelsLegend.explotar(ListaExplotar, tablero)
-	 		val puntuacionF = puntuacion + jewelsLegend.getZero(resultado, filas, columnas, 0)
-	 		/*val listaEliminar = antique.consultaTablero(
-											dato,
-											fila, 
-											columna,
-											filas, 
-											columnas, 
-											tablero)*/
-											
-	 		/*val resultado = antique.eliminaCeldas(
-											listaEliminar,
-											listaEliminar.length,pos, 
-											tablero, 
-											puntuacion)
-			val tablero_1 = resultado._1
-			val vidas_1= resultado._2
-			val puntuacionFinal = resultado._3*/
-	 		
-	 		
-			//Se reestructura el tablero
-			val tablero2 = jewelsLegend.bucleMoverCeros(filas*columnas-1,tablero,tablero,filas,columnas)
-			val tablero_3 = jewelsLegend.moveLeft(0,tablero2,filas,columnas)
-			val tablero_final = jewelsLegend.reponer(dificultad, tablero_3, 0)
-			//se cierra la ventana 
-			ventana.dispose()
-			//Y se vuelve a ejecutar el bucle del juego
-			
-			bucle(tablero_final,dificultad,filas,columnas,puntuacionF,modo)
-		}else{
-			Nil
-		}
-
+		if(modo != 'a'){
+  		  //si no es una posicion vacia
+  			//Se extrae la fila y la columna
+   			val columna = pos % columnas
+   			val fila = (pos - columna)/columnas
+   		
+   			/*  Se elimina la celda de la posici�n recibida 
+  				Se obtiene el tablero y los puntos como consecuencia 
+  				de la eliminaci�n */
+  	    val dato = jewelsLegend.devolverDiamanteLista(fila*columnas+columna,tablero).color
+  	 		val ListaExplotar = jewelsLegend.generarListaIguales(tablero,filas,columnas,0)
+  	 		val resultado = jewelsLegend.explotar(ListaExplotar, tablero)
+  	 		val puntuacionF = puntuacion + jewelsLegend.getZero(resultado, filas, columnas, 0)
+  	 		/*val listaEliminar = antique.consultaTablero(
+  											dato,
+  											fila, 
+  											columna,
+  											filas, 
+  											columnas, 
+  											tablero)*/
+  											
+  	 		/*val resultado = antique.eliminaCeldas(
+  											listaEliminar,
+  											listaEliminar.length,pos, 
+  											tablero, 
+  											puntuacion)
+  			val tablero_1 = resultado._1
+  			val vidas_1= resultado._2
+  			val puntuacionFinal = resultado._3*/
+  	 		
+  	 		
+  			//Se reestructura el tablero
+  			val tablero2 = jewelsLegend.bucleMoverCeros(filas*columnas-1,tablero,tablero,filas,columnas)
+  			val tablero_3 = jewelsLegend.moveLeft(0,tablero2,filas,columnas)
+  			val tablero_final = jewelsLegend.reponer(dificultad, tablero_3, 0)
+  			//se cierra la ventana 
+  			ventana.dispose()
+  			//Y se vuelve a ejecutar el bucle del juego
+  			
+  			bucle(tablero_final,dificultad,filas,columnas,puntuacionF,modo)
+  		}
 	}
 	
 	
@@ -282,20 +278,20 @@ object interfaz extends App {
 															
 		val iconoBloqueAzul = new ImageIcon(
 				(new ImageIcon("res/azul.png")).getImage().getScaledInstance( 
-															600/columnas,
-															500/filas, 
+															500/columnas,
+															400/filas, 
 															Image.SCALE_FAST))
 															
 		val iconoBloqueAmarillo = new ImageIcon(
 				(new ImageIcon("res/amarillo.png")).getImage().getScaledInstance( 
-															600/columnas,
-															500/filas, 
+															500/columnas,
+															400/filas, 
 															Image.SCALE_FAST))
 															
 		val iconoBloqueBlanco = new ImageIcon(
 				(new ImageIcon("res/blanco.png")).getImage().getScaledInstance( 
-															600/columnas,
-															500/filas,
+															500/columnas,
+															400/filas,
 															Image.SCALE_FAST))
 		
 		val iconoBloqueRojo= new ImageIcon(
@@ -305,18 +301,18 @@ object interfaz extends App {
 															Image.SCALE_FAST))
 		val iconoBloqueVerde = new ImageIcon(
 				(new ImageIcon("res/verde_claro.png")).getImage().getScaledInstance( 
-															600/columnas,
-															500/filas, 
+															500/columnas,
+															400/filas, 
 															Image.SCALE_FAST))
 		val iconoBloqueMorado = new ImageIcon(
 				(new ImageIcon("res/morado.png")).getImage().getScaledInstance(
-															600/columnas,
-															500/filas, 
+															500/columnas,
+															400/filas,
 															Image.SCALE_FAST))
 		val iconoBloqueMarron = new ImageIcon(
 				(new ImageIcon("res/marron.png")).getImage().getScaledInstance( 
-															600/columnas,
-															500/filas, 
+															500/columnas,
+															400/filas, 
 															Image.SCALE_FAST))
 		
 		if(numero == 0)

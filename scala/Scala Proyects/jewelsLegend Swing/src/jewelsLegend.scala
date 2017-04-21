@@ -616,9 +616,7 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
       println("*********************************************************************");
       println("* Mejor movimiento posicion : " + bestChange1 + " por posicion : " + bestChange2 + " y explotaran : "+contSame + " *");
       println("*********************************************************************");
-      print_tablero(tableroAux,dificultad, columnas, filas,score);
       val boardScore = checkLoopDelete(tablero,dificultad,filas,columnas,score);
-      print_tablero(boardScore._1,dificultad,columnas,filas,score);
        if(boardScore._2>=2000){
          println("\n-- JUEGO TERMINADO --")
          return boardScore;
@@ -768,8 +766,6 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
   def checkLoopDelete(tablero:List[Diamante],dificultad:Int,filas:Int, columnas:Int, score:Int): (List[Diamante],Int)={
     val tableroAux = loopDelete(tablero,filas,columnas)
     val Score = score + (getZero(tableroAux, filas, columnas, 0) * 25);
-    print_tablero(tableroAux,dificultad,columnas,filas,score)
-    println("\nPUNTUACIÓN : " + Score +"\n");
     val tableroFinal = reponer(dificultad, tableroAux, 0);
 
     if(generarListaIguales(tableroFinal, filas, columnas, 0).length == 0){
