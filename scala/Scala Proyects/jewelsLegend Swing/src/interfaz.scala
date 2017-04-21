@@ -28,7 +28,7 @@ object interfaz extends App {
   	 * 
   	 */
 	def iniciarPartida(ventana:JFrame, dificultad:Int, modo:Char) = {
-     
+
 		val partida = jewelsLegend.getLevel(dificultad)
 		val filas = partida._1
 		val columnas = partida._2
@@ -44,16 +44,20 @@ object interfaz extends App {
 	 * hasta llegar a una puntuacion max.
 	 */
 	def bucle(tablero:List[jewelsLegend.Diamante],dificultad:Int,filas:Int,columnas:Int,score:Int,modo:Char):Unit = {
+
 		
 	  //Si el numero de vidas es 0 se acaba el juego
+
 		if(score >= 2000){
 			JOptionPane.showMessageDialog(null,"JUEGO TERMINADO!!",null,JOptionPane.ERROR_MESSAGE)
 		}
 	  else{
-				mostrarTablero(filas,columnas,tablero,score,dificultad,modo)
+				        		
+				mostrarTablero(filas,columnas,tablero,score,
+						dificultad, 
+						modo)
 			}
-		
-		
+
 	}	 
 		
 	/**
@@ -67,7 +71,7 @@ object interfaz extends App {
 			dificultad:Int, 
 			modo:Char) = {
 		
-	  
+
 		val tableroGrafico = new JFrame("JEWELS LEGEND")
 		tableroGrafico.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		tableroGrafico.setBounds(200, 0, 800,720);
@@ -83,9 +87,25 @@ object interfaz extends App {
 		panel_tablero.setBounds(84, 150, 600, 500);
 		panel.add(panel_tablero);
 		panel_tablero.setLayout(new GridLayout(filas, columnas, 0, 0));
+
 		
 		//Se introducen los botones en el panel_tablero, y la informacion de la partida
   		anadirBotones(tableroGrafico,panel_tablero,filas,columnas,tablero,puntuacion,dificultad,modo,0)
+
+     
+		
+		//Se introducen los botones en el panel_tablero, y la informacion de la partida
+  		anadirBotones(
+				tableroGrafico,
+				panel_tablero, 
+				filas, 
+				columnas, 
+				tablero,   
+				puntuacion,   
+				dificultad, 
+				modo,
+				0)
+
   		
   		
   		val modo_label_texto = new JLabel("Modo");
@@ -121,12 +141,14 @@ object interfaz extends App {
   		numero_puntuacion_label.setBounds(620, 70, 70, 30);
   		numero_puntuacion_label.setFont(new Font("Tribeca", Font.PLAIN, 18));
   		panel.add(numero_puntuacion_label);      		
-  		
+
   		val maxima_puntuacion_label = new JLabel("Mejor puntuacion");
   		maxima_puntuacion_label.setBounds(350, 105, 250, 30);
   		maxima_puntuacion_label.setFont(new Font("Tribeca", Font.PLAIN, 18));
   		panel.add(maxima_puntuacion_label);
   		
+
+
 
   		//Si el modo elegido es automatico se crea el boton que permite hacer 
   		//continuar la partida de manera automatica
@@ -136,8 +158,15 @@ object interfaz extends App {
       		botonContinuar.addActionListener(new java.awt.event.ActionListener() {
                     
 				def actionPerformed(evento:ActionEvent):Unit = {
+
 					botonActionPerformed(tableroGrafico,tablero,filas,columnas,filas*columnas-1,
 					    puntuacion,dificultad,modo)      
+
+
+				  val tableroCambiado = jewelsLegend.automaticMode(0,dificultad,Nil, tablero, 0, 0, 0, filas, columnas,puntuacion);
+				  tableroGrafico.dispose()
+				  bucle(tableroCambiado._1, dificultad, filas, columnas, tableroCambiado._2, modo)
+
 				}
    
 			});
@@ -150,8 +179,18 @@ object interfaz extends App {
 	/**
 	 * Secuencia de instrucciones al pulsar un bloque con el raton
 	 */
-	def  botonActionPerformed(ventana:JFrame, tablero:List[jewelsLegend.Diamante],filas:Int, 
-			columnas:Int,pos:Int,puntuacion:Int,dificultad:Int,modo:Char): Unit = { 
+
+	
+	def  botonActionPerformed(
+			ventana:JFrame, 
+			tablero:List[jewelsLegend.Diamante],
+			filas:Int, 
+			columnas:Int , 
+			pos:Int, 
+			puntuacion:Int, 
+			dificultad:Int , 
+			modo:Char): Unit = { 
+
 		
 		
 		//si no es una posicion vacia
@@ -251,41 +290,41 @@ object interfaz extends App {
 			columnas:Int): JButton = {
 		    
 															
-		val iconoBloqueAzul = new ImageIcon(
-				(new ImageIcon("res/azul.png")).getImage().getScaledInstance( 
+		val d1 = new ImageIcon(
+				(new ImageIcon("res/d1.png")).getImage().getScaledInstance( 
 															600/columnas,
 															500/filas, 
 															Image.SCALE_FAST))
 															
-		val iconoBloqueAmarillo = new ImageIcon(
-				(new ImageIcon("res/amarillo.png")).getImage().getScaledInstance( 
+		val d2 = new ImageIcon(
+				(new ImageIcon("res/d2.png")).getImage().getScaledInstance( 
 															600/columnas,
 															500/filas, 
 															Image.SCALE_FAST))
 															
-		val iconoBloqueBlanco = new ImageIcon(
-				(new ImageIcon("res/blanco.png")).getImage().getScaledInstance( 
+		val d3 = new ImageIcon(
+				(new ImageIcon("res/d3.png")).getImage().getScaledInstance( 
 															600/columnas,
 															500/filas,
 															Image.SCALE_FAST))
 		
-		val iconoBloqueRojo= new ImageIcon(
-				(new ImageIcon("res/rojo.png")).getImage().getScaledInstance(
+		val d4= new ImageIcon(
+				(new ImageIcon("res/d4.png")).getImage().getScaledInstance(
 															600/columnas,
 															500/filas, 
 															Image.SCALE_FAST))
-		val iconoBloqueVerde = new ImageIcon(
-				(new ImageIcon("res/verde_claro.png")).getImage().getScaledInstance( 
+		val d5 = new ImageIcon(
+				(new ImageIcon("res/d5.png")).getImage().getScaledInstance( 
 															600/columnas,
 															500/filas, 
 															Image.SCALE_FAST))
-		val iconoBloqueMorado = new ImageIcon(
-				(new ImageIcon("res/morado.png")).getImage().getScaledInstance(
+		val d6 = new ImageIcon(
+				(new ImageIcon("res/d6.png")).getImage().getScaledInstance(
 															600/columnas,
 															500/filas, 
 															Image.SCALE_FAST))
-		val iconoBloqueMarron = new ImageIcon(
-				(new ImageIcon("res/marron.png")).getImage().getScaledInstance( 
+		val d7 = new ImageIcon(
+				(new ImageIcon("res/d7.png")).getImage().getScaledInstance( 
 															600/columnas,
 															500/filas, 
 															Image.SCALE_FAST))
@@ -293,19 +332,19 @@ object interfaz extends App {
 		if(numero == 0)
 			boton.setBackground(Color.WHITE)
 		else if(numero == 1)
-			boton.setIcon(iconoBloqueAzul)
+			boton.setIcon(d1)
 		else if(numero == 2)
-		    boton.setIcon(iconoBloqueRojo)
+		    boton.setIcon(d2)
 		else if(numero == 3)
-			boton.setIcon(iconoBloqueMorado)
+			boton.setIcon(d3)
 		else if(numero == 4)
-			boton.setIcon(iconoBloqueVerde)
+			boton.setIcon(d4)
 		else if(numero == 5)
-			boton.setIcon(iconoBloqueBlanco)
+			boton.setIcon(d5)
 		else if(numero == 6)
-			boton.setIcon(iconoBloqueMarron)
+			boton.setIcon(d6)
 		else if(numero == 7)
-			boton.setIcon(iconoBloqueAmarillo)
+			boton.setIcon(d7)
 
 		return boton
 	}	
