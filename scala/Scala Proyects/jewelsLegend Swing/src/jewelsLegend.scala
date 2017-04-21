@@ -377,6 +377,7 @@ def subir_ceros(pos0:Int,posIntercambio:Int,l:List[Diamante],filas:Int,columnas:
     
       if(devolverDiamanteLista(posIntercambio,l).color!=0){
         
+<<<<<<< HEAD
         val bloqAux1= devolverDiamanteLista(posIntercambio,l)
         val bloqAux2= new Diamante(encontrarCero(pos0,l,columnas),0,false)
         val bloqAux12=new Diamante(bloqAux1.pos,bloqAux2.color,false)
@@ -387,6 +388,18 @@ def subir_ceros(pos0:Int,posIntercambio:Int,l:List[Diamante],filas:Int,columnas:
         
         //poner el 0
         val x=insertar_diamante(bloqAux21.color,bloqAux2.pos,aux,bloqAux2.pos,false)
+=======
+        val diamAux1= devolverDiamanteLista(posIntercambio,l)
+        val diamAux2= new Diamante(encontrarCero(pos0,l,columnas),0)
+        val diamAux12=new Diamante(diamAux1.pos,diamAux2.color)
+        val diamAux21=new Diamante(diamAux2.pos,diamAux1.color)
+        
+        //bajar el diamante que no es 0
+        val aux=insertar_diamante(diamAux12.color,diamAux1.pos,l,diamAux1.pos)
+        
+        //poner el 0
+        val x=insertar_diamante(diamAux21.color,diamAux2.pos,aux,diamAux2.pos)
+>>>>>>> 41a29c01726b1856027f035192e84ab3b7043924
 
         subir_ceros(pos0-columnas,posIntercambio,x,filas,columnas)//-columnas
         }

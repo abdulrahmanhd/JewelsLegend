@@ -104,7 +104,7 @@ object interfaz extends App {
   		
   		
   		val modo_label_texto = new JLabel("Modo");
-  		modo_label_texto.setBounds(100, 105, 150, 30);
+  		modo_label_texto.setBounds(100, 70, 150, 30);
   		modo_label_texto.setFont(new Font("Tribeca", Font.PLAIN, 18));
   		panel.add(modo_label_texto);
       		
@@ -115,20 +115,14 @@ object interfaz extends App {
   		}else{
   			modo_label.setText("A")
   		}
-		modo_label.setBounds(290, 105, 70, 30);
+		modo_label.setBounds(290, 70, 70, 30);
 		modo_label.setFont(new Font("Tribeca", Font.PLAIN, 18));
 		panel.add(modo_label);
 		panel.setVisible(true)
       		
-      		
-  		val numero_puntuacion_total_label = new JLabel("Puntuacion total");
-  		numero_puntuacion_total_label.setBounds(350, 35, 250, 30);
-  		numero_puntuacion_total_label.setFont(new Font("Tribeca", Font.PLAIN, 18));
-  		panel.add(numero_puntuacion_total_label);
-  
   		
   		val puntuacion_label = new JLabel("Puntuacion");
-  		puntuacion_label.setBounds(350, 70, 150, 30);
+  		puntuacion_label.setBounds(400, 70, 150, 30);
   		puntuacion_label.setFont(new Font("Tribeca", Font.PLAIN, 18));
   		panel.add(puntuacion_label);
   		
@@ -137,13 +131,7 @@ object interfaz extends App {
   		numero_puntuacion_label.setFont(new Font("Tribeca", Font.PLAIN, 18));
   		panel.add(numero_puntuacion_label);      		
 
-  		val maxima_puntuacion_label = new JLabel("Mejor puntuacion");
-  		maxima_puntuacion_label.setBounds(350, 105, 250, 30);
-  		maxima_puntuacion_label.setFont(new Font("Tribeca", Font.PLAIN, 18));
-  		panel.add(maxima_puntuacion_label);
   		
-
-
 
   		//Si el modo elegido es automatico se crea el boton que permite hacer 
   		//continuar la partida de manera automatica
@@ -196,22 +184,6 @@ object interfaz extends App {
   	 		val ListaExplotar = jewelsLegend.generarListaIguales(tablero,filas,columnas,0)
   	 		val resultado = jewelsLegend.explotar(ListaExplotar, tablero)
   	 		val puntuacionF = puntuacion + jewelsLegend.getZero(resultado, filas, columnas, 0)
-  	 		/*val listaEliminar = antique.consultaTablero(
-  											dato,
-  											fila, 
-  											columna,
-  											filas, 
-  											columnas, 
-  											tablero)*/
-  											
-  	 		/*val resultado = antique.eliminaCeldas(
-  											listaEliminar,
-  											listaEliminar.length,pos, 
-  											tablero, 
-  											puntuacion)
-  			val tablero_1 = resultado._1
-  			val vidas_1= resultado._2
-  			val puntuacionFinal = resultado._3*/
   	 		
   	 		
   			//Se reestructura el tablero
@@ -278,8 +250,6 @@ object interfaz extends App {
 			val boton = new JButton();
 			val dato = jewelsLegend.devolverDiamanteLista(pos, tablero).color
 	    val botonColoreado = cambiarColorBoton(boton, dato, filas, columnas)
-			/*if(pos <= filas*columnas-1)
-				botonColoreado.setBorder(new LineBorder(Color.yellow,4))*/
 				
 			panel.add(botonColoreado);
 			if(modo == 'm'){
