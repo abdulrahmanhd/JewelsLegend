@@ -28,7 +28,6 @@ object interfaz extends App {
   	 * 
   	 */
 	def iniciarPartida(ventana:JFrame, dificultad:Int, modo:Char) = {
-     println("EL DIABLO LOCO")
 		val partida = jewelsLegend.getLevel(dificultad)
 		val filas = partida._1
 		val columnas = partida._2
@@ -44,38 +43,16 @@ object interfaz extends App {
 	 * hasta llegar a una puntuacion max.
 	 */
 	def bucle(tablero:List[jewelsLegend.Diamante],dificultad:Int,filas:Int,columnas:Int,score:Int,modo:Char):Unit = {
-		println("EL DIABLO LOCO1")
-	  //Si el numero de vidas es 0 se acaba el juego
+
 		if(score >= 2000){
 			JOptionPane.showMessageDialog(null,"JUEGO TERMINADO!!",null,JOptionPane.ERROR_MESSAGE)
 		}
 	  else{
-				/*val puntuacionMaxima = antique.mejorJugada(
-													tablero,
-													0, 
-													filas, 
-													columnas, 
-													Nil, 
-													0, 
-													0, 
-													0, 
-													0)
-													
-				val mejorPuntuacion = puntuacionMaxima._1
-				val puntuacionMaximaFila = puntuacionMaxima._2
-				val puntuacionMaximaColumna = puntuacionMaxima._3 */           
-				
+				        		
 				mostrarTablero(filas,columnas,tablero,score,
-						//puntuacionMaximaFila*columnas+puntuacionMaximaColumna, 
-						//mejorPuntuacion, 
-						//puntuacionTotal, 
 						dificultad, 
 						modo)
 			}
-			
-		//}
-		
-		
 	}	 
 		
 	/**
@@ -89,7 +66,6 @@ object interfaz extends App {
 			dificultad:Int, 
 			modo:Char) = {
 		
-		println("EL DIABLO LOCO2")
 		val tableroGrafico = new JFrame("JEWELS LEGEND")
 		tableroGrafico.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		tableroGrafico.setBounds(200, 0, 800,720);
@@ -106,10 +82,8 @@ object interfaz extends App {
 		panel.add(panel_tablero);
 		panel_tablero.setLayout(new GridLayout(filas, columnas, 0, 0));
      
-		//tableroGrafico.setVisible(true)
-		//panel_tablero.setVisible(true)
 		
-		//Se introducen los botones en el panel_tablero, y la informaci�n de la partida
+		//Se introducen los botones en el panel_tablero, y la informacion de la partida
   		anadirBotones(
 				tableroGrafico,
 				panel_tablero, 
@@ -140,17 +114,12 @@ object interfaz extends App {
 		panel.setVisible(true)
       		
       		
-  		val numero_puntuacion_total_label = new JLabel("Puntuaci�n total");
+  		val numero_puntuacion_total_label = new JLabel("Puntuacion total");
   		numero_puntuacion_total_label.setBounds(350, 35, 250, 30);
   		numero_puntuacion_total_label.setFont(new Font("Tribeca", Font.PLAIN, 18));
   		panel.add(numero_puntuacion_total_label);
   		
-  		/*val numero_puntuacion_total = new JLabel(""+puntuacionTotal);
-  		numero_puntuacion_total.setBounds(620, 35, 70, 30);
-  		numero_puntuacion_total.setFont(new Font("Tribeca", Font.PLAIN, 18));
-  		panel.add(numero_puntuacion_total);*/
-  		
-  		val puntuacion_label = new JLabel("Puntuaci�n");
+  		val puntuacion_label = new JLabel("Puntuacion");
   		puntuacion_label.setBounds(350, 70, 150, 30);
   		puntuacion_label.setFont(new Font("Tribeca", Font.PLAIN, 18));
   		panel.add(puntuacion_label);
@@ -160,17 +129,6 @@ object interfaz extends App {
   		numero_puntuacion_label.setFont(new Font("Tribeca", Font.PLAIN, 18));
   		panel.add(numero_puntuacion_label);      		
   		
-  		val maxima_puntuacion_label = new JLabel("Mejor puntuaci�n");
-  		maxima_puntuacion_label.setBounds(350, 105, 250, 30);
-  		maxima_puntuacion_label.setFont(new Font("Tribeca", Font.PLAIN, 18));
-  		panel.add(maxima_puntuacion_label);
-  		
-  		/*val maxima_puntuacion = new JLabel(""+mejorPuntuacion);
-  		maxima_puntuacion.setBounds(620, 105, 70, 30);
-  		maxima_puntuacion.setFont(new Font("Tribeca", Font.PLAIN, 18));
-  		panel.add(maxima_puntuacion);*/
-      	
-  		
   		//Si el modo elegido es automatico se crea el boton que permite hacer 
   		//continuar la partida de manera automatica
   		if(modo =='a'){
@@ -179,17 +137,10 @@ object interfaz extends App {
       		botonContinuar.addActionListener(new java.awt.event.ActionListener() {
                     
 				def actionPerformed(evento:ActionEvent):Unit = {
-					botonActionPerformed(
-							tableroGrafico, 
-							tablero,
-							filas, 
-							columnas,  
-							filas*columnas-1, 
-							puntuacion, 
-							//posMax, 
-							//puntuacionTotal, 
-							dificultad, 
-							modo)      
+
+				  val tableroCambiado = jewelsLegend.automaticMode(0,dificultad,Nil, tablero, 0, 0, 0, filas, columnas,puntuacion);
+				  tableroGrafico.dispose()
+				  bucle(tableroCambiado._1, dificultad, filas, columnas, tableroCambiado._2, modo)
 				}
    
 			}
@@ -210,8 +161,6 @@ object interfaz extends App {
 			columnas:Int , 
 			pos:Int, 
 			puntuacion:Int, 
-			//posMax:Int, 
-			//puntuacionTotal: Int, 
 			dificultad:Int , 
 			modo:Char): Unit = { 
 		
@@ -299,7 +248,7 @@ object interfaz extends App {
 							tablero,
 							filas, 
 							columnas,  
-						  filas*columnas-1, 
+						  pos, 
 							puntuacion, 
 							dificultad, 
 							modo)   

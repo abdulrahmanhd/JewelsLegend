@@ -610,7 +610,7 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
     }else return number4;
   }
   //MODO AUTOMATICO
-  def automaticMode(contSame:Int,dificultad:Int,listaMayor:List[Int], tablero:List[Diamante], pos:Int, bestChange1:Int, bestChange2:Int,filas:Int, columnas:Int, score:Int):List[Diamante]={
+  def automaticMode(contSame:Int,dificultad:Int,listaMayor:List[Int], tablero:List[Diamante], pos:Int, bestChange1:Int, bestChange2:Int,filas:Int, columnas:Int, score:Int):(List[Diamante],Int)={
     if(pos >= filas*columnas){
       val tableroAux = changeAutomatic(bestChange1, bestChange2, tablero, filas, columnas);
       println("*********************************************************************");
@@ -619,12 +619,11 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
       print_tablero(tableroAux,dificultad, columnas, filas,score);
       val boardScore = checkLoopDelete(tablero,dificultad,filas,columnas,score);
       print_tablero(boardScore._1,dificultad,columnas,filas,score);
-      readLine();
        if(boardScore._2>=2000){
          println("\n-- JUEGO TERMINADO --")
-         return boardScore._1;
+         return boardScore;
        }
-       else automaticMode(0,dificultad,Nil, boardScore._1, 0, 0, 0, filas, columnas,boardScore._2);
+       else return boardScore;
       
     }else { 
      val betterMove = returnGreaterList(tablero, pos, filas, columnas);
