@@ -188,7 +188,7 @@ object interfaz extends App {
   			//Se extrae la fila y la columna
    			val columna = pos % columnas
    			val fila = (pos - columna)/columnas
-   		
+
    			/*  Se elimina la celda de la posici�n recibida 
   				Se obtiene el tablero y los puntos como consecuencia 
   				de la eliminaci�n */

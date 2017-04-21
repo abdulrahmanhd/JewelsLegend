@@ -15,7 +15,7 @@ import scala.collection.mutable.ListBuffer
 
 object jewelsLegend extends App{
 
- class Diamante (val pos:Int,val color:Int)
+ class Diamante (val pos:Int,val color:Int,val selected:Boolean)
    
  def top = new MainFrame {
     
@@ -155,7 +155,7 @@ def convertir_a_colores(valor:Int):Color = {
       if(ListaExplotar.isEmpty){
         return tablero;
       }else{
-        val tablero1 = insertar_diamante(0, ListaExplotar.head, tablero, ListaExplotar.head)
+        val tablero1 = insertar_diamante(0, ListaExplotar.head, tablero, ListaExplotar.head,false)
         return explotar(ListaExplotar.tail,tablero1);
       }
   }
@@ -166,7 +166,7 @@ def convertir_a_colores(valor:Int):Color = {
     else{
       if(tablero.head.color==0){
         val rnd = scala.util.Random
-        val diamante = new Diamante(pos,1+rnd.nextInt(colores_tablero(dificultad)))
+        val diamante = new Diamante(pos,1+rnd.nextInt(colores_tablero(dificultad)),false)
         //println(diamante.pos,diamante.color)
         return diamante::reponer(dificultad,tablero.tail,pos+1)
       }
@@ -192,11 +192,11 @@ def convertir_a_colores(valor:Int):Color = {
   }
   
   //Insertar un numero en una posicion (OK)
-  def insertar_diamante(color:Int, pos:Int, lista:List[Diamante], posAux:Int):List[Diamante]={
+  def insertar_diamante(color:Int, pos:Int, lista:List[Diamante], posAux:Int,selected:Boolean):List[Diamante]={
     if(posAux==0){
-      val diamante = new Diamante(pos, color)
+      val diamante = new Diamante(pos, color,selected)
       diamante::lista.tail}
-    else lista.head::insertar_diamante(color,pos,lista.tail,posAux-1)
+    else lista.head::insertar_diamante(color,pos,lista.tail,posAux-1,selected)
   }
   
   //genera una lista con los elementos que tienen que explotar en esta ronda.(OK)
@@ -378,15 +378,15 @@ def subir_ceros(pos0:Int,posIntercambio:Int,l:List[Diamante],filas:Int,columnas:
       if(devolverDiamanteLista(posIntercambio,l).color!=0){
         
         val bloqAux1= devolverDiamanteLista(posIntercambio,l)
-        val bloqAux2= new Diamante(encontrarCero(pos0,l,columnas),0)
-        val bloqAux12=new Diamante(bloqAux1.pos,bloqAux2.color)
-        val bloqAux21=new Diamante(bloqAux2.pos,bloqAux1.color)
+        val bloqAux2= new Diamante(encontrarCero(pos0,l,columnas),0,false)
+        val bloqAux12=new Diamante(bloqAux1.pos,bloqAux2.color,false)
+        val bloqAux21=new Diamante(bloqAux2.pos,bloqAux1.color,false)
         
         //bajar el diamante que no es 0
-        val aux=insertar_diamante(bloqAux12.color,bloqAux1.pos,l,bloqAux1.pos)
+        val aux=insertar_diamante(bloqAux12.color,bloqAux1.pos,l,bloqAux1.pos,false)
         
         //poner el 0
-        val x=insertar_diamante(bloqAux21.color,bloqAux2.pos,aux,bloqAux2.pos)
+        val x=insertar_diamante(bloqAux21.color,bloqAux2.pos,aux,bloqAux2.pos,false)
 
         subir_ceros(pos0-columnas,posIntercambio,x,filas,columnas)//-columnas
         }
@@ -403,12 +403,12 @@ def loopChangeColum(pos:Int,tablero:List[Diamante],columnas:Int):List[Diamante]=
     
     val diamante1=devolverDiamanteLista(pos, tablero);
     val diamante2=devolverDiamanteLista(pos-1,tablero)
-    val diamante12= new Diamante(diamante1.pos,diamante2.color)
-    val diamante21= new Diamante(diamante2.pos,diamante1.color)
+    val diamante12= new Diamante(diamante1.pos,diamante2.color,false)
+    val diamante21= new Diamante(diamante2.pos,diamante1.color,false)
     
-    val aux=insertar_diamante(diamante12.color,diamante12.pos,tablero,diamante12.pos);
+    val aux=insertar_diamante(diamante12.color,diamante12.pos,tablero,diamante12.pos,false);
     
-    val x=insertar_diamante(diamante21.color,diamante21.pos,aux,diamante21.pos);
+    val x=insertar_diamante(diamante21.color,diamante21.pos,aux,diamante21.pos,false);
     
     return loopChangeColum(pos+columnas,x,columnas);
   }
@@ -462,8 +462,8 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
    val contiguo = diamantes_contiguos(pos1,pos2,filas,columnas)
    
    //Comprobamos que los iguales sean mayor que 2
-   val tableroAux1 = insertar_diamante(color1,pos2,tablero,pos2)
-   val tableroAux2 = insertar_diamante(color2,pos1,tableroAux1,pos1)
+   val tableroAux1 = insertar_diamante(color1,pos2,tablero,pos2,true)
+   val tableroAux2 = insertar_diamante(color2,pos1,tableroAux1,pos1,true)
    val iguales=comprobarIguales(pos1,pos2,filas,columnas,tableroAux2)
  
    if(!contiguo)  println("Error, diamantes no contiguos")
@@ -477,8 +477,8 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
     val color1 = devolverDiamanteLista(pos1:Int,tablero).color
     val color2 = devolverDiamanteLista(pos2:Int,tablero).color
     
-    val tableroAux1 = insertar_diamante(color1,pos2,tablero,pos2)
-    val tableroAux2 = insertar_diamante(color2,pos1,tableroAux1,pos1)
+    val tableroAux1 = insertar_diamante(color1,pos2,tablero,pos2,true)
+    val tableroAux2 = insertar_diamante(color2,pos1,tableroAux1,pos1,true)
     return tableroAux2    
   }
     //Bucle para ejecutar explotar 
@@ -502,8 +502,8 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
     val color2 = devolverDiamanteLista(pos2,tablero).color
     
     if(checkAutomaticMove(devolverDiamanteLista(pos1,tablero),devolverDiamanteLista(pos2,tablero), tablero, filas, columnas)){
-      val tableroAux1 = insertar_diamante(color1,pos2,tablero,pos2)
-      val tableroAux2 = insertar_diamante(color2,pos1,tableroAux1,pos1)
+      val tableroAux1 = insertar_diamante(color1,pos2,tablero,pos2,true)
+      val tableroAux2 = insertar_diamante(color2,pos1,tableroAux1,pos1,true)
       
       return tableroAux2;
     }
@@ -521,8 +521,8 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
    val contiguo = diamantes_contiguos(pos1,pos2,filas,columnas)
    
    //Comprobamos que los iguales sean mayor que 2
-   val tableroAux1 = insertar_diamante(color1,pos2,tablero,pos2)
-   val tableroAux2 = insertar_diamante(color2,pos1,tableroAux1,pos1)
+   val tableroAux1 = insertar_diamante(color1,pos2,tablero,pos2,true)
+   val tableroAux2 = insertar_diamante(color2,pos1,tableroAux1,pos1,true)
    val iguales=comprobarIguales(pos1,pos2,filas,columnas,tableroAux2)
  
    return contiguo && iguales
@@ -642,65 +642,16 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
   def generarTablero(pos: Int, filas:Int, columnas:Int, dificultad:Int):List[Diamante]={
     if(pos==((filas*columnas)-1)){
       val rnd = scala.util.Random
-      val diamante = new Diamante(pos,1+rnd.nextInt(colores_tablero(dificultad)))
+      val diamante = new Diamante(pos,1+rnd.nextInt(colores_tablero(dificultad)),false)
       diamante::Nil
     }
     else{
       val rnd = scala.util.Random
-      val diamante = new Diamante(pos,1+rnd.nextInt(colores_tablero(dificultad)))
+      val diamante = new Diamante(pos,1+rnd.nextInt(colores_tablero(dificultad)),false)
       diamante::generarTablero(pos+1,filas,columnas,dificultad)
     }
   }
   
-  //Bomba 1, explosion de linea (OK)
-  def bomba1(tablero:List[Diamante],fila:Int,columnas:Int,cont:Int):List[Diamante]={
-    if(cont==columnas)return tablero
-    else{
-      val diamante = new Diamante((fila*columnas)+cont,0)
-      val tableroAux=insertar_diamante(diamante.color,diamante.pos,tablero,diamante.pos)
-      bomba1(tableroAux,fila,columnas,cont+1)
-    }
-  }
-  
-  //Bomba 2, explosion de columna (OK)
-  def bomba2(tablero:List[Diamante],columna:Int,columnas:Int,filas:Int,cont:Int):List[Diamante]={
-    if(cont==filas)return tablero
-    else{
-      val diamante = new Diamante((cont*columnas)+columna,0)
-      val tableroAux=insertar_diamante(diamante.color,diamante.pos,tablero,diamante.pos)
-      bomba2(tableroAux,columna,columnas,filas,cont+1)
-    }
-  }
-  
-  //Pasar a funcion bomba3 las posiciones centrales sobre las que se rota
-  //posicion inicial fila 1 col 1 y contador inicial 2 (segunda columna)
-  def bucleBomba3(tablero:List[Diamante],filas:Int,columnas:Int,fila:Int,columna:Int,contador:Int):List[Diamante]={
-    if((fila*columnas)+columna>(filas*columnas)-columnas) return tablero
-    else {
-      if(contador<=columnas-1){
-        println("POSICION -- ", (fila*columnas)+columna)
-        val tableroAux1 = bomba3(tablero,columnas,filas,(fila*columnas)+columna)
-        return bucleBomba3(tableroAux1,filas,columnas,fila,columna+3,contador+3)
-      }
-      else return bucleBomba3(tablero,filas,columnas,fila+3,1,2)
-    }
-  }
-    
-  //bomba 3, movimiento de rotacion
-  def bomba3(tablero:List[Diamante],columnas:Int,filas:Int,pos:Int):List[Diamante]={
- 
-      //Movimiento de las esquinas
-      val tableroAux1 = intercambiarSinComprobar((pos+columnas)-1, (pos+columnas)+1, tablero, filas, columnas)     
-      val tableroAux2 = intercambiarSinComprobar((pos+columnas)+1, (pos-columnas)+1, tableroAux1, filas, columnas)
-      val tableroAux3 = intercambiarSinComprobar((pos-columnas)-1, (pos-columnas)+1, tableroAux2, filas, columnas)
-      
-      //Movimiento de los lados
-      val tableroAux4 = intercambiarSinComprobar(pos-1, pos+columnas, tableroAux3, filas, columnas)
-      val tableroAux5 = intercambiarSinComprobar(pos+columnas, pos+1, tableroAux4, filas, columnas)
-      val tableroAux6 = intercambiarSinComprobar(pos+1, pos-columnas, tableroAux5, filas, columnas)
-      
-      return tableroAux6
-  } 
  def saveFile(puntuacion: Int, dificultad:Int): Unit = {
   println("\n\nHas conseguido " + puntuacion + " puntos.")
   println("¿Con qué nombre de usuario quieres guardar la puntuación? (Máximo 12 caracteres")
@@ -724,7 +675,7 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
  }
   
   //Blucle para jugada del usuario
-  def bucleJugador(tablero:List[Diamante],dificultad:Int,filas:Int,columnas:Int,score:Int,contents:Seq[Component]){
+  def bucleJugador(tablero:List[Diamante],dificultad:Int,filas:Int,columnas:Int,score:Int){
     
     //contents =  print_tablero(tablero, dificultad, columnas, filas,0)
     println("Introduzca fila 1:")
@@ -745,9 +696,9 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
        if(boardScore._2>=2000){ 
          println("\n-- JUEGO TERMINADO --") 
        }
-       else bucleJugador(boardScore._1,dificultad,filas,columnas,boardScore._2,contents)
+       else bucleJugador(boardScore._1,dificultad,filas,columnas,boardScore._2)
     }else{
-      bucleJugador(tablero,dificultad,filas,columnas,score,contents)
+      bucleJugador(tablero,dificultad,filas,columnas,score)
     }
     
   }
