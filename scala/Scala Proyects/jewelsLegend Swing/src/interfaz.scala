@@ -154,10 +154,6 @@ object interfaz extends App {
                     
 				def actionPerformed(evento:ActionEvent):Unit = {
 
-					botonActionPerformed(tableroGrafico,tablero,filas,columnas,filas*columnas-1,
-					    puntuacion,dificultad,modo)      
-
-
 				  val tableroCambiado = jewelsLegend.automaticMode(0,dificultad,Nil, tablero, 0, 0, 0, filas, columnas,puntuacion);
 				  tableroGrafico.dispose()
 				  bucle(tableroCambiado._1, dificultad, filas, columnas, tableroCambiado._2, modo)
