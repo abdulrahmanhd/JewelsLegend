@@ -15,7 +15,22 @@ object jewelsLegend extends App{
 
  class Diamante (val pos:Int,val color:Int,val selected:Boolean)
    
- 
+ //Devuelve posiciones pulsadas por el usuario
+ //diamante1 y diamante2 debe ser -1 inicialmente
+ def devolverPulsados(tablero:List[Diamante], pos:Int, diamante1:Int, diamante2:Int):(Int,Int)={
+   if(tablero.tail==Nil)return (diamante1,diamante2)
+   else{
+     if(tablero.head.selected==true){
+       if(diamante1==(-1)){ 
+         return devolverPulsados(tablero.tail,pos+1,tablero.head.pos,diamante2)
+        }
+       else return devolverPulsados(tablero.tail,pos+1,diamante1,tablero.head.pos)
+       }
+     else{
+       return devolverPulsados(tablero.tail,pos+1,diamante1,diamante2)
+     }
+   }
+ }
   
   //funcion para pintar indicadores al tablero
 def pintar_flechas_columnas(dificultad:Int) {
