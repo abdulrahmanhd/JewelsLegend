@@ -176,27 +176,22 @@ object interfaz extends App {
   			//Se extrae la fila y la columna
 		  val dato = jewelsLegend.devolverDiamanteLista(pos,tablero)
 		  val tableroAux = jewelsLegend.insertar_diamante(dato.color, pos, tablero, pos, true)
+		  val listaPulsados = jewelsLegend.devolverPulsados(tableroAux, 0, -1, -1);
 		  
-		  /*
-   			val columna = pos % columnas
-   			val fila = (pos - columna)/columnas
-
-   			/*  Se elimina la celda de la posici�n recibida 
-  				Se obtiene el tablero y los puntos como consecuencia 
-  				de la eliminaci�n */
-  	    
-  	 		val ListaExplotar = jewelsLegend.generarListaIguales(tablero,filas,columnas,0)
-  	 		val resultado = jewelsLegend.explotar(ListaExplotar, tablero)
-  	 		val puntuacionF = puntuacion + jewelsLegend.getZero(resultado, filas, columnas, 0)
-  	 		
-  	 		
-  			//Se reestructura el tablero
-  			val tablero2 = jewelsLegend.bucleMoverCeros(filas*columnas-1,tablero,tablero,filas,columnas)
-  			val tablero_3 = jewelsLegend.moveLeft(0,tablero2,filas,columnas)
-  			val tablero_final = jewelsLegend.reponer(dificultad, tablero_3, 0)
-  			//se cierra la ventana */
-  			ventana.dispose()
-  			//Y se vuelve a ejecutar el bucle del juego
+		  if(jewelsLegend.dosPulsados(tableroAux, 0, 0)){
+		    //funcion de bucle
+		    val diamante1 = jewelsLegend.devolverDiamanteLista(listaPulsados._1,tablero)
+		    val diamante2 = jewelsLegend.devolverDiamanteLista(listaPulsados._2,tablero)
+		    
+		    if(jewelsLegend.comprobarMovimiento(diamante1, diamante2, tableroAux, filas, columnas)){
+		      
+		    }else{
+		      JOptionPane.showMessageDialog(null,"ERROR EN EL MOVIMIENTO !!",null,JOptionPane.ERROR_MESSAGE)
+		      val tableroAux2 = jewelsLegend.insertar_diamante(diamante1.color, pos, tableroAux, pos, false)
+		      val tableroAux3 = jewelsLegend.insertar_diamante(diamante2.color, pos, tableroAux2, pos, false)
+		      bucle(tableroAux3,dificultad,filas,columnas,puntuacion,modo)
+		    }
+		  }
   			
   			bucle(tableroAux,dificultad,filas,columnas,puntuacion,modo)
   		}
@@ -239,13 +234,15 @@ object interfaz extends App {
 							tablero,
 							filas, 
 							columnas,  
-						  filas*columnas-1, 
+						  pos, 
 							puntuacion, 
 							dificultad, 
 							modo)   
 				}});
-				if(jewelsLegend.devolverDiamanteLista(pos, tablero).selected)
-				    botonColoreado.setBorder(new LineBorder(Color.WHITE,4))
+				if(jewelsLegend.devolverDiamanteLista(pos, tablero).selected){
+				  botonColoreado.setBorder(new LineBorder(Color.WHITE,4))
+				}
+				    
 			}
 			anadirBotones(
 				v,
