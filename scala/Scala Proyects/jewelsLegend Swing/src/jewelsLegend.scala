@@ -1,7 +1,5 @@
 import java.io.File;
 import java.io.FileWriter;
-import scala.swing._
-import scala.swing.event._
 import java.awt.{Color, Font}
 import java.awt.BorderLayout
 import java.awt.event.ActionListener
@@ -17,97 +15,7 @@ object jewelsLegend extends App{
 
  class Diamante (val pos:Int,val color:Int,val selected:Boolean)
    
- def top = new MainFrame {
-    
-   //Creamos los componentes
-    val ventanaNivel = new JFrame("JEWELS LEGEND")
-    val contentPanel = new JPanel
-    val jLabel1 = new javax.swing.JLabel();
-    val facil = new javax.swing.JButton();
-    val medio = new javax.swing.JButton();
-    val dificil = new javax.swing.JButton();
-    
-    ventanaNivel.setVisible(true)
-    ventanaNivel.setBounds(200,100,500,450)
-    jLabel1.setText("JEWELS LEGEND SELECCION DE NIVEL");
-    jLabel1.setBounds(140,50,300,100)
-    
-    ventanaNivel.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
-    ventanaNivel.add(contentPanel)
-    
-    contentPanel.setBorder(new EmptyBorder(5,5,5,5));
-    contentPanel.setLayout(new BorderLayout(0,0))
-    contentPanel.setVisible(true)
-    contentPanel.setLayout(null);
-    
-    //Acciones de los botones
-    facil.setText("FACIL");
-    facil.setBounds(170,190,150,23)
-    facil.addActionListener(new ActionListener() {
-            def actionPerformed(e:ActionEvent){
-              val dificultad = 1;
-              val dimensiones = getLevel(dificultad)
-              val columnas= dimensiones._1
-              val filas = dimensiones._2
-              val tablero = generarTablero(0,filas,columnas,dificultad)
-    
-              contents =  print_tablero(tablero, dificultad, columnas, filas,0)
-              size = new Dimension(400, 400)
-              //ventanaNivel.setVisible(false)
-              //bucleJugador(tablero,dificultad,filas,columnas,0,contents)
-              //size = new Dimension(400, 400)
-            }
-        });
-    
-    medio.setText("MEDIO");
-    medio.setBounds(170,240,150,23)
-    medio.addActionListener(new ActionListener() {
-            def actionPerformed(e:ActionEvent){
-              println("SE PUE SACAR")
-              val dificultad = 2;
-              val dimensiones = getLevel(dificultad)
-              val columnas= dimensiones._1
-              val filas = dimensiones._2
-              val tablero = generarTablero(0,filas,columnas,dificultad)
-    
-              contents =  print_tablero(tablero, dificultad, columnas, filas,0)
-              size = new Dimension(600, 600)
-              //ventanaNivel.setVisible(false)
-            }
-        });
-    
-    dificil.setText("DIFICIL");
-    dificil.setBounds(170,290,150,23)
-    dificil.addActionListener(new ActionListener() {
-            def actionPerformed(e:ActionEvent){
-              println("TE DA UN CHUNGUELE")
-              val dificultad = 3;
-              val dimensiones = getLevel(dificultad)
-              val columnas= dimensiones._1
-              val filas = dimensiones._2
-              val tablero = generarTablero(0,filas,columnas,dificultad)
-    
-              contents =  print_tablero(tablero, dificultad, columnas, filas,0)
-              size = new Dimension(700, 700)
-              //ventanaNivel.setVisible(false)
-            }
-        });
-
-    contentPanel.add(jLabel1)
-    contentPanel.add(facil)
-    contentPanel.add(medio)
-    contentPanel.add(dificil)
-    /*  
-    val dificultad = 1;
-    val dimensiones = getLevel(dificultad);
-    val columnas= dimensiones._1
-    val filas = dimensiones._2
-    val tablero = generarTablero(0,filas,columnas,dificultad);
-    
-    contents =  print_tablero(tablero, dificultad, columnas, filas)
-    size = new Dimension(500, 500)*/
-    
-}
+ 
   
   //funcion para pintar indicadores al tablero
 def pintar_flechas_columnas(dificultad:Int) {
@@ -377,29 +285,17 @@ def subir_ceros(pos0:Int,posIntercambio:Int,l:List[Diamante],filas:Int,columnas:
     
       if(devolverDiamanteLista(posIntercambio,l).color!=0){
         
-<<<<<<< HEAD
-        val bloqAux1= devolverDiamanteLista(posIntercambio,l)
-        val bloqAux2= new Diamante(encontrarCero(pos0,l,columnas),0,false)
-        val bloqAux12=new Diamante(bloqAux1.pos,bloqAux2.color,false)
-        val bloqAux21=new Diamante(bloqAux2.pos,bloqAux1.color,false)
-        
-        //bajar el diamante que no es 0
-        val aux=insertar_diamante(bloqAux12.color,bloqAux1.pos,l,bloqAux1.pos,false)
-        
-        //poner el 0
-        val x=insertar_diamante(bloqAux21.color,bloqAux2.pos,aux,bloqAux2.pos,false)
-=======
+
         val diamAux1= devolverDiamanteLista(posIntercambio,l)
-        val diamAux2= new Diamante(encontrarCero(pos0,l,columnas),0)
-        val diamAux12=new Diamante(diamAux1.pos,diamAux2.color)
-        val diamAux21=new Diamante(diamAux2.pos,diamAux1.color)
+        val diamAux2= new Diamante(encontrarCero(pos0,l,columnas),0,false)
+        val diamAux12=new Diamante(diamAux1.pos,diamAux2.color,false)
+        val diamAux21=new Diamante(diamAux2.pos,diamAux1.color,false)
         
         //bajar el diamante que no es 0
-        val aux=insertar_diamante(diamAux12.color,diamAux1.pos,l,diamAux1.pos)
+        val aux=insertar_diamante(diamAux12.color,diamAux1.pos,l,diamAux1.pos,false)
         
         //poner el 0
-        val x=insertar_diamante(diamAux21.color,diamAux2.pos,aux,diamAux2.pos)
->>>>>>> 41a29c01726b1856027f035192e84ab3b7043924
+        val x=insertar_diamante(diamAux21.color,diamAux2.pos,aux,diamAux2.pos,false)
 
         subir_ceros(pos0-columnas,posIntercambio,x,filas,columnas)//-columnas
         }
@@ -728,64 +624,6 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
     } 
   }
   
-  //funcion para imprimir un tablero (OK)
-  def print_tablero(tablero:List[Diamante],dificultad:Int, columnas:Int, filas:Int, puntuacion:Int): BorderPanel={
-    
-    val dimensiones = getLevel(dificultad);
-    val columnas= dimensiones._1
-    val filas = dimensiones._2
-    
-    return new BorderPanel {
-      import BorderPanel.Position._
-      /*layout(new GridPanel(1,3) {
-        contents +={new Button("Manual");}
-        contents +={new Button("Automatico");}
-        
-      }) = North;*/
-      layout(new GridPanel(1,3) {
-        contents +={new Label("   Puntuacion : ");}
-        contents +={new Label(puntuacion.toString());}
-     })  = North;
-      
-     getLevel(dificultad:Int):(Int,Int)
-      layout(new GridPanel(filas,columnas) {
-        contents ++= 0 to tablero.length-1 map(
-          n =>  new Button(){
-            val diamante = devolverDiamanteLista(n.toInt,tablero);
-            val color = convertir_a_colores(diamante.color);
-            background = color
-            reactions += {
-                case ButtonClicked(_) => {
-                  selected = true 
-                  background = Color.LIGHT_GRAY
-                  println(diamante.pos);
-                  
-                }
-            }
-          }
-        )
-      }) = Center;
-      
-   }
-    /*if (!tablero.isEmpty) {
-    if (tablero.length==filas*columnas)
-      pintar_flechas_columnas(dificultad)
-
-
-    print(convertir_a_colores(tablero.head.color) + " ")
-    if ((tablero.head.pos + 1) % columnas == 0) {
-      print(" - " + ((tablero.head.pos + 1) / columnas - 1))
-      if ((tablero.head.pos + 1) / columnas==1) println("  F")
-      if ((tablero.head.pos + 1) / columnas==2) println("  I")
-      if ((tablero.head.pos + 1) / columnas==3) println("  L")
-      if ((tablero.head.pos + 1) / columnas==4) println("  A")
-      if ((tablero.head.pos + 1) / columnas==5) println("  S")
-      if ((tablero.head.pos + 1) / columnas>5) println()
-      }
-      print_tablero(tablero.tail,dificultad, columnas,filas)
-    }*/
-    
-  }
   
   
   def print_lista(tablero:List[Int], columnas:Int, cont:Int){

@@ -174,13 +174,17 @@ object interfaz extends App {
 		if(modo != 'a'){
   		  //si no es una posicion vacia
   			//Se extrae la fila y la columna
+		  val dato = jewelsLegend.devolverDiamanteLista(pos,tablero)
+		  val tableroAux = jewelsLegend.insertar_diamante(dato.color, dato.pos, tablero, dato.pos, true)
+		  
+		  /*
    			val columna = pos % columnas
    			val fila = (pos - columna)/columnas
 
    			/*  Se elimina la celda de la posici�n recibida 
   				Se obtiene el tablero y los puntos como consecuencia 
   				de la eliminaci�n */
-  	    val dato = jewelsLegend.devolverDiamanteLista(fila*columnas+columna,tablero).color
+  	    
   	 		val ListaExplotar = jewelsLegend.generarListaIguales(tablero,filas,columnas,0)
   	 		val resultado = jewelsLegend.explotar(ListaExplotar, tablero)
   	 		val puntuacionF = puntuacion + jewelsLegend.getZero(resultado, filas, columnas, 0)
@@ -190,38 +194,13 @@ object interfaz extends App {
   			val tablero2 = jewelsLegend.bucleMoverCeros(filas*columnas-1,tablero,tablero,filas,columnas)
   			val tablero_3 = jewelsLegend.moveLeft(0,tablero2,filas,columnas)
   			val tablero_final = jewelsLegend.reponer(dificultad, tablero_3, 0)
-  			//se cierra la ventana 
+  			//se cierra la ventana */
   			ventana.dispose()
   			//Y se vuelve a ejecutar el bucle del juego
   			
-  			bucle(tablero_final,dificultad,filas,columnas,puntuacionF,modo)
+  			bucle(tableroAux,dificultad,filas,columnas,puntuacion,modo)
   		}
 		
-		//si no es una posicion vacia
-		if(jewelsLegend.devolverDiamanteLista(pos, tablero).color!=0) {
-			//Se extrae la fila y la columna
- 			val columna = pos % columnas
- 			val fila = (pos - columna)/columnas
- 		
- 			/*  Se elimina la celda de la posicion recibida y se obtiene el tablero y los puntos  */
-	    val dato = jewelsLegend.devolverDiamanteLista(fila*columnas+columna,tablero).color
-	 		val ListaExplotar = jewelsLegend.generarListaIguales(tablero,filas,columnas,0)
-	 		val resultado = jewelsLegend.explotar(ListaExplotar, tablero)
-	 		val puntuacionF = puntuacion + jewelsLegend.getZero(resultado, filas, columnas, 0)
-	 			 		
-			//Se reestructura el tablero
-			val tablero2 = jewelsLegend.bucleMoverCeros(filas*columnas-1,tablero,tablero,filas,columnas)
-			val tablero_3 = jewelsLegend.moveLeft(0,tablero2,filas,columnas)
-			val tablero_final = jewelsLegend.reponer(dificultad, tablero_3, 0)
-			
-			//se cierra la ventana 
-			ventana.dispose()
-			//Y se vuelve a ejecutar el bucle del juego
-			
-			bucle(tablero_final,dificultad,filas,columnas,puntuacionF,modo)
-		}else{
-			Nil
-		}
 
 	}
 	
@@ -265,6 +244,8 @@ object interfaz extends App {
 							dificultad, 
 							modo)   
 				}});
+				if(jewelsLegend.devolverDiamanteLista(pos, tablero).selected)
+				    botonColoreado.setBorder(new LineBorder(Color.WHITE,4))
 			}
 			anadirBotones(
 				v,
