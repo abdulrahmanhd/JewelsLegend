@@ -90,11 +90,6 @@ object interfaz extends App {
 
 		
 		//Se introducen los botones en el panel_tablero, y la informacion de la partida
-  		anadirBotones(tableroGrafico,panel_tablero,filas,columnas,tablero,puntuacion,dificultad,modo,0)
-
-     
-		
-		//Se introducen los botones en el panel_tablero, y la informacion de la partida
   		anadirBotones(
 				tableroGrafico,
 				panel_tablero, 
@@ -260,7 +255,6 @@ object interfaz extends App {
 			Nil
 		}
 
->>>>>>> 5d19d82ce28bb3e707da51cd57c9d93a3c31c203
 	}
 	
 	
@@ -330,26 +324,8 @@ object interfaz extends App {
 			numero: Int,
 			filas:Int, 
 			columnas:Int): JButton = {
-		    
-															
-<<<<<<< HEAD
-		val iconoBloqueAzul = new ImageIcon(
-				(new ImageIcon("res/azul.png")).getImage().getScaledInstance( 
-															500/columnas,
-															400/filas, 
-															Image.SCALE_FAST))
-															
-		val iconoBloqueAmarillo = new ImageIcon(
-				(new ImageIcon("res/amarillo.png")).getImage().getScaledInstance( 
-															500/columnas,
-															400/filas, 
-															Image.SCALE_FAST))
-															
-		val iconoBloqueBlanco = new ImageIcon(
-				(new ImageIcon("res/blanco.png")).getImage().getScaledInstance( 
-															500/columnas,
-															400/filas,
-=======
+		   
+
 		val d1 = new ImageIcon(
 				(new ImageIcon("res/d1.png")).getImage().getScaledInstance( 
 															600/columnas,
@@ -366,7 +342,6 @@ object interfaz extends App {
 				(new ImageIcon("res/d3.png")).getImage().getScaledInstance( 
 															600/columnas,
 															500/filas,
->>>>>>> 5d19d82ce28bb3e707da51cd57c9d93a3c31c203
 															Image.SCALE_FAST))
 		
 		val d4= new ImageIcon(
@@ -374,22 +349,6 @@ object interfaz extends App {
 															600/columnas,
 															500/filas, 
 															Image.SCALE_FAST))
-<<<<<<< HEAD
-		val iconoBloqueVerde = new ImageIcon(
-				(new ImageIcon("res/verde_claro.png")).getImage().getScaledInstance( 
-															500/columnas,
-															400/filas, 
-															Image.SCALE_FAST))
-		val iconoBloqueMorado = new ImageIcon(
-				(new ImageIcon("res/morado.png")).getImage().getScaledInstance(
-															500/columnas,
-															400/filas,
-															Image.SCALE_FAST))
-		val iconoBloqueMarron = new ImageIcon(
-				(new ImageIcon("res/marron.png")).getImage().getScaledInstance( 
-															500/columnas,
-															400/filas, 
-=======
 		val d5 = new ImageIcon(
 				(new ImageIcon("res/d5.png")).getImage().getScaledInstance( 
 															600/columnas,
@@ -404,7 +363,6 @@ object interfaz extends App {
 				(new ImageIcon("res/d7.png")).getImage().getScaledInstance( 
 															600/columnas,
 															500/filas, 
->>>>>>> 5d19d82ce28bb3e707da51cd57c9d93a3c31c203
 															Image.SCALE_FAST))
 		
 		if(numero == 0)
