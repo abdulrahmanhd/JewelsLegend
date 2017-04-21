@@ -216,7 +216,7 @@ object interfaz extends App {
 			modo:Char): Unit = { 
 		
 		
-		//si no es una posici�n vac�a
+		//si no es una posicion vacia
 		if(jewelsLegend.devolverDiamanteLista(pos, tablero).color!=0) {
 			//Se extrae la fila y la columna
  			val columna = pos % columnas
@@ -305,7 +305,6 @@ object interfaz extends App {
 							modo)   
 				}});
 			}
-			println("BOTON AÑADIDO CON COLOR "+dato);
 			anadirBotones(
 				v,
 				panel, 
