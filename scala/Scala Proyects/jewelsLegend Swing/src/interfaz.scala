@@ -185,7 +185,9 @@ object interfaz extends App {
 		    val diamante2 = jewelsLegend.devolverDiamanteLista(listaPulsados._2,tablero)
 		    
 		    if(jewelsLegend.comprobarMovimiento(diamante1, diamante2, tableroAux, filas, columnas)){
-		      val tableroFinal = jewelsLegend.bucleJugador(tableroAux, dificultad, filas, columnas, puntuacion, listaPulsados._1, listaPulsados._2)
+		      val tableroAux2 = jewelsLegend.insertar_diamante(diamante1.color, listaPulsados._1, tableroAux, listaPulsados._1, false)
+		      val tableroAux3 = jewelsLegend.insertar_diamante(diamante2.color, listaPulsados._2, tableroAux2, listaPulsados._2, false)
+		      val tableroFinal = jewelsLegend.bucleJugador(tableroAux3, dificultad, filas, columnas, puntuacion, listaPulsados._1, listaPulsados._2)
 		      ventana.dispose();
 		      bucle(tableroFinal._1,dificultad,filas,columnas,tableroFinal._2,modo)
 		    }else{
