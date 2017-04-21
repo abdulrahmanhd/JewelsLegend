@@ -542,7 +542,7 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
       println("* Mejor movimiento posicion : " + bestChange1 + " por posicion : " + bestChange2 + " y explotaran : "+contSame + " *");
       println("*********************************************************************");
       val boardScore = checkLoopDelete(tablero,dificultad,filas,columnas,score);
-       if(boardScore._2>=2000){
+       if(boardScore._2>=4000){
          println("\n-- JUEGO TERMINADO --")
          return boardScore;
        }
@@ -617,7 +617,7 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
        val tableroAux = intercambiarSinComprobar(pos1, pos2, tablero, filas, columnas)
        val boardScore = checkLoopDelete(tableroAux,dificultad,filas,columnas,score);
       
-       if(boardScore._2>=2000){ 
+       if(boardScore._2>=4000){ 
          println("\n-- JUEGO TERMINADO --") 
          return boardScore
        }else{
@@ -665,26 +665,5 @@ def moveLeft(pos:Int,tablero:List[Diamante],filas:Int,columnas:Int):List[Diamant
     }
   }
   
-  /*def main(args: Array[String]){
-    println("Introduzca dificultad")
-    val dificultad=readInt
-    println("Introduzca el modo (usuario:0, automatico:1) : ")
-    val modo=readInt
-    
-    val dimensiones = getLevel(dificultad);
-    val columnas= dimensiones._1
-    val filas = dimensiones._2
-    val tablero = generarTablero(0,filas,columnas,dificultad)
-    println("\nPUNTUACION: "+0)
-    print_tablero(tablero,dificultad,columnas,filas)
-    val boardScore = checkLoopDelete(tablero,dificultad,filas,columnas,0);
-    
-   if(modo ==1){
-     val tableroFinal =  automaticMode(0,dificultad,Nil, boardScore._1, 0, 0, 0, filas, columnas,boardScore._2);
-   }
-   if(modo==0){
-      bucleJugador(boardScore._1,dificultad,filas,columnas,boardScore._2)
-   }
-    
-  }*/
+
 }
