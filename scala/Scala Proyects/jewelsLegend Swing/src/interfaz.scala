@@ -175,7 +175,7 @@ object interfaz extends App {
   		  //si no es una posicion vacia
   			//Se extrae la fila y la columna
 		  val dato = jewelsLegend.devolverDiamanteLista(pos,tablero)
-		  val tableroAux = jewelsLegend.insertar_diamante(dato.color, dato.pos, tablero, dato.pos, true)
+		  val tableroAux = jewelsLegend.insertar_diamante(dato.color, pos, tablero, pos, true)
 		  
 		  /*
    			val columna = pos % columnas
