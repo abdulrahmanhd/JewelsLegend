@@ -195,7 +195,7 @@ __device__ int comprobarIgualesPos(int *tablero, int posX, int posY, posicion po
 		if (posX - 1 >= 0 && posY+1<tamColumnas && tablero[(posX*tamColumnas) + posY] == tablero[((posX - 1) * tamColumnas) + posY+1]) { //comprobamos arribaDerecha
 			cont += 1 + comprobarIgualesPos(tablero, posX - 1, posY+1, ArribaDerecha, tamFilas, tamColumnas);
 		}
-		break;
+		break;	
 	case AbajoIzquierda:
 		if (posX + 1 < tamFilas && posY - 1 >=  0 && tablero[(posX*tamColumnas) + posY] == tablero[((posX + 1) * tamColumnas) + posY-1]) { //comprobamos abajoIzquierda
 			cont += 1 + comprobarIgualesPos(tablero, posX + 1, posY-1, AbajoIzquierda, tamFilas, tamColumnas);
@@ -292,14 +292,14 @@ __device__ void reestructuracionArribaAbajo(int* dev_tablero, int filas, int col
 	int count = 0;
 	int comprobador = 0;
 	// Se comprueba que esa celda no es 0 para compararla con los elementos que tiene por debajo
-	if (dev_tablero[actual] != 0) {
+	if (dev_tablero[actual] != 0 && celday<columnas) {
 
 		actual += columnas;
 
 		// Se comprueban cuantos 0 hay por debajo de la celda. Este numero se guardara en la variable count
 		while (actual < size) {
 
-			if (dev_tablero[actual] == 0) {
+			if (dev_tablero[actual] == 0 && celday<columnas) {
 				count++;
 			}
 
@@ -308,14 +308,14 @@ __device__ void reestructuracionArribaAbajo(int* dev_tablero, int filas, int col
 		}
 
 		//Cambio de valor de la celda que se comprueba con la celda de las posiciones que tiene que descender
-		if (count > 0) {
+		if (count > 0 && celday<columnas) {
 			dev_tablero[nombre + (count * columnas)] = dev_tablero[nombre];
 		}
 
 		actual = nombre - filas;
 
 		//Comprobacion de cuantos 0 por encima tiene la celda que se comprueba
-		while (actual > 0) {
+		while (actual > 0 && celday<columnas) {
 			if (dev_tablero[actual] == 0) {
 				comprobador++;
 			}
@@ -324,7 +324,7 @@ __device__ void reestructuracionArribaAbajo(int* dev_tablero, int filas, int col
 
 		//Poner a 0 el valor de la celda que se cambia si su fila menos el numero de 0 que tiene por encima
 		// es menor o igual que el numero de ceros que tiene por debajo
-		if (celdax - comprobador < count) {
+		if (celdax - comprobador < count  && celday<columnas) {
 			dev_tablero[nombre] = 0;
 		}
 
@@ -399,6 +399,66 @@ __device__ void bomba3(int* dev_tablero, int filas , int columnas) {
 	}
 	
 }
+__device__ void bomba5(int* dev_tablero, int explota,int fila, int columnas) {
+
+	int i = blockIdx.y * blockDim.y + threadIdx.y;		//Indice de la x
+	int j = blockIdx.x * blockDim.x + threadIdx.x;		//Indice de la y
+	int DiagonalDerecha = 0;
+	int DiagonalIzquierda = 0;
+	
+	if (dev_tablero[i*columnas + j] == explota && i<fila && j <columnas) {
+		DiagonalDerecha = comprobarIgualesPos(dev_tablero, i, j, ArribaDerecha, fila, columnas) + comprobarIgualesPos(dev_tablero, i, j, AbajoIzquierda, fila, columnas);
+		DiagonalIzquierda = comprobarIgualesPos(dev_tablero, i, j, ArribaIzquierda, fila, columnas) + comprobarIgualesPos(dev_tablero, i, j, AbajoDerecha, fila, columnas);
+	}
+	
+	if (DiagonalDerecha >= 2 /*|| DiagonalIzquierda >= 2)*/ && i < fila && j < columnas) {
+		if (comprobarIgualesPos(dev_tablero, i, j, ArribaDerecha, fila, columnas) >= 2) {
+			dev_tablero[i-1*columnas + j+1] = 0;
+			dev_tablero[(i - 2) * columnas + j + 2] = 0;
+
+		}else if (comprobarIgualesPos(dev_tablero, i, j, AbajoIzquierda, fila, columnas) >= 2) {
+			dev_tablero[i + 1 * columnas + j - 1] = 0;
+			dev_tablero[i + 2 * columnas + j - 2] = 0;
+		}else if (comprobarIgualesPos(dev_tablero, i, j, ArribaDerecha, fila, columnas) == 1 && comprobarIgualesPos(dev_tablero, i, j, AbajoIzquierda, fila, columnas) == 1) {
+			dev_tablero[i + 1 * columnas + j - 1] = 0;
+			dev_tablero[i - 1 * columnas + j + 1] = 0;
+		}
+		
+		dev_tablero[i*columnas + j] = 0;
+	}
+	else if (DiagonalIzquierda >= 2 && i < fila && j < columnas) {
+		if (comprobarIgualesPos(dev_tablero, i, j, ArribaIzquierda, fila, columnas) >= 2) {
+			dev_tablero[i - 1 * columnas + j - 1] = 0;
+			dev_tablero[i - 2 * columnas + j - 2] = 0;
+		}else if (comprobarIgualesPos(dev_tablero, i, j, AbajoDerecha, fila, columnas) >= 2) {
+			dev_tablero[i + 1 * columnas + j - 1] = 0;
+			dev_tablero[i + 2 * columnas + j - 2] = 0;
+		}else if (comprobarIgualesPos(dev_tablero, i, j, ArribaIzquierda, fila, columnas) == 1 && comprobarIgualesPos(dev_tablero, i, j, AbajoDerecha, fila, columnas) == 1) {
+			dev_tablero[i - 1 * columnas + j - 1] = 0;
+			dev_tablero[i + 1 * columnas + j + 1] = 0;
+		}
+		
+		
+		dev_tablero[i*columnas + j] = 0;
+	}
+		/*int jAux = j;
+		int iAux = i;
+		while (dev_tablero[i*columnas + j] == dev_tablero[(iAux - 1) * columnas + (jAux + 1)] && jAux + 1 <columnas && iAux - 1 >= 0) { //eliminamos igual por derecha 
+			dev_tablero[(iAux - 1) * columnas + (jAux + 1)] = 0;
+			jAux++;
+			iAux--;
+		}
+		jAux = j;
+		iAux = i;
+		while (dev_tablero[i*columnas + j] == dev_tablero[(iAux + 1) * columnas + (jAux - 1)] && jAux - 1>=0 && iAux + 1 <fila) {//eliminamos igual por izquierda
+			dev_tablero[(iAux + 1) * columnas + (jAux -1)] = 0;
+			iAux++;
+			jAux--;
+		}
+		dev_tablero[i*columnas + j] = 0;
+	}*/
+
+}
 
 //Menu de bombas
 __global__ void menuBombas(int *dev_tablero, int filas, int columnas, int explota, int bomba) {
@@ -412,6 +472,9 @@ __global__ void menuBombas(int *dev_tablero, int filas, int columnas, int explot
 					break;
 		case 93:	bomba3(dev_tablero, filas, columnas);
 					break;
+		case 95:	bomba5(dev_tablero,explota, filas, columnas);
+					reestructuracionArribaAbajo(dev_tablero, filas, columnas);
+			break;
 	}
 	
 }
@@ -607,7 +670,7 @@ __global__ void probeMovPosi(int* dev_tablero, int filas1, int columnas1, int fi
 
 }
 
-cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorEliminados, char m, int nColores) {
+cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorEliminados, char m, int nColores,int Bomba5) {
 
 	cudaError_t cudaStatus;
 	int fila1 = 0, columna1 = 0, fila2 = 0, columna2 = 0;
@@ -675,6 +738,11 @@ cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorElim
 				explota = 0;
 				activada = true;
 			}
+			if (bomba == 95) {
+				explota = Bomba5;
+				activada = true;
+				
+			}
 			menuBombas << <blocks, threads >> > (dev_tablero, tamFilas, tamColumnas, explota, bomba);
 			hayBomba = true;
 
@@ -710,6 +778,10 @@ cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorElim
 					scanf("%d", &explota);
 				}
 				if (bomba == 93) explota = 0;
+				if (bomba == 95) {
+					explota = Bomba5;
+					printf("EXPLOTAN LOS %d EN DIAGONAL\n", explota);		
+				}
 				menuBombas << <blocks, threads >> > (dev_tablero, tamFilas, tamColumnas, explota, bomba);
 				hayBomba = true;
 			}else {
@@ -802,7 +874,6 @@ cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorElim
 		fprintf(stderr, "jugarKernel launch failed: %s\n", cudaGetErrorString(cudaStatus));
 		goto Error;
 	}
-
 	cudaStatus = cudaMemcpy(tablero, dev_tablero, tamFilas*tamColumnas * sizeof(int), cudaMemcpyDeviceToHost);
 	if (cudaStatus != cudaSuccess) {
 		fprintf(stderr, "cudaMemcpy tablero failed!");
@@ -846,6 +917,7 @@ void cargarPartida() {
 	int columnas=0;
 	int dificultad=0;
 	int contadorEliminados = 0;
+	int Bomba5 = 2;
 
 	// leer el variables del txt
 	fscanf(leer, "%d", &filas);
@@ -866,7 +938,7 @@ void cargarPartida() {
 	do {
 
 		imprimeTablero(tablero, filas, columnas);
-		cudaStatus = jugar(tablero, filas, columnas, &contadorEliminados, 'm', dificultad);
+		cudaStatus = jugar(tablero, filas, columnas, &contadorEliminados, 'm', dificultad,Bomba5);
 
 		imprimeTablero(tablero, filas, dificultad);
 		tablero = rellenarTablero(tablero, filas, columnas, dificultad);
@@ -887,6 +959,8 @@ int main() {
 	int* tablero;
 	int nColores;
 	char cargar;
+	int Bomba5 = 2;
+
 
 	printf("\nQuieres cargar una partida? (s/n): ");
 	scanf("%c",&cargar);
@@ -924,13 +998,13 @@ int main() {
 		imprimeTablero(tablero, tamFilas, tamColumnas);
 
 		if (modo == 'm') {
-			cudaStatus = jugar(tablero, tamFilas, tamColumnas, &contadorEliminados, 'm',nColores);
+			cudaStatus = jugar(tablero, tamFilas, tamColumnas, &contadorEliminados, 'm',nColores,Bomba5);
 			
 		}
 		else
 		{
 
-			cudaStatus = jugar(tablero, tamFilas, tamColumnas, &contadorEliminados, 'a',nColores);
+			cudaStatus = jugar(tablero, tamFilas, tamColumnas, &contadorEliminados, 'a',nColores,Bomba5);
 			getchar();
 		}
 	
@@ -938,6 +1012,20 @@ int main() {
 		imprimeTablero(tablero, tamFilas, tamColumnas);
 		tablero = rellenarTablero(tablero, tamFilas, tamColumnas, nColores);
 		printf("Contador  = %d\n ", contadorEliminados);
+		if (Bomba5 == 2) {
+			Bomba5 = 4;
+		}
+		else if (Bomba5 == 4) {
+			Bomba5 = 6;
+		}
+		else if (Bomba5 == 6) {
+			Bomba5 = 1;
+		}
+		else if (Bomba5 == 1) {
+			Bomba5 = 3;
+		}
+		else if (Bomba5 == 3) { Bomba5 = 5; }
+		else { Bomba5 = 2; }
 
 	} while ((cudaStatus == 0) && (contadorEliminados < 100));
 
@@ -960,7 +1048,7 @@ Error:
 int* rellenarTablero(int* tablero, int tamFilas, int tamColumnas, int nColores) {
 	for (int i = 0; i < tamFilas*tamColumnas; i++)
 	{
-		if(tablero[i] == 0) tablero[i] = 1 + (rand() % nColores);
+		if(tablero[i] == 0) tablero[i] = 8;
 	}
 	return tablero;
 }
@@ -1032,7 +1120,6 @@ void imprimeTablero(int* tablero, int filas, int columnas) {
 
 /*
 Procedimiento que genera un tablero de size x size relleno con numeros del 1 al 2
-y con bombas representadas con el número 3
 */
 int* generaTablero(int filas, int columnas, int nColores) {
 

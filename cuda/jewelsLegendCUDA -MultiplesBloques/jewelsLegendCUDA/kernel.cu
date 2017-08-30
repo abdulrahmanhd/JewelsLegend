@@ -16,7 +16,7 @@
 #define TESELA 32 // Valor hallado por las propiedades de la tarjera, en el que el numero maximo de hilos por bloque son 1024 que sqrt(1024) son 32
 
 
-enum posicion {arriba, abajo, derecha, izquierda };
+enum posicion { arriba, abajo, derecha, izquierda, ArribaIzquierda, ArribaDerecha, AbajoIzquierda, AbajoDerecha };
 int* generaTablero(int filas, int columnas, int bombas);
 void imprimeTablero(int* tablero, int filas, int columnas);
 char pedirModoEjecucion();
@@ -178,6 +178,26 @@ __device__ int comprobarIgualesPos(int *tablero, int posX, int posY, posicion po
 	case arriba:
 		if (posX - 1 >= 0 && tablero[(posX*tamColumnas) + posY] == tablero[((posX - 1) * tamColumnas) + posY]) { //comprobamos arriba
 			cont += 1 + comprobarIgualesPos(tablero, posX - 1, posY, arriba, tamFilas, tamColumnas);
+		}
+		break;
+	case ArribaIzquierda:
+		if (posX - 1 >= 0 && posY >= 0 && tablero[(posX*tamColumnas) + posY] == tablero[((posX - 1) * tamColumnas) + posY - 1]) { //comprobamos arribaIzquierda
+			cont += 1 + comprobarIgualesPos(tablero, posX - 1, posY - 1, ArribaIzquierda, tamFilas, tamColumnas);
+		}
+		break;
+	case ArribaDerecha:
+		if (posX - 1 >= 0 && posY + 1<tamColumnas && tablero[(posX*tamColumnas) + posY] == tablero[((posX - 1) * tamColumnas) + posY + 1]) { //comprobamos arribaDerecha
+			cont += 1 + comprobarIgualesPos(tablero, posX - 1, posY + 1, ArribaDerecha, tamFilas, tamColumnas);
+		}
+		break;
+	case AbajoIzquierda:
+		if (posX + 1 < tamFilas && posY - 1 >= 0 && tablero[(posX*tamColumnas) + posY] == tablero[((posX + 1) * tamColumnas) + posY - 1]) { //comprobamos abajoIzquierda
+			cont += 1 + comprobarIgualesPos(tablero, posX + 1, posY - 1, AbajoIzquierda, tamFilas, tamColumnas);
+		}
+		break;
+	case AbajoDerecha:
+		if (posX + 1 <tamFilas && posY + 1 <tamColumnas && tablero[(posX*tamColumnas) + posY] == tablero[((posX + 1) * tamColumnas) + posY + 1]) { //comprobamos abajoDerecha
+			cont += 1 + comprobarIgualesPos(tablero, posX + 1, posY + 1, AbajoDerecha, tamFilas, tamColumnas);
 		}
 		break;
 	default:
@@ -371,20 +391,72 @@ __device__ void bomba3(int* dev_tablero, int filas , int columnas) {
 	}
 }
 
+__device__ void bomba5(int* dev_tablero, int explota, int fila, int columnas) {
+
+	int i = blockIdx.y * blockDim.y + threadIdx.y;		//Indice de la x
+	int j = blockIdx.x * blockDim.x + threadIdx.x;		//Indice de la y
+	int DiagonalDerecha = 0;
+	int DiagonalIzquierda = 0;
+
+	if (dev_tablero[i*columnas + j] == explota && i<fila && j <columnas) {
+		DiagonalDerecha = comprobarIgualesPos(dev_tablero, i, j, ArribaDerecha, fila, columnas) + comprobarIgualesPos(dev_tablero, i, j, AbajoIzquierda, fila, columnas);
+		DiagonalIzquierda = comprobarIgualesPos(dev_tablero, i, j, ArribaIzquierda, fila, columnas) + comprobarIgualesPos(dev_tablero, i, j, AbajoDerecha, fila, columnas);
+	}
+
+	if (DiagonalDerecha >= 2 && i < fila && j < columnas) {
+		int jAux = j;
+		int iAux = i;
+		while (dev_tablero[i*columnas + j] == dev_tablero[iAux - 1 * columnas + (jAux - 1)] && jAux - 1 >= 0 && iAux - 1 >= 0) { //eliminamos igual por derecha 
+			dev_tablero[iAux - 1 * columnas + (jAux - 1)] = 0;
+			jAux--;
+			iAux--;
+		}
+		jAux = j;
+		iAux = i;
+		while (dev_tablero[i*columnas + j] == dev_tablero[iAux + 1 * columnas + (jAux + 1)] && jAux + 1<columnas && iAux + 1 <fila) {//eliminamos igual por izquierda
+			dev_tablero[iAux + 1 * columnas + (jAux + 1)] = 0;
+			iAux++;
+			jAux++;
+		}
+		dev_tablero[i*columnas + j] = 0;
+	}
+	else if (DiagonalIzquierda >= 2) {
+		int jAux = j;
+		int iAux = i;
+		while (dev_tablero[i*columnas + j] == dev_tablero[iAux - 1 * columnas + (jAux + 1)] && jAux + 1 <columnas && iAux - 1 >= 0) { //eliminamos igual por derecha 
+			dev_tablero[iAux - 1 * columnas + (jAux + 1)] = 0;
+			jAux++;
+			iAux--;
+		}
+		jAux = j;
+		iAux = i;
+		while (dev_tablero[i*columnas + j] == dev_tablero[iAux + 1 * columnas + (jAux - 1)] && jAux - 1 >= 0 && iAux + 1 <fila) {//eliminamos igual por izquierda
+			dev_tablero[iAux + 1 * columnas + (jAux - 1)] = 0;
+			iAux++;
+			jAux--;
+		}
+		dev_tablero[i*columnas + j] = 0;
+	}
+
+}
+
 //Menu de bombas
 __global__ void menuBombas(int *dev_tablero, int filas, int columnas, int explota, int bomba) {
-	
+
 	switch (bomba) {
-		case 91:	bomba1(dev_tablero, explota,filas, columnas);
-					reestructuracionArribaAbajo(dev_tablero, filas, columnas);
-					break;
-		case 92:	bomba2(dev_tablero, explota, filas, columnas);
-					reestructuracionIzquierdaDerecha(dev_tablero, filas, columnas);
-					break;
-		case 93:	bomba3(dev_tablero, filas, columnas);
-					break;
+	case 91:	bomba1(dev_tablero, explota,filas, columnas);
+		reestructuracionArribaAbajo(dev_tablero, filas, columnas);
+		break;
+	case 92:	bomba2(dev_tablero, explota,filas, columnas);
+		reestructuracionIzquierdaDerecha(dev_tablero, filas, columnas);
+		break;
+	case 93:	bomba3(dev_tablero, filas, columnas);
+		break;
+	case 95:	bomba5(dev_tablero, explota, filas, columnas);
+		reestructuracionArribaAbajo(dev_tablero, filas, columnas);
+		break;
 	}
-	
+
 }
 
 // Funcion que elimina con un unico bloque
@@ -578,7 +650,7 @@ __global__ void probeMovPosi(int* dev_tablero, int filas1, int columnas1, int fi
 
 }
 
-cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorEliminados, char m, int nColores) {
+cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorEliminados, char m, int nColores, int Bomba5) {
 
 	cudaError_t cudaStatus;
 	int fila1 = 0, columna1 = 0, fila2 = 0, columna2 = 0;
@@ -696,6 +768,10 @@ cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorElim
 					scanf("%d", &explota);
 				}
 				if (bomba == 93) explota = 0;
+				if (bomba == 95) {
+					explota = Bomba5;
+					printf("EXPLOTAN LOS %d EN DIAGONAL\n", explota);
+				}
 				menuBombas << <blocks, threads >> > (dev_tablero, tamFilas, tamColumnas, explota, bomba);
 				hayBomba = true;
 			}else {
@@ -710,7 +786,7 @@ cudaError_t jugar(int* tablero, int tamFilas, int tamColumnas, int* contadorElim
 			}
 	}
 	else if(hasMoreMovements(tablero, tamFilas, tamColumnas)){
-		
+		//int valor = 1;
 		int posX = 0;
 		int movOptimoFila1, movOptimoColumna1, movOptimoFila2, movOptimoColumna2, contMovOptimo = 0;
 		int contDiamantesExplot = 0;
@@ -853,7 +929,7 @@ void cargarPartida() {
 	do {
 
 		imprimeTablero(tablero, filas, columnas);
-		cudaStatus = jugar(tablero, filas, columnas, &contadorEliminados, 'm', dificultad);
+		cudaStatus = jugar(tablero, filas, columnas, &contadorEliminados, 'm', dificultad,2);
 
 		imprimeTablero(tablero, filas, dificultad);
 		tablero = rellenarTablero(tablero, filas, columnas, dificultad);
@@ -874,6 +950,8 @@ int main() {
 	int* tablero;
 	int nColores;
 	char cargar;
+	int Bomba5 = 2;
+
 
 	printf("\nQuieres cargar una partida? (s/n): ");
 	scanf("%c", &cargar);
@@ -911,13 +989,13 @@ int main() {
 		imprimeTablero(tablero, tamFilas, tamColumnas);
 
 		if (modo == 'm') {
-			cudaStatus = jugar(tablero, tamFilas, tamColumnas, &contadorEliminados, 'm', nColores);
+			cudaStatus = jugar(tablero, tamFilas, tamColumnas, &contadorEliminados, 'm', nColores, Bomba5);
 
 		}
 		else
 		{
 
-			cudaStatus = jugar(tablero, tamFilas, tamColumnas, &contadorEliminados, 'a', nColores);
+			cudaStatus = jugar(tablero, tamFilas, tamColumnas, &contadorEliminados, 'a', nColores, Bomba5);
 			getchar();
 		}
 
@@ -925,6 +1003,21 @@ int main() {
 		imprimeTablero(tablero, tamFilas, tamColumnas);
 		tablero = rellenarTablero(tablero, tamFilas, tamColumnas, nColores);
 		printf("Contador  = %d\n ", contadorEliminados);
+		if (Bomba5 == 2) {
+			Bomba5 = 4;
+		}
+		else if (Bomba5 == 4) {
+			Bomba5 = 6;
+		}
+		else if (Bomba5 == 6) {
+			Bomba5 = 1;
+		}
+		else if (Bomba5 == 1) {
+			Bomba5 = 3;
+		}
+		else if (Bomba5 == 3) { Bomba5 = 5; }
+		else { Bomba5 = 2; }
+
 
 	} while ((cudaStatus == 0) && (contadorEliminados < 100));
 

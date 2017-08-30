@@ -416,13 +416,15 @@ __device__ void memoriaCompartida(int* dev_tablero, int fila1, int columna1, int
 	__syncthreads();
 
 			if (sameHorizon1 > sameVertical1) {
-				if (x == fila1 &&  dev_tablero[(x * tamColumnas) + y] == valor &&  y<tamColumnas) {
+				int iguales = comprobarIgualesPos(dev_tablero, x, y, derecha, tamFilas, tamColumnas) + comprobarIgualesPos(dev_tablero, x, y, izquierda, tamFilas, tamColumnas);
+				if (x == fila1 &&  dev_tablero[(x * tamColumnas) + y] == valor &&  y<tamColumnas && iguales >=2) {
 					matrizCompartida[threadIdx.y][threadIdx.x] = 0;
 				}
 
 			}
 			else { 	
-				if ( y == columna1 && dev_tablero[(x * tamColumnas) + y] == valor && x<tamFilas) {			
+				int iguales = comprobarIgualesPos(dev_tablero, x, y, abajo, tamFilas, tamColumnas) + comprobarIgualesPos(dev_tablero, x, y, arriba, tamFilas, tamColumnas);
+				if ( y == columna1 && dev_tablero[(x * tamColumnas) + y] == valor && x<tamFilas && iguales >=2) {			
 					matrizCompartida[threadIdx.y][threadIdx.x] = 0;	
 				}
 			}
